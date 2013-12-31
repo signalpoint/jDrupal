@@ -5,6 +5,26 @@ Drupal.sessid = null;
 Drupal.user = drupal_user_defaults();
 
 /**
+ *
+ */
+function comment_load(cid, options) {
+  try {
+    entity_load('comment', cid, options);
+  }
+  catch (error) { console.log('comment_load - ' + error); }
+}
+
+/**
+ *
+ */
+function comment_save(comment, options) {
+  try {
+    entity_save('comment', null, comment, options);
+  }
+  catch (error) { console.log('comment_save - ' + error); }
+}
+
+/**
  * Given a JSON object or string, this will print it to the console.
  */
 function dpm(data) {
@@ -44,9 +64,30 @@ function entity_assemble_data(entity_type, bundle, entity, options) {
   try {
     var data = '';
     for (var property in entity) {
-      console.log(property);
       if (entity.hasOwnProperty(property)) {
-        data += property + '=' + encodeURIComponent(entity[property]) + '&';
+        var type = typeof entity[property];
+        // Assemble field items.
+        if (type === 'object') {
+          for (var language in entity[property]) {
+            if (entity[property].hasOwnProperty(language)) {
+              for (var delta in entity[property][language]) {
+                if (entity[property][language].hasOwnProperty(delta)) {
+                  for (var value in entity[property][language][delta]) {
+                    if (entity[property][language][delta].hasOwnProperty(value)) {
+                      data += property +
+                        '[' + language + '][' + delta + '][' + value + ']=' +
+                        encodeURIComponent(entity[property][language][delta][value]) + '&';   
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+        // Assemble flat properties.
+        else {            
+          data += property + '=' + encodeURIComponent(entity[property]) + '&';
+        }
       }
     }
     if (data != '') { data = data.substring(0, data.length - 1); }
@@ -58,21 +99,47 @@ function entity_assemble_data(entity_type, bundle, entity, options) {
 /**
  *
  */
+function entity_load(entity_type, ids, options) {
+  try {
+    var function_name = entity_type + '_retrieve';
+    if (function_exists(function_name)) {
+      var fn = window[function_name];
+      fn(ids, options);
+    }
+    else {
+      console.log('WARNING: entity_load - unsupported type: ' + entity_type);
+    }
+  }
+  catch (error) { console.log('entity_load - ' + error); }
+}
+
+/**
+ *
+ */
 function entity_save(entity_type, bundle, entity, options) {
   try {
+    var function_name;
     switch(entity_type) {
+      case 'comment':
+        if (!entity.cid) { function_name = 'comment_create'; }
+        else { function_name = 'comment_update'; }
+        break;
       case 'node':
         if (!entity.language) { entity.language = language_default(); }
-        if (!entity.nid) {
-          node_create(entity, options);
-        }
-        else {
-          node_update(entity, options);
-        }
+        if (!entity.nid) { function_name = 'node_create'; }
+        else { function_name = 'node_update'; }
         break;
-      default:
-        console.log('WARNING: entity_save - unsupported type: ' + entity_type);
+      case 'user':
+        if (!entity.uid) { function_name = 'user_create'; }
+        else { function_name = 'user_update'; }
         break;
+    }
+    if (function_name && function_exists(function_name)) {
+      var fn = window[function_name];
+      fn(entity, options);
+    }
+    else {
+      console.log('WARNING: entity_save - unsupported type: ' + entity_type);
     }
   }
   catch (error) { console.log('entity_save - ' + error); }
@@ -111,6 +178,14 @@ function http_status_code_title(status) {
 }
 
 /**
+ * Checks if the needle string, is in the haystack array. Returns true if it is
+ * found, false otherwise. Credit: http://stackoverflow.com/a/15276975/763010
+ */
+function in_array(needle, haystack) {
+  return (haystack.indexOf(needle) > -1);
+}
+
+/**
  *
  */
 function language_default() {
@@ -123,19 +198,99 @@ function language_default() {
 /**
  *
  */
+function node_load(nid, options) {
+  try {
+    entity_load('node', nid, options);
+  }
+  catch (error) { console.log('node_load - ' + error); }
+}
+
+/**
+ *
+ */
 function node_save(node, options) {
   try {
     entity_save('node', node.type, node, options);
   }
-  catch (error) { console.log('entity_save - ' + error); }
+  catch (error) { console.log('node_save - ' + error); }
 }
 
 /**
- * Checks if the needle string, is in the haystack array. Returns true if it is
- * found, false otherwise. Credit: http://stackoverflow.com/a/15276975/763010
+ *
  */
-function in_array(needle, haystack) {
-  return (haystack.indexOf(needle) > -1);
+function taxonomy_term_load(tid, options) {
+  try {
+    entity_load('taxonomy_term', tid, options);
+  }
+  catch (error) { console.log('taxonomy_term_load - ' + error); }
+}
+
+/**
+ *
+ */
+function taxonomy_term_save(taxonomy_term, options) {
+  try {
+    entity_save('taxonomy_term', null, taxonomy_term, options);
+  }
+  catch (error) { console.log('taxonomy_term_save - ' + error); }
+}
+
+/**
+ *
+ */
+function taxonomy_vocabulary_load(vid, options) {
+  try {
+    entity_load('taxonomy_vocabulary', vid, options);
+  }
+  catch (error) { console.log('taxonomy_vocabulary_load - ' + error); }
+}
+
+/**
+ *
+ */
+function taxonomy_vocabulary_save(taxonomy_vocabulary, options) {
+  try {
+    entity_save('taxonomy_vocabulary', null, taxonomy_vocabulary, options);
+  }
+  catch (error) { console.log('taxonomy_vocabulary_save - ' + error); }
+}
+
+/**
+ *
+ */
+function user_load(uid, options) {
+  try {
+    entity_load('user', uid, options);
+  }
+  catch (error) { console.log('user_load - ' + error); }
+}
+
+/**
+ * 
+ */
+function user_password() {
+  try {
+    // credit: http://stackoverflow.com/a/1349426/763010
+    var length = 10;
+    if (arguments[0]) { length = arguments[0]; }
+    var password = "";
+    var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz23456789";
+    for (var i = 0; i < length; i++) {
+      password += possible.charAt(Math.floor(Math.random() * possible.length));
+    }
+    return password;
+  }
+  catch (error) { console.log('user_password - ' + error); }
+}
+
+/**
+ *
+ */
+function user_save(account, options) {
+  try {
+    entity_save('user', null, account, options);
+  }
+  catch (error) { console.log('user_save - ' + error); }
 }
 
 /***********************|
@@ -149,6 +304,42 @@ Drupal.services = {};
 /**
  *
  */
+function comment_create(comment, options) {
+  try {
+    options.method = "POST";
+    options.path = "comment.json";
+    entity_create('comment', null, comment, options);
+  }
+  catch (error) { console.log('comment_create - ' + error); }
+}
+
+/**
+ *
+ */
+function comment_retrieve(ids, options) {
+  try {
+    options.method = "GET";
+    options.path = "comment/" + ids + ".json";
+    entity_retrieve('comment', ids, options);
+  }
+  catch (error) { console.log('comment_retrieve - ' + error); }
+}
+
+/**
+ *
+ */
+function comment_update(comment, options) {
+  try {
+    options.method = "PUT";
+    options.path = "comment/" + comment.cid + ".json";
+    entity_update('comment', null, comment, options);
+  }
+  catch (error) { console.log('comment_update - ' + error); }
+}
+
+/**
+ *
+ */
 function entity_create(entity_type, bundle, entity, options) {
   try {
     Drupal.services.call({
@@ -156,11 +347,53 @@ function entity_create(entity_type, bundle, entity, options) {
         path:options.path,
         data:entity_assemble_data(entity_type, bundle, entity, options),
         success:function(data){
-          options.success(data);
+          if (options.success) { options.success(data); }
+        },
+        error:function(xhr, status, message) {
+          if (options.error) { options.error(xhr, status, message); }
         }
     });
   }
   catch (error) { console.log('entity_create - ' + error); }
+}
+
+/**
+ *
+ */
+function entity_retrieve(entity_type, ids, options) {
+  try {
+    Drupal.services.call({
+        method:options.method,
+        path:options.path,
+        success:function(data){
+          if (options.success) { options.success(data); }
+        },
+        error:function(xhr, status, message) {
+          if (options.error) { options.error(xhr, status, message); }
+        }
+    });
+  }
+  catch (error) { console.log('entity_retrieve - ' + error); }
+}
+
+/**
+ *
+ */
+function entity_update(entity_type, bundle, entity, options) {
+  try {
+    Drupal.services.call({
+        method:options.method,
+        path:options.path,
+        data:entity_assemble_data(entity_type, bundle, entity, options),
+        success:function(data){
+          if (options.success) { options.success(data); }
+        },
+        error:function(xhr, status, message) {
+          if (options.error) { options.error(xhr, status, message); }
+        }
+    });
+  }
+  catch (error) { console.log('entity_update - ' + error); }
 }
 
 /**
@@ -175,6 +408,30 @@ function node_create(node, options) {
   catch (error) { console.log('node_create - ' + error); }
 }
 
+/**
+ *
+ */
+function node_retrieve(ids, options) {
+  try {
+    options.method = "GET";
+    options.path = "node/" + ids + ".json";
+    entity_retrieve('node', ids, options);
+  }
+  catch (error) { console.log('node_retrieve - ' + error); }
+}
+
+/**
+ *
+ */
+function node_update(node, options) {
+  try {
+    options.method = "PUT";
+    options.path = "node/" + node.nid + ".json";
+    entity_update('node', node.type, node, options);
+  }
+  catch (error) { console.log('node_update - ' + error); }
+}
+
 // System Connect
 function system_connect(options) {
   try {
@@ -183,7 +440,10 @@ function system_connect(options) {
         path:"system/connect.json",
         success:function(data){
           Drupal.user = data.user;
-          options.success(data);
+          if (options.success) { options.success(data); }
+        },
+        error:function(xhr, status, message) {
+          if (options.error) { options.error(xhr, status, message); }
         }
     });
   }
@@ -192,7 +452,141 @@ function system_connect(options) {
   }
 }
 
-// User Login
+/**
+ *
+ */
+function taxonomy_term_create(taxonomy_term, options) {
+  try {
+    options.method = "POST";
+    options.path = "taxonomy_term.json";
+    entity_create('taxonomy_term', null, taxonomy_term, options);
+  }
+  catch (error) { console.log('taxonomy_term_create - ' + error); }
+}
+
+/**
+ *
+ */
+function taxonomy_term_retrieve(ids, options) {
+  try {
+    options.method = "GET";
+    options.path = "taxonomy_term/" + ids + ".json";
+    entity_retrieve('taxonomy_term', ids, options);
+  }
+  catch (error) { console.log('taxonomy_term_retrieve - ' + error); }
+}
+
+/**
+ *
+ */
+function taxonomy_term_update(taxonomy_term, options) {
+  try {
+    options.method = "PUT";
+    options.path = "taxonomy_term/" + taxonomy_term.cid + ".json";
+    entity_update('taxonomy_term', null, taxonomy_term, options);
+  }
+  catch (error) { console.log('taxonomy_term_update - ' + error); }
+}
+
+/**
+ *
+ */
+function taxonomy_vocabulary_create(taxonomy_vocabulary, options) {
+  try {
+    options.method = "POST";
+    options.path = "taxonomy_vocabulary.json";
+    entity_create('taxonomy_vocabulary', null, taxonomy_vocabulary, options);
+  }
+  catch (error) { console.log('taxonomy_vocabulary_create - ' + error); }
+}
+
+/**
+ *
+ */
+function taxonomy_vocabulary_retrieve(ids, options) {
+  try {
+    options.method = "GET";
+    options.path = "taxonomy_vocabulary/" + ids + ".json";
+    entity_retrieve('taxonomy_vocabulary', ids, options);
+  }
+  catch (error) { console.log('taxonomy_vocabulary_retrieve - ' + error); }
+}
+
+/**
+ *
+ */
+function taxonomy_vocabulary_update(taxonomy_vocabulary, options) {
+  try {
+    options.method = "PUT";
+    options.path = "taxonomy_vocabulary/" + taxonomy_vocabulary.cid + ".json";
+    entity_update('taxonomy_vocabulary', null, taxonomy_vocabulary, options);
+  }
+  catch (error) { console.log('taxonomy_vocabulary_update - ' + error); }
+}
+
+/**
+ *
+ */
+function user_create(account, options) {
+  try {
+    options.method = "POST";
+    options.path = "user.json";
+    entity_create('user', null, account, options);
+  }
+  catch (error) { console.log('user_create - ' + error); }
+}
+
+/**
+ *
+ */
+function user_retrieve(ids, options) {
+  try {
+    options.method = "GET";
+    options.path = "user/" + ids + ".json";
+    entity_retrieve('user', ids, options);
+  }
+  catch (error) { console.log('user_retrieve - ' + error); }
+}
+
+/**
+ *
+ */
+function user_register(account, options) {
+  try {
+    dpm(account);
+    Drupal.services.call({
+        method:"POST",
+        path:"user/register.json",
+        data:entity_assemble_data('user', null, account, options),
+        success:function(data){
+          if (options.success) { options.success(data); }
+        },
+        error:function(xhr, status, message) {
+          if (status == 406) {
+            console.log('user_register - Already logged in, cannot register user!');
+          }
+          if (options.error) { options.error(xhr, status, message); }
+        }
+    });
+  }
+  catch (error) { console.log('user_retrieve - ' + error); }
+}
+
+/**
+ * TODO: Doesn't work, HTML doesn't support PUT!
+ */
+function user_update(account, options) {
+  try {
+    options.method = "PUT";
+    options.path = "user/" + account.uid + ".json";
+    entity_update('user', null, account, options);
+  }
+  catch (error) { console.log('user_update - ' + error); }
+}
+
+/**
+ *
+ */
 function user_login(options) {
   try {
     Drupal.services.call({
@@ -225,7 +619,7 @@ function user_login(options) {
                 window.localStorage.setItem('sessid', token);
                 Drupal.sessid = token;
                 dpm('got new token after user login: ' + token);
-                options.success(data);
+                if (options.success) { options.success(data); }
               }
             }
             else {
@@ -243,6 +637,9 @@ function user_login(options) {
           //Drupal.sessid = data.sessid;
           //window.localStorage.setItem('sessid', data.sessid);
           //options.success(data);
+        },
+        error:function(xhr, status, message) {
+          if (options.error) { options.error(xhr, status, message); }
         }
     });
   }
@@ -260,7 +657,10 @@ function user_logout(options) {
           Drupal.user = drupal_user_defaults();
           Drupal.sessid = null;
           window.localStorage.removeItem('sessid');
-          options.success(data);
+          if (options.success) { options.success(data); }
+        },
+        error:function(xhr, status, message) {
+          if (options.error) { options.error(xhr, status, message); }
         }
     });
   }
@@ -268,24 +668,7 @@ function user_logout(options) {
     console.log('user_login - ' + error);
   }
 }
-// User Register
-function user_register(options) {
-  try {
-    Drupal.services.call({
-        method:"POST",
-        path:"user/register.json",
-        data:"name=" + encodeURIComponent(options.name) + 
-             "&mail=" + encodeURIComponent(options.mail),
-        success:function(data){
-          Drupal.user = data.user;
-          options.success(data);
-        }
-    });
-  }
-  catch (error) {
-    console.log('user_register - ' + error);
-  }
-}
+
 
 /**
  * Drupal Services XMLHttpRequest Object
@@ -306,8 +689,15 @@ Drupal.services.call = function(options) {
         var title = request.status + " - " +
           http_status_code_title(request.status);
         if (request.status != 200) { // Not OK
-          console.log(url + " - " + title);
-          console.log(request.responseText);
+          dpm(request);
+          console.log(method + ': ' + url + " - " + title);
+          if (request.responseText) { console.log(request.responseText); }
+          else { dpm(request); }
+          if (typeof options.error !== 'undefined') {
+            var message = request.responseText;
+            if (!message) { message = title; }
+            options.error(request, request.status, message);
+          }
         }
         else { // OK
           options.success(JSON.parse(request.responseText));
@@ -419,7 +809,7 @@ Drupal.services.csrf_token = function(method, url, request, options) {
       }
       else {
         // We had a previous token available, let's use it.
-        dpm(method + ' - previous token available and being used');
+        dpm('previous token available and being used');
         Drupal.sessid = token;
         options.success(token);
       }
