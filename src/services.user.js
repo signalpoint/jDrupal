@@ -70,15 +70,17 @@ function user_update(account, options) {
 
 /**
  * Login user.
+ * @param {String} name
+ * @param {String} pass
  * @param {Object} options
  */
-function user_login(options) {
+function user_login(name, pass, options) {
   try {
     Drupal.services.call({
         method: 'POST',
         path: 'user/login.json',
-        data: 'username=' + encodeURIComponent(options.name) +
-             '&password=' + encodeURIComponent(options.pass),
+        data: 'username=' + encodeURIComponent(name) +
+             '&password=' + encodeURIComponent(pass),
         success: function(data) {
           Drupal.user = data.user;
           // Now that we are logged in, we need to get a new CSRF token.
