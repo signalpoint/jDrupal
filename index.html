@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <title>jDrupal</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="http://code.jquery.com/mobile/1.4.0/jquery.mobile-1.4.0.min.css" />
+    <script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
+    <script src="http://code.jquery.com/mobile/1.4.0/jquery.mobile-1.4.0.min.js"></script>
+    <script src="src/comment.js"></script>
+    <script src="src/drupal.js"></script>
+    <script src="src/entity.js"></script>
+    <script src="src/node.js"></script>
+    <script src="src/services.comment.js"></script>
+    <script src="src/services.entity.js"></script>
+    <script src="src/services.js"></script>
+    <script src="src/services.node.js"></script>
+    <script src="src/services.system.js"></script>
+    <script src="src/services.taxonomy_term.js"></script>
+    <script src="src/services.taxonomy_vocabulary.js"></script>
+    <script src="src/services.user.js"></script>
+    <script src="src/taxonomy_term.js"></script>
+    <script src="src/taxonomy_vocabulary.js"></script>
+    <script src="src/user.js"></script>
+  </head>
+
+  <body>
+    
+    <div data-role="page" id="jdrupal">
+      <div data-role="header">
+        <h1>jDrupal</h1>
+      </div><!-- header -->
+      <div data-role="content" class='content'>
+        <div data-role="fieldcontain">
+          <label for="site_path">Drupal Path</label>
+          <input type="text" id="site_path" value="" />
+        </div>
+        <div data-role="fieldcontain">
+          <label for="endpoint">Service Endpoint Path</label>
+          <input type="text" id="endpoint" value="drupalgap" />
+        </div>
+        <div data-role="fieldcontain" id="login_name_wrapper" style="display: none;">
+          <label for="login_name">Username</label>
+          <input type="text" id="login_name" value="" />
+        </div>
+        <div data-role="fieldcontain" id="login_pass_wrapper" style="display: none;">
+          <label for="login_pass">Password</label>
+          <input type="password" id="login_pass" />
+        </div>
+        <fieldset>
+          <div><button type="submit" id="go">Connect</button></div>
+          <div><button type="submit" id="login" style="display: none;">Login</button></div>
+          <div><button type="submit" id="logout" style="display: none;">Logout</button></div>
+          <div><button type="submit" id="run_tests" style="display: none;">Run Tests</button></div>
+        </fieldset>
+      </div><!-- /content -->
+    </div><!-- /page -->
+    
+    <script type="text/javascript">
+      $().ready(function() {
+          
+          // Set the site path.
+          Drupal.settings.site_path = window.location.href.replace(
+            '/sites/all/libraries/jDrupal/',
+            ''
+          );
+          $('#site_path').val(Drupal.settings.site_path);
+          
+          $('#go').on('click', function(){
+              set_drupal_settings();
+              system_connect({
+                  success:function(result){
+                    if (result.user.uid != 0) {
+                      alert("Logged in as " + result.user.name);
+                      $('#logout').show();
+                      $('#go').hide();
+                      $('#run_tests').show('slow');
+                    }
+                    else {
+                      $('#login_name_wrapper').show('slow');
+                      $('#login_pass_wrapper').show('slow');
+                      $('#login').show('slow');
+                      $('#go').hide();
+                    }
+                  },
+                  error:function(xhr, status, message){
+                    alert(message);
+                  }
+              });
+              return false;
+          });
+          
+          $('#login').on('click', function(){
+              set_drupal_settings();
+              user_login($('#login_name').val(), $('#login_pass').val(), {
+                  success:function(result){
+                    alert('Hi, ' + result.user.name + '!');
+                    $('#login_name_wrapper').hide();
+                    $('#login_pass_wrapper').hide();
+                    $('#login').hide();
+                    $('#logout').show('slow');
+                    $('#run_tests').show('slow');
+                    $('#login_pass').val('');
+                  },
+                  error:function(xhr, status, message){
+                    alert(message);
+                  }
+              });
+              return false;
+          });
+          
+          $('#run_tests').on('click', function(){
+              set_drupal_settings();
+              
+              return false;
+          });
+          
+          $('#logout').on('click', function(){
+              user_logout({
+                  success:function(result){
+                    if (result[0]) {
+                       alert("Logged out!");
+                       $('#login_name_wrapper').show('slow');
+                       $('#login_pass_wrapper').show('slow');
+                       $('#login').show('slow');
+                       $('#run_tests').hide();
+                       $('#logout').hide();
+                    }
+                  }
+              });
+              return false;
+          });
+          
+          function set_drupal_settings() {
+            Drupal.settings.site_path = $('#site_path').val();
+            Drupal.settings.endpoint = $('#endpoint').val();
+          }
+      });
+    </script>
+  </body>
+</html>
