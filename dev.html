@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <title>jDrupal</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    <script src="src/comment.js"></script>
+    <script src="src/drupal.js"></script>
+    <script src="src/entity.js"></script>
+    <script src="src/node.js"></script>
+    <script src="src/services.comment.js"></script>
+    <script src="src/services.entity.js"></script>
+    <script src="src/services.js"></script>
+    <script src="src/services.node.js"></script>
+    <script src="src/services.system.js"></script>
+    <script src="src/services.taxonomy_term.js"></script>
+    <script src="src/services.taxonomy_vocabulary.js"></script>
+    <script src="src/services.user.js"></script>
+    <script src="src/taxonomy_term.js"></script>
+    <script src="src/taxonomy_vocabulary.js"></script>
+    <script src="src/user.js"></script>
+    <script src="tests/services.comment.test.js"></script>
+    <script src="tests/services.node.test.js"></script>
+    <script src="tests/services.system.test.js"></script>
+    <script src="tests/services.taxonomy_vocabulary.test.js"></script>
+    
+  </head>
+
+  <body onload="hello_world()">
+  
+    <h1>jDrupal</h1>
+    
+    <p id="message">Loading...</p>
+    
+    <script type="text/javascript">
+    
+      function hello_world() {
+        
+        // Set the site path (without the trailing slash).
+        Drupal.settings.site_path = "http://localhost/drupal-7.23"; // http://www.example.com
+        
+        // Set the Service Resource endpoint path.
+        Drupal.settings.endpoint = "drupalgap";
+        
+        system_connect({
+            success:function(result){
+              if (Drupal.user.uid != 0) {
+                
+                var vid = 2;
+                taxonomy_vocabulary_delete(vid, {
+                    success: function(result){
+                      if (result[0] == 3) {
+                        alert("Deleted taxonomy vocabulary!");
+                      }
+                    }
+                });
+                
+              }
+            }
+        });
+        
+      }
+    
+    </script>
+    
+  </body>
+</html>
