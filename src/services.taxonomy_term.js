@@ -34,7 +34,7 @@ function taxonomy_term_retrieve(ids, options) {
 function taxonomy_term_update(taxonomy_term, options) {
   try {
     options.method = 'PUT';
-    options.path = 'taxonomy_term/' + taxonomy_term.cid + '.json';
+    options.path = 'taxonomy_term/' + taxonomy_term.tid + '.json';
     entity_update('taxonomy_term', null, taxonomy_term, options);
   }
   catch (error) { console.log('taxonomy_term_update - ' + error); }
