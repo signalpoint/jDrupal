@@ -33,11 +33,13 @@ function user_retrieve(ids, options) {
  */
 function user_register(account, options) {
   try {
-    dpm(account);
+    // TODO - it seems the user register resource only likes data string... ?
     Drupal.services.call({
         method: 'POST',
         path: 'user/register.json',
         data: entity_assemble_data('user', null, account, options),
+        //data: JSON.stringify({'account':account}), // wrapper
+        //data: JSON.stringify(account),
         success: function(data) {
           if (options.success) { options.success(data); }
         },
@@ -66,6 +68,39 @@ function user_update(account, options) {
     entity_update('user', null, account, options);
   }
   catch (error) { console.log('user_update - ' + error); }
+}
+
+/**
+ * Delete a user.
+ * @param {Number} uid
+ * @param {Object} options
+ */
+function user_delete(uid, options) {
+  try {
+    Drupal.services.call({
+        method: 'DELETE',
+        path: 'user/' + uid + '.json',
+        success: function(data) {
+          if (options.success) { options.success(data); }
+        },
+        error: function(xhr, status, message) {
+          if (options.error) { options.error(xhr, status, message); }
+        }
+    });
+  }
+  catch (error) { console.log('user_delete - ' + error); }
+}
+
+/**
+ * Perform a user index.
+ * @param {Object} query
+ * @param {Object} options
+ */
+function user_index(query, options) {
+  try {
+    entity_index('user', query, options);
+  }
+  catch (error) { console.log('user_index - ' + error); }
 }
 
 /**
@@ -105,7 +140,6 @@ function user_login(name, pass, options) {
                 token = token_request.responseText;
                 window.localStorage.setItem('sessid', token);
                 Drupal.sessid = token;
-                dpm('got new token after user login: ' + token);
                 if (options.success) { options.success(data); }
               }
             }
@@ -121,7 +155,6 @@ function user_login(name, pass, options) {
           token_request.open('GET', token_url, true);
 
           // Send the token request.
-          dpm('grabbing new token after user login...');
           token_request.send(null);
         },
         error: function(xhr, status, message) {
