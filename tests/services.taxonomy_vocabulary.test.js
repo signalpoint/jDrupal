@@ -26,7 +26,12 @@ var test_taxonomy_vocabulary_crud = function(callback) {
             
             // Index
             asyncTest("taxonomy_vocabulary_index", function() {
-                taxonomy_vocabulary_index(null, {
+                var query = {
+                  parameters:{
+                    'name':taxonomy_vocabulary.name
+                  }
+                };
+                taxonomy_vocabulary_index(query, {
                     success:function(taxonomy_vocabulary_index_results){
                       var index = taxonomy_vocabulary_index_results.length-1;
                       var old_name = taxonomy_vocabulary.name;
@@ -74,7 +79,7 @@ var test_taxonomy_vocabulary_crud = function(callback) {
                                                               expect(1);
                                                               ok(taxonomy_vocabulary_delete_result[0] == 3, "SAVED_DELETED");
                                                               if (callback) {
-                                                                callback();
+                                                                test_taxonomy_term_crud(callback);
                                                               }
                                                             }
                                                         });
