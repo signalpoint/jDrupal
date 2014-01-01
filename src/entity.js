@@ -8,6 +8,8 @@
  */
 function entity_assemble_data(entity_type, bundle, entity, options) {
   try {
+    // TODO, this function is being replaced by sending JSON object directly
+    // via Content-Type application/json. This will eventually go away.
     var data = '';
     for (var property in entity) {
       if (entity.hasOwnProperty(property)) {
@@ -108,6 +110,14 @@ function entity_save(entity_type, bundle, entity, options) {
       case 'user':
         if (!entity.uid) { function_name = 'user_create'; }
         else { function_name = 'user_update'; }
+        break;
+      case 'taxonomy_term':
+        if (!entity.tid) { function_name = 'taxonomy_term_create'; }
+        else { function_name = 'taxonomy_term_update'; }
+        break;
+      case 'taxonomy_vocabulary':
+        if (!entity.vid) { function_name = 'taxonomy_vocabulary_create'; }
+        else { function_name = 'taxonomy_vocabulary_update'; }
         break;
     }
     if (function_name && function_exists(function_name)) {
