@@ -30,6 +30,7 @@
     <script src="tests/services.system.test.js"></script>
     <script src="tests/services.taxonomy_term.test.js"></script>
     <script src="tests/services.taxonomy_vocabulary.test.js"></script>
+    <script src="tests/services.user.test.js"></script>
     
   </head>
 
@@ -90,6 +91,8 @@
               }
               system_connect({
                   success:function(result){
+                    $('#login_name_wrapper').show('slow');
+                    $('#login_pass_wrapper').show('slow');
                     if (result.user.uid != 0) {
                       $('#logout').show();
                       $('#go').hide();
@@ -101,8 +104,6 @@
                       }
                     }
                     else {
-                      $('#login_name_wrapper').show('slow');
-                      $('#login_pass_wrapper').show('slow');
                       $('#login').show('slow');
                       $('#go').hide();
                     }
@@ -119,12 +120,9 @@
               user_login($('#login_name').val(), $('#login_pass').val(), {
                   success:function(result){
                     alert('Hi, ' + result.user.name + '!');
-                    $('#login_name_wrapper').hide();
-                    $('#login_pass_wrapper').hide();
                     $('#login').hide();
                     $('#logout').show('slow');
                     $('#run_tests').show('slow');
-                    $('#login_pass').val('');
                   },
                   error:function(xhr, status, message){
                     alert(message);
@@ -138,8 +136,6 @@
                   success:function(result){
                     if (result[0]) {
                        alert("Logged out!");
-                       $('#login_name_wrapper').show('slow');
-                       $('#login_pass_wrapper').show('slow');
                        $('#login').show('slow');
                        $('#run_tests').hide();
                        $('#logout').hide();
@@ -155,9 +151,18 @@
           }
           
           $('#run_tests').on('click', function(){
+              if ($('#login_name').val() == '') {
+                alert('Enter your user name to run tests!');
+                return false;
+              }
+              if ($('#login_pass').val() == '') {
+                alert('Enter your password to run tests!');
+                return false;
+              }
               set_drupal_settings();
               test_services_system();
-              test_services_node(); // this call iterates through other tests
+              // this call iterates through other tests
+              test_services_user($('#login_name').val(), $('#login_pass').val());
               return false;
           });
       });
