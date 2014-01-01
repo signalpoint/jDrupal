@@ -57,9 +57,15 @@ Drupal.services.call = function(options) {
               'application/x-www-form-urlencoded'
             );
           }
+          else if (method == 'PUT') {
+            request.setRequestHeader(
+              'Content-type',
+              'application/json'
+            );
+          }
 
+          // Add the token to the header if we have one.
           if (token) {
-            dpm('Adding token to header: ' + token);
             request.setRequestHeader('X-CSRF-Token', token);
           }
           if (typeof options.data !== 'undefined') {
@@ -93,19 +99,14 @@ Drupal.services.csrf_token = function(method, url, request, options) {
       // Anonymous users don't need the CSRF token, unless we're calling system
       // connect, then we need to pass along the token if we have one.
       if (Drupal.user.uid == 0 && options.path != 'system/connect.json') {
-        dpm(method + ' - anonymous token not needed');
         options.success(false);
         return;
       }
       // Is there a token available in local storage?
       token = window.localStorage.getItem('sessid');
-      if (token) {
-        dpm('grabbed token from local storage: ' + token);
-      }
       // If we don't already have a token, is there one on Drupal.sessid?
       if (!token && Drupal.sessid) {
         token = Drupal.sessid;
-        dpm('Grabbed token from drupal: ' + token);
       }
       // If we still don't have a token to use, let's grab one from Drupal.
       if (!token) {
@@ -119,7 +120,6 @@ Drupal.services.csrf_token = function(method, url, request, options) {
           if (token_request.readyState == 4) {
             var title = token_request.status + ' - ' +
               http_status_code_title(token_request.status);
-            console.log('TOKEN REQUEST COMPLETE: ' + title);
             if (token_request.status != 200) { // Not OK
               console.log(token_url + ' - ' + title);
               console.log(token_request.responseText);
@@ -127,9 +127,7 @@ Drupal.services.csrf_token = function(method, url, request, options) {
             else { // OK
               // Save the token to local storage as sessid, set Drupal.sessid
               // with the token, then return the token to the success function.
-              dpm(token_request.responseText);
               token = token_request.responseText;
-              dpm('Grabbed a new token, saving it to local storage: ' + token);
               window.localStorage.setItem('sessid', token);
               Drupal.sessid = token;
               options.success(token);
@@ -146,18 +144,15 @@ Drupal.services.csrf_token = function(method, url, request, options) {
         token_request.open('GET', token_url, true);
 
         // Send the token request.
-        dpm(token_url + ' - previous token not available, grabbing one...');
         token_request.send(null);
       }
       else {
         // We had a previous token available, let's use it.
-        dpm('previous token available and being used');
         Drupal.sessid = token;
         options.success(token);
       }
     }
     else {
-      dpm(method + ' - token not needed');
       // This call's HTTP method doesn't need a token, so we return via the
       // success function.
       options.success(false);

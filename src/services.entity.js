@@ -53,10 +53,13 @@ function entity_retrieve(entity_type, ids, options) {
  */
 function entity_update(entity_type, bundle, entity, options) {
   try {
+    var entity_wrapper = {};
+    entity_wrapper[entity_type] = entity;
     Drupal.services.call({
         method: options.method,
         path: options.path,
-        data: entity_assemble_data(entity_type, bundle, entity, options),
+        //data: entity_assemble_data(entity_type, bundle, entity, options),
+        data: JSON.stringify(entity_wrapper),
         success: function(data) {
           if (options.success) { options.success(data); }
         },
