@@ -21,10 +21,6 @@
     <script src="src/taxonomy_term.js"></script>
     <script src="src/taxonomy_vocabulary.js"></script>
     <script src="src/user.js"></script>
-    <script src="tests/services.comment.test.js"></script>
-    <script src="tests/services.node.test.js"></script>
-    <script src="tests/services.system.test.js"></script>
-    <script src="tests/services.taxonomy_vocabulary.test.js"></script>
     
   </head>
 
@@ -47,15 +43,6 @@
         system_connect({
             success:function(result){
               if (Drupal.user.uid != 0) {
-                
-                var vid = 2;
-                taxonomy_vocabulary_delete(vid, {
-                    success: function(result){
-                      if (result[0] == 3) {
-                        alert("Deleted taxonomy vocabulary!");
-                      }
-                    }
-                });
                 
               }
             }
