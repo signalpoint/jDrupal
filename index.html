@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <title>jDrupal</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    <!-- Download jDrupal.js or jDrupal.min.js and include it here! -->
+    <script src="bin/jDrupal.js"></script>
+  </head>
+
+  <body onload="hello_world()">
+  
+    <h1>jDrupal</h1>
+    
+    <p id="message">Loading...</p>
+    
+    <script type="text/javascript">
+    
+      function hello_world() {
+        
+        // Set the site path (without the trailing slash).
+        Drupal.settings.site_path = ""; // http://www.example.com
+        
+        // Set the Service Resource endpoint path.
+        Drupal.settings.endpoint = "";
+        
+        // Perform a System Connect call and say hello.
+        system_connect({
+            success:function(result){
+              if (Drupal.user.uid == 0) { message = "Hello World, Visitor!"; }
+              else { message = "Hello World, " + Drupal.user.name + "!"; }
+              document.getElementById("message").innerHTML = message;
+            },
+            error:function(xhr, status, message) {
+              alert(message);
+            }
+        });
+        
+      }
+    
+    </script>
+    
+  </body>
+</html>
