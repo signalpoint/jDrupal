@@ -64,24 +64,44 @@ var test_node_crud = function(callback) {
                                                     expect(1);
                                                     ok(node_delete_result[0], "deleted");
                                                     
-                                                    if (callback) {
-                                                      test_services_comment(callback);
-                                                      //callback();
-                                                    }
+                                                    // Index
+                                                    asyncTest("node_index", function() {
+                                                        var query = {
+                                                          type: 'article'
+                                                        };
+                                                        node_index(query, {
+                                                            success:function(node_index_results){
+                                                              start();
+                                                              expect(1);
+                                                              ok(node_index_results[0].nid, "nid");
+                                                              
+                                                              if (callback) {
+                                                                test_services_comment(callback);
+                                                                //callback();
+                                                              }
+                                                            }
+                                                        });
+                                                    }); // Index
+                                                    
                                                   }
                                               });
-                                          });
+                                          }); // Delete
+                                          
                                         }
                                     });
-                                });
+                                }); // Update Existing
+                                
                               }
                           });
-                      });
+                      }); // Load After Create
+                      
                     }
                 });
-            });
+            }); // Retrieve
+            
           }
       });
-  });
+  }); // Create
+
 };
 

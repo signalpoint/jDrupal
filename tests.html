@@ -74,7 +74,7 @@
           Drupal.settings.site_path = window.location.href.replace(
             '/sites/all/libraries/jDrupal/',
             ''
-          );
+          ).replace('tests.html', '');
           $('#site_path').val(Drupal.settings.site_path);
           
           $('#go').on('click', function(){
@@ -92,7 +92,12 @@
                     if (result.user.uid != 0) {
                       $('#logout').show();
                       $('#go').hide();
-                      $('#run_tests').show('slow');
+                      if (Drupal.user.uid == 1) {
+                        $('#run_tests').show('slow');
+                      }
+                      else {
+                        alert('Only user #1 can perform tests, your are user # ' + Drupal.user.uid + '!');
+                      }
                     }
                     else {
                       $('#login_name_wrapper').show('slow');

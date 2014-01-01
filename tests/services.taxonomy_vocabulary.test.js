@@ -24,63 +24,81 @@ var test_taxonomy_vocabulary_crud = function(callback) {
             expect(1);
             ok(taxonomy_vocabulary_create_result[0] === 1, "SAVED_NEW");
             
-            // Retrieve
-            asyncTest("taxonomy_vocabulary_load", function() {
-                taxonomy_vocabulary_load(taxonomy_vocabulary_create_result.vid, {
-                    success:function(taxonomy_vocabulary_retrieve_result) {
+            // Index
+            asyncTest("taxonomy_vocabulary_index", function() {
+                taxonomy_vocabulary_index(null, {
+                    success:function(taxonomy_vocabulary_index_results){
+                      var index = taxonomy_vocabulary_index_results.length-1;
+                      var old_name = taxonomy_vocabulary.name;
+                      taxonomy_vocabulary = taxonomy_vocabulary_index_results[index];
                       start();
                       expect(2);
-                      ok(taxonomy_vocabulary_retrieve_result.vid == taxonomy_vocabulary_create_result.vid, "vid");
-                      ok(taxonomy_vocabulary_retrieve_result.title == taxonomy_vocabulary.title, "title");
+                      ok(taxonomy_vocabulary.vid, "vid");
+                      ok(taxonomy_vocabulary.name == old_name, "name");
                       
-                      // Update
-                      asyncTest("taxonomy_vocabulary_save - update existing", function() {
-                          var taxonomy_vocabulary_changes = {
-                            vid:taxonomy_vocabulary_retrieve_result.vid,
-                            title:user_password()
-                          };
-                          taxonomy_vocabulary_save(taxonomy_vocabulary_changes, {
-                              success:function(taxonomy_vocabulary_update_result) {
+                      // Retrieve
+                      asyncTest("taxonomy_vocabulary_load", function() {
+                          taxonomy_vocabulary_load(taxonomy_vocabulary.vid, {
+                              success:function(taxonomy_vocabulary_retrieve_result) {
                                 start();
                                 expect(1);
-                                ok(taxonomy_vocabulary_update_result.vid == taxonomy_vocabulary_create_result.vid, "vid");
+                                ok(taxonomy_vocabulary_retrieve_result.vid == taxonomy_vocabulary.vid, "vid");
                                 
-                                // Retrieve updated entity.
-                                asyncTest("taxonomy_vocabulary_load - after update", function() {
-                                    taxonomy_vocabulary_load(taxonomy_vocabulary_update_result.vid, {
-                                        success:function(updated_taxonomy_vocabulary){
+                                // Update
+                                asyncTest("taxonomy_vocabulary_save - update existing", function() {
+                                    var taxonomy_vocabulary_changes = {
+                                      vid:taxonomy_vocabulary_retrieve_result.vid,
+                                      name:user_password()
+                                    };
+                                    taxonomy_vocabulary_save(taxonomy_vocabulary_changes, {
+                                        success:function(taxonomy_vocabulary_update_result) {
                                           start();
-                                          expect(3);
-                                          ok(taxonomy_vocabulary_update_result.vid == updated_taxonomy_vocabulary.vid, "vid");
-                                          ok(taxonomy_vocabulary_changes.title == updated_taxonomy_vocabulary.title, "title");
-                                          ok(taxonomy_vocabulary.title != updated_taxonomy_vocabulary.title, "title changed (" + taxonomy_vocabulary.title + " != " + updated_taxonomy_vocabulary.title + ")");
+                                          expect(1);
+                                          ok(taxonomy_vocabulary_update_result[0] == 2, "SAVED_UPDATED");
                                           
-                                          // Delete
-                                          asyncTest("taxonomy_vocabulary_delete", function() {
-                                              taxonomy_vocabulary_delete(updated_taxonomy_vocabulary.vid, {
-                                                  success:function(taxonomy_vocabulary_delete_result){
+                                          // Retrieve updated entity.
+                                          asyncTest("taxonomy_vocabulary_load - after update", function() {
+                                              taxonomy_vocabulary_load(taxonomy_vocabulary_changes.vid, {
+                                                  success:function(updated_taxonomy_vocabulary){
                                                     start();
-                                                    expect(1);
-                                                    ok(taxonomy_vocabulary_delete_result[0], "deleted");
+                                                    expect(3);
+                                                    ok(taxonomy_vocabulary_retrieve_result.vid == updated_taxonomy_vocabulary.vid, "vid");
+                                                    ok(taxonomy_vocabulary_changes.name == updated_taxonomy_vocabulary.name, "title");
+                                                    ok(taxonomy_vocabulary.name != updated_taxonomy_vocabulary.name, "title changed (" + taxonomy_vocabulary.name + " != " + updated_taxonomy_vocabulary.name + ")");
                                                     
-                                                    if (callback) {
-                                                      //test_services_comment(callback);
-                                                      callback();
-                                                    }
+                                                    // Delete
+                                                    asyncTest("taxonomy_vocabulary_delete", function() {
+                                                        taxonomy_vocabulary_delete(taxonomy_vocabulary_changes.vid, {
+                                                            success:function(taxonomy_vocabulary_delete_result){
+                                                              start();
+                                                              expect(1);
+                                                              ok(taxonomy_vocabulary_delete_result[0] == 3, "SAVED_DELETED");
+                                                              if (callback) {
+                                                                callback();
+                                                              }
+                                                            }
+                                                        });
+                                                    });
+                                                    
                                                   }
                                               });
                                           });
+                                          
                                         }
                                     });
                                 });
+                                
                               }
                           });
                       });
+                      
                     }
                 });
-            });
+            }); // Index
+            
           }
       });
   });
+
 };
 
