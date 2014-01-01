@@ -40,3 +40,37 @@ function taxonomy_term_update(taxonomy_term, options) {
   catch (error) { console.log('taxonomy_term_update - ' + error); }
 }
 
+/**
+ * Delete a taxonomy term.
+ * @param {Number} tid
+ * @param {Object} options
+ */
+function taxonomy_term_delete(tid, options) {
+  try {
+    // TODO - this should be replaced with a call to entity_delete().
+    Drupal.services.call({
+        method: 'DELETE',
+        path: 'taxonomy_term/' + tid + '.json',
+        success: function(data) {
+          if (options.success) { options.success(data); }
+        },
+        error: function(xhr, status, message) {
+          if (options.error) { options.error(xhr, status, message); }
+        }
+    });
+  }
+  catch (error) { console.log('taxonomy_term_delete - ' + error); }
+}
+
+/**
+ * Perform a taxonomy_term index.
+ * @param {Object} query
+ * @param {Object} options
+ */
+function taxonomy_term_index(query, options) {
+  try {
+    entity_index('taxonomy_term', query, options);
+  }
+  catch (error) { console.log('taxonomy_term_index - ' + error); }
+}
+
