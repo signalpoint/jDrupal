@@ -16,6 +16,7 @@ lintfiles = src/drupal.js\
 				src/services.js\
         src/services.comment.js\
 				src/services.entity.js\
+				src/services.jdrupal.js\
 				src/services.node.js\
 				src/services.system.js\
 				src/services.taxonomy_term.js\
@@ -32,6 +33,7 @@ files =				 src/drupal.js\
 				src/services.js\
         src/services.comment.js\
 				src/services.entity.js\
+				src/services.jdrupal.js\
 				src/services.node.js\
 				src/services.system.js\
 				src/services.taxonomy_term.js\

@@ -62,7 +62,7 @@ var test_node_crud = function(callback) {
                                                   success:function(node_delete_result){
                                                     start();
                                                     expect(1);
-                                                    ok(node_delete_result[0] == 1, "deleted");
+                                                    ok(node_delete_result[0], "deleted");
                                                     
                                                     if (callback) {
                                                       test_services_comment(callback);

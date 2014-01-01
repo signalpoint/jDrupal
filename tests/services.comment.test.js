@@ -79,7 +79,7 @@ var test_comment_crud = function(callback) {
                                                             success:function(comment_delete_result){
                                                               start();
                                                               expect(1);
-                                                              ok(comment_delete_result[0] == 1, "deleted");
+                                                              ok(comment_delete_result[0], "deleted");
                                                               
                                                               // Delete node.
                                                               asyncTest("node_delete - delete node after comments", function() {
@@ -87,18 +87,13 @@ var test_comment_crud = function(callback) {
                                                                       success:function(node_delete_result){
                                                                         start();
                                                                         expect(1);
-                                                                        ok(node_delete_result[0] == 1, "deleted");
+                                                                        ok(node_delete_result[0], "deleted");
                                                                         if (callback) {
-                                                                          callback();
+                                                                          test_services_taxonomy_vocabulary(callback);
                                                                         }
                                                                       }
                                                                   });
                                                               });
-                                                              
-                                                              
-                                                              if (callback) {
-                                                                callback();
-                                                              }
                                                             }
                                                         });
                                                     });
