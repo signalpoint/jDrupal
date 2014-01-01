@@ -37,6 +37,18 @@ function taxonomy_vocabulary_retrieve(ids, options) {
  */
 function taxonomy_vocabulary_update(taxonomy_vocabulary, options) {
   try {
+    // We need to make sure a machine_name was provided, otherwise it seems the
+    // Services module will update a vocabulary and clear out its machine_name
+    // if we don't provide it.
+    if (!taxonomy_vocabulary.machine_name ||
+      taxonomy_vocabulary.machine_name == '') {
+      var message = 'taxonomy_vocabulary_update - missing machine_name';
+      console.log(message);
+      if (options.error) {
+        options.error(null, 406, message);
+      }
+      return false;
+    }
     options.method = 'PUT';
     options.path = 'taxonomy_vocabulary/' + taxonomy_vocabulary.vid + '.json';
     entity_update('taxonomy_vocabulary', null, taxonomy_vocabulary, options);

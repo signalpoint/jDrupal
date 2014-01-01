@@ -52,8 +52,9 @@ var test_taxonomy_vocabulary_crud = function(callback) {
                                 // Update
                                 asyncTest("taxonomy_vocabulary_save - update existing", function() {
                                     var taxonomy_vocabulary_changes = {
-                                      vid:taxonomy_vocabulary_retrieve_result.vid,
-                                      name:user_password()
+                                      vid: taxonomy_vocabulary_retrieve_result.vid,
+                                      name: user_password(),
+                                      machine_name: taxonomy_vocabulary.machine_name
                                     };
                                     taxonomy_vocabulary_save(taxonomy_vocabulary_changes, {
                                         success:function(taxonomy_vocabulary_update_result) {

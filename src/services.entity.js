@@ -55,7 +55,9 @@ function entity_update(entity_type, bundle, entity, options) {
   try {
     // Wrap entities, except for taxonomy.
     var entity_wrapper = {};
-    if (entity_type == 'taxonomy_term' || entity_type == 'taxonomy_vocabulary') {
+    if (entity_type == 'taxonomy_term' ||
+      entity_type == 'taxonomy_vocabulary' ||
+      entity_type == 'user') {
       entity_wrapper = entity;
     }
     else { entity_wrapper[entity_type] = entity; }
