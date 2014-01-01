@@ -3,11 +3,13 @@
 
   <head>
     <title>jDrupal</title>
-    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="http://code.jquery.com/mobile/1.4.0/jquery.mobile-1.4.0.min.css" />
+    <link rel="stylesheet" type='text/css' href="http://code.jquery.com/mobile/1.4.0/jquery.mobile-1.4.0.min.css" />
+    <link rel='stylesheet' type='text/css' href='http://code.jquery.com/qunit/qunit-1.12.0.css' />
     <script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
     <script src="http://code.jquery.com/mobile/1.4.0/jquery.mobile-1.4.0.min.js"></script>
+    <script type='text/javascript' src='http://code.jquery.com/qunit/qunit-1.12.0.js'></script>
     <script src="src/comment.js"></script>
     <script src="src/drupal.js"></script>
     <script src="src/entity.js"></script>
@@ -23,6 +25,8 @@
     <script src="src/taxonomy_term.js"></script>
     <script src="src/taxonomy_vocabulary.js"></script>
     <script src="src/user.js"></script>
+    <script src="tests/services.node.test.js"></script>
+    <script src="tests/services.system.test.js"></script>
   </head>
 
   <body>
@@ -38,7 +42,7 @@
         </div>
         <div data-role="fieldcontain">
           <label for="endpoint">Service Endpoint Path</label>
-          <input type="text" id="endpoint" value="drupalgap" />
+          <input type="text" id="endpoint" value="" />
         </div>
         <div data-role="fieldcontain" id="login_name_wrapper" style="display: none;">
           <label for="login_name">Username</label>
@@ -54,6 +58,9 @@
           <div><button type="submit" id="logout" style="display: none;">Logout</button></div>
           <div><button type="submit" id="run_tests" style="display: none;">Run Tests</button></div>
         </fieldset>
+        <div id="qunit"></div>
+        <ol id="qunit-tests"></ol>
+        <div id="qunit-fixture"></div>
       </div><!-- /content -->
     </div><!-- /page -->
     
@@ -69,10 +76,17 @@
           
           $('#go').on('click', function(){
               set_drupal_settings();
+              if (Drupal.settings.site_path == '') {
+                alert('Enter a site path!');
+                return false;
+              }
+              if (Drupal.settings.endpoint == '') {
+                alert('Enter an endpoint path!');
+                return false;
+              }
               system_connect({
                   success:function(result){
                     if (result.user.uid != 0) {
-                      alert("Logged in as " + result.user.name);
                       $('#logout').show();
                       $('#go').hide();
                       $('#run_tests').show('slow');
@@ -110,12 +124,6 @@
               return false;
           });
           
-          $('#run_tests').on('click', function(){
-              set_drupal_settings();
-              
-              return false;
-          });
-          
           $('#logout').on('click', function(){
               user_logout({
                   success:function(result){
@@ -136,7 +144,15 @@
             Drupal.settings.site_path = $('#site_path').val();
             Drupal.settings.endpoint = $('#endpoint').val();
           }
+          
+          $('#run_tests').on('click', function(){
+              set_drupal_settings();
+              test_services_system();
+              test_services_node();
+              return false;
+          });
       });
     </script>
+    
   </body>
 </html>
