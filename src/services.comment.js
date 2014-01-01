@@ -40,3 +40,24 @@ function comment_update(comment, options) {
   catch (error) { console.log('comment_update - ' + error); }
 }
 
+/**
+ * Delete a comment.
+ * @param {Number} cid
+ * @param {Object} options
+ */
+function comment_delete(cid, options) {
+  try {
+    Drupal.services.call({
+        method: 'DELETE',
+        path: 'comment/' + cid + '.json',
+        success: function(data) {
+          if (options.success) { options.success(data); }
+        },
+        error: function(xhr, status, message) {
+          if (options.error) { options.error(xhr, status, message); }
+        }
+    });
+  }
+  catch (error) { console.log('comment_delete - ' + error); }
+}
+
