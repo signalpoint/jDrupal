@@ -86,7 +86,12 @@ Drupal.services.call = function(options) {
           }
           if (typeof options.data !== 'undefined') {
             if (options.path != 'user/login.json') {
-              console.log('sending: ' + options.data);
+              if (typeof options.data === 'object') {
+                console.log(JSON.stringify(options.data));
+              }
+              else {
+                console.log(options.data);
+              }
             }
             request.send(options.data);
           }
