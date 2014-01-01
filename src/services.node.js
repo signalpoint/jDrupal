@@ -61,3 +61,15 @@ function node_delete(nid, options) {
   catch (error) { console.log('node_delete - ' + error); }
 }
 
+/**
+ * Perform a node index.
+ * @param {Object} query
+ * @param {Object} options
+ */
+function node_index(query, options) {
+  try {
+    entity_index('node', query, options);
+  }
+  catch (error) { console.log('node_index - ' + error); }
+}
+
