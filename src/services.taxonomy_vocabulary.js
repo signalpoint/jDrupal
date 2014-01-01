@@ -7,6 +7,10 @@ function taxonomy_vocabulary_create(taxonomy_vocabulary, options) {
   try {
     options.method = 'POST';
     options.path = 'taxonomy_vocabulary.json';
+    if (!taxonomy_vocabulary.machine_name && taxonomy_vocabulary.name) {
+      taxonomy_vocabulary.machine_name =
+        taxonomy_vocabulary.name.toLowerCase().replace(' ', '_');
+    }
     entity_create('taxonomy_vocabulary', null, taxonomy_vocabulary, options);
   }
   catch (error) { console.log('taxonomy_vocabulary_create - ' + error); }
@@ -34,9 +38,42 @@ function taxonomy_vocabulary_retrieve(ids, options) {
 function taxonomy_vocabulary_update(taxonomy_vocabulary, options) {
   try {
     options.method = 'PUT';
-    options.path = 'taxonomy_vocabulary/' + taxonomy_vocabulary.cid + '.json';
+    options.path = 'taxonomy_vocabulary/' + taxonomy_vocabulary.vid + '.json';
     entity_update('taxonomy_vocabulary', null, taxonomy_vocabulary, options);
   }
   catch (error) { console.log('taxonomy_vocabulary_update - ' + error); }
+}
+
+/**
+ * Delete a taxonomy vocabulary.
+ * @param {Number} vid
+ * @param {Object} options
+ */
+function taxonomy_vocabulary_delete(vid, options) {
+  try {
+    Drupal.services.call({
+        method: 'DELETE',
+        path: 'taxonomy_vocabulary/' + vid + '.json',
+        success: function(data) {
+          if (options.success) { options.success(data); }
+        },
+        error: function(xhr, status, message) {
+          if (options.error) { options.error(xhr, status, message); }
+        }
+    });
+  }
+  catch (error) { console.log('taxonomy_vocabulary_delete - ' + error); }
+}
+
+/**
+ * Perform a taxonomy_vocabulary index.
+ * @param {Object} query
+ * @param {Object} options
+ */
+function taxonomy_vocabulary_index(query, options) {
+  try {
+    entity_index('taxonomy_vocabulary', query, options);
+  }
+  catch (error) { console.log('taxonomy_vocabulary_index - ' + error); }
 }
 
