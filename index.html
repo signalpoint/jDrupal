@@ -25,8 +25,10 @@
     <script src="src/taxonomy_term.js"></script>
     <script src="src/taxonomy_vocabulary.js"></script>
     <script src="src/user.js"></script>
+    <script src="tests/services.comment.test.js"></script>
     <script src="tests/services.node.test.js"></script>
     <script src="tests/services.system.test.js"></script>
+    
   </head>
 
   <body>
@@ -148,7 +150,7 @@
           $('#run_tests').on('click', function(){
               set_drupal_settings();
               test_services_system();
-              test_services_node();
+              test_services_node(); // this call iterates through other tests
               return false;
           });
       });

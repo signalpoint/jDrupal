@@ -1,19 +1,23 @@
 var test_services_node = function(callback) {
-  test_node_create(function() {
+  test_node_crud(function() {
       if (callback) {
         callback();
       }
   });
 };
 
-var test_node_create = function(callback) {
+function test_services_node_template() {
+  return {
+    type:"article",
+    title:user_password()
+  };
+}
+
+var test_node_crud = function(callback) {
   
   // Create
   asyncTest("node_save - create new", function() {
-      var node = {
-        type:"article",
-        title:user_password()
-      };
+      var node = test_services_node_template();
       node_save(node, {
           success:function(node_create_result){
             start();
@@ -56,13 +60,13 @@ var test_node_create = function(callback) {
                                           asyncTest("node_delete", function() {
                                               node_delete(updated_node.nid, {
                                                   success:function(node_delete_result){
-                                                    dpm(node_delete_result);
                                                     start();
                                                     expect(1);
                                                     ok(node_delete_result[0] == 1, "deleted");
                                                     
                                                     if (callback) {
-                                                      callback();
+                                                      test_services_comment(callback);
+                                                      //callback();
                                                     }
                                                   }
                                               });
