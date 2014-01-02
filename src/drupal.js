@@ -89,6 +89,7 @@ function http_status_code_title(status) {
       case 401: title = 'Unauthorized'; break;
       case 404: title = 'Not Found'; break;
       case 406: title = 'Not Acceptable'; break;
+      case 500: title = 'Internal Server Error'; break;
     }
     return title;
   }
