@@ -88,6 +88,32 @@ function entity_load(entity_type, ids, options) {
 }
 
 /**
+ * Returns an entity type's primary key.
+ * @param {String} entity_type
+ * @return {String}
+ */
+function entity_primary_key(entity_type) {
+  try {
+    var key;
+    switch (entity_type) {
+      case 'comment': key = 'cid'; break;
+      case 'file': key = 'fid'; break;
+      case 'node': key = 'nid'; break;
+      case 'taxonomy_term': key = 'tid'; break;
+      case 'taxonomy_vocabulary': key = 'vid'; break;
+      case 'user': key = 'uid'; break;
+      default:
+        console.log(
+          'entity_primary_key - unsupported entity type (' + entity_type + ')'
+        );
+        break;
+    }
+    return key;
+  }
+  catch (error) { console.log('entity_primary_key - ' + error); }
+}
+
+/**
  * Saves an entity.
  * @param {String} entity_type
  * @param {String} bundle
