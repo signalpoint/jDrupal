@@ -16,7 +16,6 @@ lintfiles = src/drupal.js\
 				src/services.js\
         src/services.comment.js\
 				src/services.entity.js\
-				src/services.jdrupal.js\
 				src/services.node.js\
 				src/services.system.js\
 				src/services.taxonomy_term.js\
@@ -33,7 +32,6 @@ files =				 src/drupal.js\
 				src/services.js\
         src/services.comment.js\
 				src/services.entity.js\
-				src/services.jdrupal.js\
 				src/services.node.js\
 				src/services.system.js\
 				src/services.taxonomy_term.js\
@@ -50,16 +48,16 @@ jslint: ${lintfiles}
 
 # Create an aggregated js file and a compressed js file.
 js: ${files}
-				@echo "Generating aggregated bin/jDrupal.js file"
-				@cat > bin/jDrupal.js $^
-				@echo "Generating compressed bin/jDrupal.js file"
+				@echo "Generating aggregated bin/jdrupal.js file"
+				@cat > bin/jdrupal.js $^
+				@echo "Generating compressed bin/jdrupal.min.js file"
 				curl -s \
 					-d compilation_level=SIMPLE_OPTIMIZATIONS \
 					-d output_format=text \
 					-d output_info=compiled_code \
-					--data-urlencode "js_code@bin/jDrupal.js" \
+					--data-urlencode "js_code@bin/jdrupal.js" \
 					http://closure-compiler.appspot.com/compile \
-					> bin/jDrupal.compressed.js
+					> bin/jdrupal.min.js
 
 # Create the documentation from source code.
 jsdoc: ${files}
