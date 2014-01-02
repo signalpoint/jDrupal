@@ -106,10 +106,10 @@ function user_login(name, pass, options) {
           Drupal.sessid = null;
           // Now that we are logged in, we need to get a new CSRF token.
           services_get_csrf_token({
-              success:function(token){
+              success: function(token) {
                 if (options.success) { options.success(data); }
               },
-              error:function(xhr, status, message) {
+              error: function(xhr, status, message) {
                 console.log(
                   'user_login - services_get_csrf_token - ' + message
                 );
@@ -144,7 +144,7 @@ function user_logout(options) {
               success: function(result) {
                 if (options.success) { options.success(data); }
               },
-              error: function(xhr, status, message){
+              error: function(xhr, status, message) {
                 if (options.error) { options.error(xhr, status, message); }
               }
           });

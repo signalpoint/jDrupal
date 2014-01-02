@@ -2,9 +2,13 @@
 var Drupal = Drupal || drupal_init();
 
 /**
- * Add additional properties to the Drupal JSON object.
+ * Init sessid to null.
  */
 Drupal.sessid = null;
+
+/**
+ * Init csrf_token bool to false.
+ */
 Drupal.csrf_token = false;
 
 /**

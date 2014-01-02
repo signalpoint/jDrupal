@@ -56,15 +56,15 @@ Drupal.services.call = function(options) {
         console.log('request.readyState = ' + request.readyState);
       }
     };
-    
+
     // Get the CSRF Token and Make the Request.
     services_get_csrf_token({
         debug: options.debug,
-        success:function(token) {
+        success: function(token) {
           try {
             // Open the request.
             request.open(method, url, true);
-  
+
             // Set any headers.
             if (method == 'POST') {
               request.setRequestHeader(
@@ -78,7 +78,7 @@ Drupal.services.call = function(options) {
                 'application/json'
               );
             }
-  
+
             // Add the token to the header if we have one.
             if (token) {
               request.setRequestHeader('X-CSRF-Token', token);
@@ -103,7 +103,7 @@ Drupal.services.call = function(options) {
             );
           }
         },
-        error:function(xhr, status, message){
+        error: function(xhr, status, message) {
           try {
             console.log(
               'Drupal.services.call - services_get_csrf_token - ' + message
@@ -118,7 +118,7 @@ Drupal.services.call = function(options) {
           }
         }
     });
-    
+
   }
   catch (error) {
     console.log('Drupal.services.call - error - ' + error);
@@ -131,14 +131,14 @@ Drupal.services.call = function(options) {
  */
 function services_get_csrf_token(options) {
   try {
-    
+
     var token;
-    
+
     // Are we resetting the token?
     if (options.reset) {
       Drupal.sessid = null;
     }
-    
+
     // Do we already have a token? If we do, return it the success callback.
     if (Drupal.sessid) {
       token = Drupal.sessid;
@@ -148,15 +148,15 @@ function services_get_csrf_token(options) {
       if (options.success) { options.success(token); }
       return;
     }
-    
+
     // We don't have a token, let's get it from Drupal...
-    
+
     // Build the Request and URL.
     var token_request = new XMLHttpRequest();
     var token_url = Drupal.settings.site_path +
               Drupal.settings.base_path +
               '?q=services/session/token';
-    
+
     // Token Request Success Handler
     token_request.onload = function(e) {
       try {

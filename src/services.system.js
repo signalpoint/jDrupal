@@ -4,7 +4,7 @@
  */
 function system_connect(options) {
   try {
-    
+
     // Build a system connect object.
     var system_connect = {
       method: 'POST',
@@ -17,7 +17,7 @@ function system_connect(options) {
         if (options.error) { options.error(xhr, status, message); }
       }
     };
-    
+
     // If we don't have a token, grab one first.
     if (!Drupal.csrf_token) {
       services_get_csrf_token({
