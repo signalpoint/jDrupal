@@ -9,7 +9,7 @@ Drupal.services = {};
  */
 Drupal.services.call = function(options) {
   try {
-    
+
     options.debug = false;
 
     // Make sure the settings have been provided for Services.
@@ -30,11 +30,11 @@ Drupal.services.call = function(options) {
     // Request Success Handler
     request.onload = function(e) {
       if (request.readyState == 4) {
-        
+
         // BUild a human readable response title.
         var title = request.status + ' - ' +
           http_status_code_title(request.status);
-          
+
         // 200 OK
         if (request.status == 200) {
           options.success(JSON.parse(request.responseText));
@@ -208,8 +208,13 @@ Drupal.services.csrf_token = function(method, url, request, options) {
  */
 function services_ready() {
   var result = true;
-  if (Drupal.settings.site_path == '' || Drupal.settings.endpoint == '') {
+  if (Drupal.settings.site_path == '') {
     result = false;
+    console.log('jDrupal\'s Drupal.settings.site_path is not set!');
+  }
+  if (Drupal.settings.endpoint == '') {
+    result = false;
+    console.log('jDrupal\'s Drupal.settings.endpoint is not set!');
   }
   return result;
 }
