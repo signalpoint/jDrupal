@@ -5,8 +5,6 @@
  */
 function user_create(account, options) {
   try {
-    options.method = 'POST';
-    options.path = 'user.json';
     entity_create('user', null, account, options);
   }
   catch (error) { console.log('user_create - ' + error); }
@@ -19,11 +17,45 @@ function user_create(account, options) {
  */
 function user_retrieve(ids, options) {
   try {
-    options.method = 'GET';
-    options.path = 'user/' + ids + '.json';
     entity_retrieve('user', ids, options);
   }
   catch (error) { console.log('user_retrieve - ' + error); }
+}
+
+/**
+ * Updates a user.
+ * @param {Object} account
+ * @param {Object} options
+ */
+function user_update(account, options) {
+  try {
+    entity_update('user', null, account, options);
+  }
+  catch (error) { console.log('user_update - ' + error); }
+}
+
+/**
+ * Delete a user.
+ * @param {Number} uid
+ * @param {Object} options
+ */
+function user_delete(uid, options) {
+  try {
+    entity_delete('user', uid, options);
+  }
+  catch (error) { console.log('user_delete - ' + error); }
+}
+
+/**
+ * Perform a user index.
+ * @param {Object} query
+ * @param {Object} options
+ */
+function user_index(query, options) {
+  try {
+    entity_index('user', query, options);
+  }
+  catch (error) { console.log('user_index - ' + error); }
 }
 
 /**
@@ -57,53 +89,6 @@ function user_register(account, options) {
 }
 
 /**
- * Updates a user.
- * @param {Object} account
- * @param {Object} options
- */
-function user_update(account, options) {
-  try {
-    options.method = 'PUT';
-    options.path = 'user/' + account.uid + '.json';
-    entity_update('user', null, account, options);
-  }
-  catch (error) { console.log('user_update - ' + error); }
-}
-
-/**
- * Delete a user.
- * @param {Number} uid
- * @param {Object} options
- */
-function user_delete(uid, options) {
-  try {
-    Drupal.services.call({
-        method: 'DELETE',
-        path: 'user/' + uid + '.json',
-        success: function(data) {
-          if (options.success) { options.success(data); }
-        },
-        error: function(xhr, status, message) {
-          if (options.error) { options.error(xhr, status, message); }
-        }
-    });
-  }
-  catch (error) { console.log('user_delete - ' + error); }
-}
-
-/**
- * Perform a user index.
- * @param {Object} query
- * @param {Object} options
- */
-function user_index(query, options) {
-  try {
-    entity_index('user', query, options);
-  }
-  catch (error) { console.log('user_index - ' + error); }
-}
-
-/**
  * Login user.
  * @param {String} name
  * @param {String} pass
@@ -118,44 +103,19 @@ function user_login(name, pass, options) {
              '&password=' + encodeURIComponent(pass),
         success: function(data) {
           Drupal.user = data.user;
+          Drupal.sessid = null;
           // Now that we are logged in, we need to get a new CSRF token.
-          var token_request = new XMLHttpRequest();
-          var token_url = Drupal.settings.site_path +
-                    Drupal.settings.base_path +
-                    '?q=services/session/token';
-          // Token Request Success Handler
-          token_request.onload = function(e) {
-            if (token_request.readyState == 4) {
-              var title = token_request.status + ' - ' +
-                http_status_code_title(token_request.status);
-              if (token_request.status != 200) { // Not OK
-                console.log('user_login - ' + token_url + ' - ' + title);
-                console.log(token_request.responseText);
-              }
-              else { // OK
-                // Save the token to local storage as sessid, set Drupal.sessid
-                // with the token, then return the user login data to the
-                // success function.
-                //token = JSON.parse(token_request.responseText);
-                token = token_request.responseText;
-                window.localStorage.setItem('sessid', token);
-                Drupal.sessid = token;
+          services_get_csrf_token({
+              success:function(token){
                 if (options.success) { options.success(data); }
+              },
+              error:function(xhr, status, message) {
+                console.log(
+                  'user_login - services_get_csrf_token - ' + message
+                );
+                if (options.error) { options.error(xhr, status, message); }
               }
-            }
-            else {
-              console.log(
-                'user_login token_request.readyState = ' +
-                token_request.readyState
-              );
-            }
-          };
-
-          // Open the token request.
-          token_request.open('GET', token_url, true);
-
-          // Send the token request.
-          token_request.send(null);
+          });
         },
         error: function(xhr, status, message) {
           if (options.error) { options.error(xhr, status, message); }
@@ -177,10 +137,17 @@ function user_logout(options) {
         method: 'POST',
         path: 'user/logout.json',
         success: function(data) {
+          // Now that we logged out, clear the sessid and call system connect.
           Drupal.user = drupal_user_defaults();
           Drupal.sessid = null;
-          window.localStorage.removeItem('sessid');
-          if (options.success) { options.success(data); }
+          system_connect({
+              success: function(result) {
+                if (options.success) { options.success(data); }
+              },
+              error: function(xhr, status, message){
+                if (options.error) { options.error(xhr, status, message); }
+              }
+          });
         },
         error: function(xhr, status, message) {
           if (options.error) { options.error(xhr, status, message); }
