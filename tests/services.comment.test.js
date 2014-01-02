@@ -62,15 +62,20 @@ var test_comment_crud = function(callback) {
                                           expect(1);
                                           ok(comment_update_result[0], "cid");
                                           
-                                          // Retrieve updated entity.
-                                          asyncTest("comment_load - after update", function() {
-                                              comment_load(comment_update_result[0], {
-                                                  success:function(updated_comment){
+                                          // Index. Retrieve updated entity.
+                                          asyncTest("comment_index", function() {
+                                              var query = {
+                                                parameters:{
+                                                  'cid': comment_changes.cid
+                                                }
+                                              };
+                                              comment_index(query, {
+                                                  success:function(comments){
+                                                    var updated_comment = comments[0];
                                                     start();
-                                                    expect(3);
+                                                    expect(2);
                                                     ok(comment_retrieve_result.cid == updated_comment.cid, "cid");
                                                     ok(comment_changes.subject != updated_comment.subject, "subject");
-                                                    ok(comment_changes.comment_body[lng][0].value != updated_comment.comment_body[lng][0].value, "comment_body");
                                                     
                                                     // Delete
                                                     
