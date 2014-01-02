@@ -29,31 +29,36 @@ Drupal.services.call = function(options) {
 
     // Request Success Handler
     request.onload = function(e) {
-      if (request.readyState == 4) {
-
-        // Build a human readable response title.
-        var title = request.status + ' - ' +
-          http_status_code_title(request.status);
-
-        // 200 OK
-        if (request.status == 200) {
-          options.success(JSON.parse(request.responseText));
-        }
-        else {
-          // Not OK...
-          dpm(request);
-          console.log(method + ': ' + url + ' - ' + title);
-          if (request.responseText) { console.log(request.responseText); }
-          else { dpm(request); }
-          if (typeof options.error !== 'undefined') {
-            var message = request.responseText;
-            if (!message) { message = title; }
-            options.error(request, request.status, message);
+      try {
+        if (request.readyState == 4) {
+          // Build a human readable response title.
+          var title = request.status + ' - ' +
+            http_status_code_title(request.status);
+          // 200 OK
+          if (request.status == 200) {
+            options.success(JSON.parse(request.responseText));
+          }
+          else {
+            // Not OK...
+            dpm(request);
+            console.log(method + ': ' + url + ' - ' + title);
+            if (request.responseText) { console.log(request.responseText); }
+            else { dpm(request); }
+            if (typeof options.error !== 'undefined') {
+              var message = request.responseText;
+              if (!message) { message = title; }
+              options.error(request, request.status, message);
+            }
           }
         }
+        else {
+          console.log(
+            'Drupal.services.call - request.readyState = ' + request.readyState
+          );
+        }
       }
-      else {
-        console.log('request.readyState = ' + request.readyState);
+      catch (error) {
+        console.log('Drupal.services.call - onload - ' + error);
       }
     };
 
@@ -204,15 +209,18 @@ function services_get_csrf_token(options) {
  * @return {Boolean}
  */
 function services_ready() {
-  var result = true;
-  if (Drupal.settings.site_path == '') {
-    result = false;
-    console.log('jDrupal\'s Drupal.settings.site_path is not set!');
+  try {
+    var result = true;
+    if (Drupal.settings.site_path == '') {
+      result = false;
+      console.log('jDrupal\'s Drupal.settings.site_path is not set!');
+    }
+    if (Drupal.settings.endpoint == '') {
+      result = false;
+      console.log('jDrupal\'s Drupal.settings.endpoint is not set!');
+    }
+    return result;
   }
-  if (Drupal.settings.endpoint == '') {
-    result = false;
-    console.log('jDrupal\'s Drupal.settings.endpoint is not set!');
-  }
-  return result;
+  catch (error) { console.log('services_ready - ' + error); }
 }
 

@@ -11,6 +11,18 @@ function user_load(uid, options) {
 }
 
 /**
+ * Saves a user account.
+ * @param {Object} account
+ * @param {Object} options
+ */
+function user_save(account, options) {
+  try {
+    entity_save('user', null, account, options);
+  }
+  catch (error) { console.log('user_save - ' + error); }
+}
+
+/**
  * Generates a random user password.
  * @return {String}
  */
@@ -28,17 +40,5 @@ function user_password() {
     return password;
   }
   catch (error) { console.log('user_password - ' + error); }
-}
-
-/**
- * Saves a user account.
- * @param {Object} account
- * @param {Object} options
- */
-function user_save(account, options) {
-  try {
-    entity_save('user', null, account, options);
-  }
-  catch (error) { console.log('user_save - ' + error); }
 }
 

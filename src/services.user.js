@@ -65,23 +65,27 @@ function user_index(query, options) {
  */
 function user_register(account, options) {
   try {
-    // TODO - it seems the user register resource only likes data string... ?
+    // TODO - it seems the user register resource only likes data strings... ?
     Drupal.services.call({
         method: 'POST',
         path: 'user/register.json',
         data: entity_assemble_data('user', null, account, options),
-        //data: JSON.stringify({'account':account}), // wrapper
-        //data: JSON.stringify(account),
         success: function(data) {
-          if (options.success) { options.success(data); }
+          try {
+            if (options.success) { options.success(data); }
+          }
+          catch (error) { console.log('user_register - success - ' + error); }
         },
         error: function(xhr, status, message) {
-          if (status == 406) {
-            console.log(
-              'user_register - Already logged in, cannot register user!'
-            );
+          try {
+            if (status == 406) {
+              console.log(
+                'user_register - Already logged in, cannot register user!'
+              );
+            }
+            if (options.error) { options.error(xhr, status, message); }
           }
-          if (options.error) { options.error(xhr, status, message); }
+          catch (error) { console.log('user_register - error - ' + error); }
         }
     });
   }
@@ -102,23 +106,38 @@ function user_login(name, pass, options) {
         data: 'username=' + encodeURIComponent(name) +
              '&password=' + encodeURIComponent(pass),
         success: function(data) {
-          Drupal.user = data.user;
-          Drupal.sessid = null;
-          // Now that we are logged in, we need to get a new CSRF token.
-          services_get_csrf_token({
-              success: function(token) {
-                if (options.success) { options.success(data); }
-              },
-              error: function(xhr, status, message) {
-                console.log(
-                  'user_login - services_get_csrf_token - ' + message
-                );
-                if (options.error) { options.error(xhr, status, message); }
-              }
-          });
+          try {
+            // Now that we are logged in, we need to get a new CSRF token.
+            Drupal.user = data.user;
+            Drupal.sessid = null;
+            services_get_csrf_token({
+                success: function(token) {
+                  try {
+                    if (options.success) { options.success(data); }
+                  }
+                  catch (error) {
+                    console.log(
+                      'user_login - services_get_csrf_token - success - ' +
+                      error
+                    );
+                  }
+                },
+                error: function(xhr, status, message) {
+                  console.log(
+                    'user_login - services_get_csrf_token - error - ' +
+                    message
+                  );
+                  if (options.error) { options.error(xhr, status, message); }
+                }
+            });
+          }
+          catch (error) { console.log('user_login - success - ' + error); }
         },
         error: function(xhr, status, message) {
-          if (options.error) { options.error(xhr, status, message); }
+          try {
+            if (options.error) { options.error(xhr, status, message); }
+          }
+          catch (error) { console.log('user_login - error - ' + error); }
         }
     });
   }
@@ -137,20 +156,42 @@ function user_logout(options) {
         method: 'POST',
         path: 'user/logout.json',
         success: function(data) {
-          // Now that we logged out, clear the sessid and call system connect.
-          Drupal.user = drupal_user_defaults();
-          Drupal.sessid = null;
-          system_connect({
-              success: function(result) {
-                if (options.success) { options.success(data); }
-              },
-              error: function(xhr, status, message) {
-                if (options.error) { options.error(xhr, status, message); }
-              }
-          });
+          try {
+            // Now that we logged out, clear the sessid and call system connect.
+            Drupal.user = drupal_user_defaults();
+            Drupal.sessid = null;
+            system_connect({
+                success: function(result) {
+                  try {
+                    if (options.success) { options.success(data); }
+                  }
+                  catch (error) {
+                    console.log(
+                      'user_logout - system_connect - success - ' +
+                      error
+                    );
+                  }
+                },
+                error: function(xhr, status, message) {
+                  try {
+                    if (options.error) { options.error(xhr, status, message); }
+                  }
+                  catch (error) {
+                    console.log(
+                      'user_logout - system_connect - error - ' +
+                      error
+                    );
+                  }
+                }
+            });
+          }
+          catch (error) { console.log('user_logout - success - ' + error); }
         },
         error: function(xhr, status, message) {
-          if (options.error) { options.error(xhr, status, message); }
+          try {
+            if (options.error) { options.error(xhr, status, message); }
+          }
+          catch (error) { console.log('user_logout - error - ' + error); }
         }
     });
   }

@@ -10,11 +10,17 @@ function system_connect(options) {
       method: 'POST',
       path: 'system/connect.json',
       success: function(data) {
-        Drupal.user = data.user;
-        if (options.success) { options.success(data); }
+        try {
+          Drupal.user = data.user;
+          if (options.success) { options.success(data); }
+        }
+        catch (error) { console.log('system_connect - success - ' + error); }
       },
       error: function(xhr, status, message) {
-        if (options.error) { options.error(xhr, status, message); }
+        try {
+          if (options.error) { options.error(xhr, status, message); }
+        }
+        catch (error) { console.log('system_connect - error - ' + error); }
       }
     };
 

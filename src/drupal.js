@@ -21,10 +21,13 @@ Drupal.user = drupal_user_defaults();
  * @param {Object} data
  */
 function dpm(data) {
-  if (data) {
-    if (typeof data === 'object') { console.log(JSON.stringify(data)); }
-    else { console.log(data); }
+  try {
+    if (data) {
+      if (typeof data === 'object') { console.log(JSON.stringify(data)); }
+      else { console.log(data); }
+    }
   }
+  catch (error) { console.log('dpm - ' + error); }
 }
 
 /**
@@ -32,13 +35,16 @@ function dpm(data) {
  * @return {Object}
  */
 function drupal_init() {
-  return {
-    settings: {
-      site_path: '',
-      base_path: '/',
-      language_default: 'und'
-    }
-  };
+  try {
+    return {
+      settings: {
+        site_path: '',
+        base_path: '/',
+        language_default: 'und'
+      }
+    };
+  }
+  catch (error) { console.log('drupal_init - ' + error); }
 }
 
 /**
@@ -46,10 +52,13 @@ function drupal_init() {
  * @return {Object}
  */
 function drupal_user_defaults() {
-  return {
-    'uid': '0',
-    'roles': {'1': 'anonymous user'}
-  };
+  try {
+    return {
+      'uid': '0',
+      'roles': {'1': 'anonymous user'}
+    };
+  }
+  catch (error) { console.log('drupal_user_defaults - ' + error); }
 }
 
 /**
@@ -96,7 +105,10 @@ function http_status_code_title(status) {
  * @return {Boolean}
  */
 function in_array(needle, haystack) {
-  return (haystack.indexOf(needle) > -1);
+  try {
+    return (haystack.indexOf(needle) > -1);
+  }
+  catch (error) { console.log('in_array - ' + error); }
 }
 
 /**

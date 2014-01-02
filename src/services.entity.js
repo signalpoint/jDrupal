@@ -12,10 +12,16 @@ function entity_create(entity_type, bundle, entity, options) {
         path: entity_type + '.json',
         data: entity_assemble_data(entity_type, bundle, entity, options),
         success: function(data) {
-          if (options.success) { options.success(data); }
+          try {
+            if (options.success) { options.success(data); }
+          }
+          catch (error) { console.log('entity_create - success - ' + error); }
         },
         error: function(xhr, status, message) {
-          if (options.error) { options.error(xhr, status, message); }
+          try {
+            if (options.error) { options.error(xhr, status, message); }
+          }
+          catch (error) { console.log('entity_create - error - ' + error); }
         }
     });
   }
@@ -34,10 +40,16 @@ function entity_retrieve(entity_type, ids, options) {
         method: 'GET',
         path: entity_type + '/' + ids + '.json',
         success: function(data) {
-          if (options.success) { options.success(data); }
+          try {
+            if (options.success) { options.success(data); }
+          }
+          catch (error) { console.log('entity_retrieve - success - ' + error); }
         },
         error: function(xhr, status, message) {
-          if (options.error) { options.error(xhr, status, message); }
+          try {
+            if (options.error) { options.error(xhr, status, message); }
+          }
+          catch (error) { console.log('entity_retrieve - error - ' + error); }
         }
     });
   }
@@ -60,10 +72,16 @@ function entity_update(entity_type, bundle, entity, options) {
         path: entity_type + '/' + entity[primary_key] + '.json',
         data: JSON.stringify(entity_wrapper),
         success: function(data) {
-          if (options.success) { options.success(data); }
+          try {
+            if (options.success) { options.success(data); }
+          }
+          catch (error) { console.log('entity_update - success - ' + error); }
         },
         error: function(xhr, status, message) {
-          if (options.error) { options.error(xhr, status, message); }
+          try {
+            if (options.error) { options.error(xhr, status, message); }
+          }
+          catch (error) { console.log('entity_update - error - ' + error); }
         }
     });
   }
@@ -82,10 +100,16 @@ function entity_delete(entity_type, entity_id, options) {
         method: 'DELETE',
         path: entity_type + '/' + entity_id + '.json',
         success: function(data) {
-          if (options.success) { options.success(data); }
+          try {
+            if (options.success) { options.success(data); }
+          }
+          catch (error) { console.log('entity_delete - success - ' + error); }
         },
         error: function(xhr, status, message) {
-          if (options.error) { options.error(xhr, status, message); }
+          try {
+            if (options.error) { options.error(xhr, status, message); }
+          }
+          catch (error) { console.log('entity_delete - error - ' + error); }
         }
     });
   }
@@ -112,13 +136,17 @@ function entity_index(entity_type, query, options) {
     Drupal.services.call({
         method: 'GET',
         path: entity_type + '.json' + query_string,
-        /*data: JSON.stringify(query),*/
-        /*data:query,*/
         success: function(result) {
-          if (options.success) { options.success(result); }
+          try {
+            if (options.success) { options.success(result); }
+          }
+          catch (error) { console.log('entity_index - success - ' + error); }
         },
         error: function(xhr, status, message) {
-          if (options.error) { options.error(xhr, status, message); }
+          try {
+            if (options.error) { options.error(xhr, status, message); }
+          }
+          catch (error) { console.log('entity_index - error - ' + error); }
         }
     });
   }
