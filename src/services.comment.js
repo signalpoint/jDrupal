@@ -61,3 +61,15 @@ function comment_delete(cid, options) {
   catch (error) { console.log('comment_delete - ' + error); }
 }
 
+/**
+ * Perform a comment index.
+ * @param {Object} query
+ * @param {Object} options
+ */
+function comment_index(query, options) {
+  try {
+    entity_index('comment', query, options);
+  }
+  catch (error) { console.log('comment_index - ' + error); }
+}
+
