@@ -5,8 +5,7 @@
  */
 function taxonomy_vocabulary_create(taxonomy_vocabulary, options) {
   try {
-    options.method = 'POST';
-    options.path = 'taxonomy_vocabulary.json';
+    // Set a default machine name if one wasn't provided.
     if (!taxonomy_vocabulary.machine_name && taxonomy_vocabulary.name) {
       taxonomy_vocabulary.machine_name =
         taxonomy_vocabulary.name.toLowerCase().replace(' ', '_');
@@ -23,8 +22,6 @@ function taxonomy_vocabulary_create(taxonomy_vocabulary, options) {
  */
 function taxonomy_vocabulary_retrieve(ids, options) {
   try {
-    options.method = 'GET';
-    options.path = 'taxonomy_vocabulary/' + ids + '.json';
     entity_retrieve('taxonomy_vocabulary', ids, options);
   }
   catch (error) { console.log('taxonomy_vocabulary_retrieve - ' + error); }
@@ -49,8 +46,6 @@ function taxonomy_vocabulary_update(taxonomy_vocabulary, options) {
       }
       return;
     }
-    options.method = 'PUT';
-    options.path = 'taxonomy_vocabulary/' + taxonomy_vocabulary.vid + '.json';
     entity_update('taxonomy_vocabulary', null, taxonomy_vocabulary, options);
   }
   catch (error) { console.log('taxonomy_vocabulary_update - ' + error); }
@@ -63,16 +58,7 @@ function taxonomy_vocabulary_update(taxonomy_vocabulary, options) {
  */
 function taxonomy_vocabulary_delete(vid, options) {
   try {
-    Drupal.services.call({
-        method: 'DELETE',
-        path: 'taxonomy_vocabulary/' + vid + '.json',
-        success: function(data) {
-          if (options.success) { options.success(data); }
-        },
-        error: function(xhr, status, message) {
-          if (options.error) { options.error(xhr, status, message); }
-        }
-    });
+    entity_delete('taxonomy_vocabulary', vid, options);
   }
   catch (error) { console.log('taxonomy_vocabulary_delete - ' + error); }
 }
