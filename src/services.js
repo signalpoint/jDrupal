@@ -31,7 +31,7 @@ Drupal.services.call = function(options) {
     request.onload = function(e) {
       if (request.readyState == 4) {
 
-        // BUild a human readable response title.
+        // Build a human readable response title.
         var title = request.status + ' - ' +
           http_status_code_title(request.status);
 
@@ -56,48 +56,69 @@ Drupal.services.call = function(options) {
         console.log('request.readyState = ' + request.readyState);
       }
     };
-
-    // Generate Token and Make the Request.
-    Drupal.services.csrf_token(method, url, request, {
+    
+    // Get the CSRF Token and Make the Request.
+    services_get_csrf_token({
         debug: options.debug,
-        path: options.path,
-        success: function(token) {
-
-          // Open the request.
-          request.open(method, url, true);
-
-          // Set any headers.
-          if (method == 'POST') {
-            request.setRequestHeader(
-              'Content-type',
-              'application/x-www-form-urlencoded'
-            );
-          }
-          else if (method == 'PUT') {
-            request.setRequestHeader(
-              'Content-type',
-              'application/json'
-            );
-          }
-
-          // Add the token to the header if we have one.
-          if (token) {
-            request.setRequestHeader('X-CSRF-Token', token);
-          }
-          if (typeof options.data !== 'undefined') {
-            if (options.path != 'user/login.json') {
-              if (typeof options.data === 'object') {
-                console.log(JSON.stringify(options.data));
-              }
-              else {
-                console.log(options.data);
-              }
+        success:function(token) {
+          try {
+            // Open the request.
+            request.open(method, url, true);
+  
+            // Set any headers.
+            if (method == 'POST') {
+              request.setRequestHeader(
+                'Content-type',
+                'application/x-www-form-urlencoded'
+              );
             }
-            request.send(options.data);
+            else if (method == 'PUT') {
+              request.setRequestHeader(
+                'Content-type',
+                'application/json'
+              );
+            }
+  
+            // Add the token to the header if we have one.
+            if (token) {
+              request.setRequestHeader('X-CSRF-Token', token);
+            }
+            if (typeof options.data !== 'undefined') {
+              if (options.path != 'user/login.json') {
+                if (typeof options.data === 'object') {
+                  console.log(JSON.stringify(options.data));
+                }
+                else {
+                  console.log(options.data);
+                }
+              }
+              request.send(options.data);
+            }
+            else { request.send(null); }
           }
-          else { request.send(null); }
+          catch (error) {
+            console.log(
+              'Drupal.services.call - services_get_csrf_token - success - ' +
+              message
+            );
+          }
+        },
+        error:function(xhr, status, message){
+          try {
+            console.log(
+              'Drupal.services.call - services_get_csrf_token - ' + message
+            );
+            if (options.error) { options.error(xhr, status, message); }
+          }
+          catch (error) {
+            console.log(
+              'Drupal.services.call - services_get_csrf_token - error - ' +
+              message
+            );
+          }
         }
     });
+    
   }
   catch (error) {
     console.log('Drupal.services.call - error - ' + error);
@@ -105,102 +126,78 @@ Drupal.services.call = function(options) {
 };
 
 /**
- * Drupal Services CSRF TOKEN
- * @param {String} method
- * @param {String} url
- * @param {Object} request
+ * Gets the CSRF token from Services.
  * @param {Object} options
  */
-Drupal.services.csrf_token = function(method, url, request, options) {
+function services_get_csrf_token(options) {
   try {
-    var token = false;
-    // Do we potentially need a token for this call? We most likely need one if
-    // the call option's type is not one of these types.
-    if (!in_array(method, ['GET', 'HEAD', 'OPTIONS', 'TRACE'])) {
-      // Anonymous users don't need the CSRF token, unless we're calling system
-      // connect, then we need to pass along the token if we have one.
-      if (Drupal.user.uid == 0 && options.path != 'system/connect.json') {
-        if (options.debug) {
-          dpm('Anonymous user does not need token for this call!');
-        }
-        options.success(false);
-        return;
-      }
-      // Is there a token available in local storage?
-      token = window.localStorage.getItem('sessid');
-      if (token && options.debug) {
-        dpm('Loaded token from local storage!');
-      }
-      // If we don't already have a token, is there one on Drupal.sessid?
-      if (!token && Drupal.sessid) {
-        token = Drupal.sessid;
-        if (options.debug) {
-          dpm('Loaded token from Drupal JSON object!');
-        }
-      }
-      // If we still don't have a token to use, let's grab one from Drupal.
-      if (!token) {
-        // Build the Request, URL and extract the HTTP method.
-        var token_request = new XMLHttpRequest();
-        var token_url = Drupal.settings.site_path +
-                  Drupal.settings.base_path +
-                  '?q=services/session/token';
-        // Token Request Success Handler
-        token_request.onload = function(e) {
-          if (token_request.readyState == 4) {
-            var title = token_request.status + ' - ' +
-              http_status_code_title(token_request.status);
-            if (token_request.status != 200) { // Not OK
-              console.log(token_url + ' - ' + title);
-              console.log(token_request.responseText);
-            }
-            else { // OK
-              // Save the token to local storage as sessid, set Drupal.sessid
-              // with the token, then return the token to the success function.
-              if (options.debug) {
-                dpm('Grabbed token from Drupal site!');
-              }
-              token = token_request.responseText;
-              window.localStorage.setItem('sessid', token);
-              Drupal.sessid = token;
-              options.success(token);
-            }
-          }
-          else {
-            console.log(
-              'token_request.readyState = ' + token_request.readyState
-            );
-          }
-        };
-
-        // Open the token request.
-        token_request.open('GET', token_url, true);
-
-        // Send the token request.
-        token_request.send(null);
-      }
-      else {
-        // We had a previous token available, let's use it.
-        if (options.debug) {
-          dpm('Previous token available, using it!');
-        }
-        Drupal.sessid = token;
-        options.success(token);
-      }
+    
+    var token;
+    
+    // Are we resetting the token?
+    if (options.reset) {
+      Drupal.sessid = null;
     }
-    else {
-      // This call's HTTP method doesn't need a token, so we return via the
-      // success function.
-      if (options.debug) {
-        dpm('Method does not need token!');
-      }
-      options.success(false);
+    
+    // Do we already have a token? If we do, return it the success callback.
+    if (Drupal.sessid) {
+      token = Drupal.sessid;
+      if (options.debug) { dpm('Loaded token from Drupal JSON object!'); }
     }
+    if (token) {
+      if (options.success) { options.success(token); }
+      return;
+    }
+    
+    // We don't have a token, let's get it from Drupal...
+    
+    // Build the Request and URL.
+    var token_request = new XMLHttpRequest();
+    var token_url = Drupal.settings.site_path +
+              Drupal.settings.base_path +
+              '?q=services/session/token';
+    
+    // Token Request Success Handler
+    token_request.onload = function(e) {
+      try {
+        if (token_request.readyState == 4) {
+          var title = token_request.status + ' - ' +
+            http_status_code_title(token_request.status);
+          if (token_request.status != 200) { // Not OK
+            console.log(token_url + ' - ' + title);
+            console.log(token_request.responseText);
+          }
+          else { // OK
+            // Save the token to local storage as sessid, set Drupal.sessid
+            // with the token, then return the token to the success function.
+            if (options.debug) { dpm('Grabbed token from Drupal site!'); }
+            token = token_request.responseText;
+            //window.localStorage.setItem('sessid', token);
+            Drupal.sessid = token;
+            options.success(token);
+          }
+        }
+        else {
+          console.log(
+            'services_get_csrf_token - readyState - ' + token_request.readyState
+          );
+        }
+      }
+      catch (error) {
+        console.log(
+          'services_get_csrf_token - token_request. onload - ' + error
+        );
+      }
+    };
+
+    // Open the token request.
+    token_request.open('GET', token_url, true);
+
+    // Send the token request.
+    token_request.send(null);
   }
-  catch (error) {
-    console.log('Drupal.services.call - error - ' + error);
-  }
-};
+  catch (error) { console.log('services_get_csrf_token - ' + error); }
+}
 
 /**
  * Checks if we're ready to make a Services call.

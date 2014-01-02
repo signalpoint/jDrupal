@@ -5,6 +5,7 @@ var Drupal = Drupal || drupal_init();
  * Add additional properties to the Drupal JSON object.
  */
 Drupal.sessid = null;
+Drupal.csrf_token = false;
 
 /**
  * Initialize a Drupal user JSON object.
