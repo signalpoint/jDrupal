@@ -47,7 +47,7 @@ function taxonomy_vocabulary_update(taxonomy_vocabulary, options) {
       if (options.error) {
         options.error(null, 406, message);
       }
-      return false;
+      return;
     }
     options.method = 'PUT';
     options.path = 'taxonomy_vocabulary/' + taxonomy_vocabulary.vid + '.json';
