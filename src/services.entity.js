@@ -117,6 +117,7 @@ function entity_index(entity_type, query, options) {
 function entity_index_build_query_string(query) {
   try {
     var result = '';
+    if (!query) { return result; }
     if (query.fields) { // array
       var fields = '';
       for (var i = 0; i < query.fields.length; i++) {
