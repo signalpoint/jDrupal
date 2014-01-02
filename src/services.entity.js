@@ -8,8 +8,8 @@
 function entity_create(entity_type, bundle, entity, options) {
   try {
     Drupal.services.call({
-        method: options.method,
-        path: options.path,
+        method: 'POST',
+        path: entity_type + '.json',
         data: entity_assemble_data(entity_type, bundle, entity, options),
         success: function(data) {
           if (options.success) { options.success(data); }
@@ -31,8 +31,8 @@ function entity_create(entity_type, bundle, entity, options) {
 function entity_retrieve(entity_type, ids, options) {
   try {
     Drupal.services.call({
-        method: options.method,
-        path: options.path,
+        method: 'GET',
+        path: entity_type + '/' + ids + '.json',
         success: function(data) {
           if (options.success) { options.success(data); }
         },
@@ -53,18 +53,11 @@ function entity_retrieve(entity_type, ids, options) {
  */
 function entity_update(entity_type, bundle, entity, options) {
   try {
-    // Wrap entities, except for taxonomy.
-    var entity_wrapper = {};
-    if (entity_type == 'taxonomy_term' ||
-      entity_type == 'taxonomy_vocabulary' ||
-      entity_type == 'user') {
-      entity_wrapper = entity;
-    }
-    else { entity_wrapper[entity_type] = entity; }
+    var entity_wrapper = _entity_wrap(entity_type, entity);
+    var primary_key = entity_primary_key(entity_type);
     Drupal.services.call({
-        method: options.method,
-        path: options.path,
-        //data: entity_assemble_data(entity_type, bundle, entity, options),
+        method: 'PUT',
+        path: entity_type + '/' + entity[primary_key] + '.json',
         data: JSON.stringify(entity_wrapper),
         success: function(data) {
           if (options.success) { options.success(data); }
@@ -75,6 +68,28 @@ function entity_update(entity_type, bundle, entity, options) {
     });
   }
   catch (error) { console.log('entity_update - ' + error); }
+}
+
+/**
+ * Deletes an entity.
+ * @param {String} entity_type
+ * @param {Number} entity_id
+ * @param {Object} options
+ */
+function entity_delete(entity_type, entity_id, options) {
+  try {
+    Drupal.services.call({
+        method: 'DELETE',
+        path: entity_type + '/' + entity_id + '.json',
+        success: function(data) {
+          if (options.success) { options.success(data); }
+        },
+        error: function(xhr, status, message) {
+          if (options.error) { options.error(xhr, status, message); }
+        }
+    });
+  }
+  catch (error) { console.log('entity_delete - ' + error); }
 }
 
 /**
@@ -151,5 +166,26 @@ function entity_index_build_query_string(query) {
     return result.substring(0, result.length - 1);
   }
   catch (error) { console.log('entity_index_build_query_string - ' + error); }
+}
+
+/**
+ * Wraps an entity in a JSON object, keyed by its type.
+ * @param {String} entity_type
+ * @param {Object} entity
+ * @return {String}
+ */
+function _entity_wrap(entity_type, entity) {
+  try {
+    // We don't wrap taxonomy or users.
+    var entity_wrapper = {};
+    if (entity_type == 'taxonomy_term' ||
+      entity_type == 'taxonomy_vocabulary' ||
+      entity_type == 'user') {
+      entity_wrapper = entity;
+    }
+    else { entity_wrapper[entity_type] = entity; }
+    return entity_wrapper;
+  }
+  catch (error) { console.log('_entity_wrap - ' + error); }
 }
 
