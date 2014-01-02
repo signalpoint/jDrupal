@@ -52,8 +52,6 @@ var test_user_crud = function(name, pass, callback) {
                                 asyncTest("user_delete - deleting newly registered user", function() {
                                     user_delete(new_uid, {
                                         success:function(result) {
-                                          dpm('delete result!');
-                                          dpm(result);
                                           start();
                                           expect(1);
                                           ok(result[0], "deleted");
