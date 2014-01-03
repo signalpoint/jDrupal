@@ -1,0 +1,5 @@
+7.x-1.0-rc1 => 7.x-1.0-rc2
+
+  Added local storage caching for entities. Intelligently adds/removes based on
+  C.R.U.D. operation.
+
