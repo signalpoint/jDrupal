@@ -38,9 +38,17 @@ function drupal_init() {
   try {
     return {
       settings: {
-        site_path: '',
         base_path: '/',
-        language_default: 'und'
+        cache: {
+          entity: {
+            enabled: false,
+            expiration: 3600
+          }
+        },
+        endpoint: '',
+        file_public_path: 'sites/default/files',
+        language_default: 'und',
+        site_path: ''
       }
     };
   }
@@ -89,6 +97,7 @@ function http_status_code_title(status) {
       case 401: title = 'Unauthorized'; break;
       case 404: title = 'Not Found'; break;
       case 406: title = 'Not Acceptable'; break;
+      case 500: title = 'Internal Server Error'; break;
     }
     return title;
   }
@@ -112,13 +121,57 @@ function in_array(needle, haystack) {
 }
 
 /**
+ * Given an argument, this will return true if it is an int, false otherwise.
+ * @param {Number} n
+ * @return {Boolean}
+ */
+function is_int(n) {
+  // Credit: http://stackoverflow.com/a/3886106/763010
+  if (typeof n === 'string') {
+    n = parseInt(n);
+  }
+  return typeof n === 'number' && n % 1 == 0;
+}
+
+/**
  * Get the default language from Drupal.settings.
  * @return {String}
  */
 function language_default() {
   try {
-    return Drupal.settings.language_default;
+    if (Drupal.settings.language_default &&
+      Drupal.settings.language_default != '') {
+      return Drupal.settings.language_default;
+    }
+    return 'und';
   }
   catch (error) { console.log('language_default - ' + error); }
+}
+
+/**
+ * Javascript equivalent of php's time() function.
+ * @return {Number}
+ */
+function time() {
+  var d = new Date();
+  return Math.floor(d / 1000);
+}
+
+/**
+ * Given a string, this will change the first character to upper case and return
+ * the new string.
+ * @param {String} str
+ * @return {String}
+ */
+function ucfirst(str) {
+  // http://kevin.vanzonneveld.net
+  // +   original by: Kevin van Zonneveld (http://kevin.vanzonneveld.net)
+  // +   bugfixed by: Onno Marsman
+  // +   improved by: Brett Zamir (http://brett-zamir.me)
+  // *     example 1: ucfirst('kevin van zonneveld');
+  // *     returns 1: 'Kevin van zonneveld'
+  str += '';
+  var f = str.charAt(0).toUpperCase();
+  return f + str.substr(1);
 }
 
