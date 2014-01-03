@@ -45,8 +45,8 @@ Drupal.services.call = function(options) {
             if (request.responseText) { console.log(request.responseText); }
             else { dpm(request); }
             if (typeof options.error !== 'undefined') {
-              var message = request.responseText;
-              if (!message) { message = title; }
+              var message = request.responseText || '';
+              if (!message || message == '') { message = title; }
               options.error(request, request.status, message);
             }
           }
@@ -104,7 +104,7 @@ Drupal.services.call = function(options) {
           catch (error) {
             console.log(
               'Drupal.services.call - services_get_csrf_token - success - ' +
-              message
+              error
             );
           }
         },
@@ -118,7 +118,7 @@ Drupal.services.call = function(options) {
           catch (error) {
             console.log(
               'Drupal.services.call - services_get_csrf_token - error - ' +
-              message
+              error
             );
           }
         }
@@ -173,13 +173,12 @@ function services_get_csrf_token(options) {
             console.log(token_request.responseText);
           }
           else { // OK
-            // Save the token to local storage as sessid, set Drupal.sessid
-            // with the token, then return the token to the success function.
+            // Set Drupal.sessid with the token, then return the token to the
+            // success function.
             if (options.debug) { dpm('Grabbed token from Drupal site!'); }
             token = token_request.responseText;
-            //window.localStorage.setItem('sessid', token);
             Drupal.sessid = token;
-            options.success(token);
+            if (options.success) { options.success(token); }
           }
         }
         else {

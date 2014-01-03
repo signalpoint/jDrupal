@@ -73,6 +73,7 @@ function entity_update(entity_type, bundle, entity, options) {
         data: JSON.stringify(entity_wrapper),
         success: function(data) {
           try {
+            _entity_local_storage_delete(entity_type, entity[primary_key]);
             if (options.success) { options.success(data); }
           }
           catch (error) { console.log('entity_update - success - ' + error); }
@@ -101,6 +102,7 @@ function entity_delete(entity_type, entity_id, options) {
         path: entity_type + '/' + entity_id + '.json',
         success: function(data) {
           try {
+            _entity_local_storage_delete(entity_type, entity_id);
             if (options.success) { options.success(data); }
           }
           catch (error) { console.log('entity_delete - success - ' + error); }
