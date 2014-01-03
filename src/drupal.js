@@ -38,9 +38,17 @@ function drupal_init() {
   try {
     return {
       settings: {
-        site_path: '',
         base_path: '/',
-        language_default: 'und'
+        cache: {
+          entity: {
+            enabled: false,
+            expiration: 3600
+          }
+        },
+        endpoint: '',
+        file_public_path: 'sites/default/files',
+        language_default: 'und',
+        site_path: ''
       }
     };
   }
@@ -118,7 +126,11 @@ function in_array(needle, haystack) {
  */
 function language_default() {
   try {
-    return Drupal.settings.language_default;
+    if (Drupal.settings.language_default &&
+      Drupal.settings.language_default != '') {
+      return Drupal.settings.language_default;
+    }
+    return 'und';
   }
   catch (error) { console.log('language_default - ' + error); }
 }
