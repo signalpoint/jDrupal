@@ -100,6 +100,19 @@ function user_register(account, options) {
  */
 function user_login(name, pass, options) {
   try {
+    var valid = true;
+    if (!name || typeof name !== 'string') {
+      valid = false;
+      console.log('user_login - invalid name');
+    }
+    if (!pass || typeof pass !== 'string') {
+      valid = false;
+      console.log('user_login - invalid pass');
+    }
+    if (!valid) {
+      if (options.error) { options.error(null, 406, 'user_login - bad input'); }
+      return;
+    }
     Drupal.services.call({
         method: 'POST',
         path: 'user/login.json',
