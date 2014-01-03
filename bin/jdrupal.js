@@ -2,9 +2,14 @@
 var Drupal = Drupal || drupal_init();
 
 /**
- * Add additional properties to the Drupal JSON object.
+ * Init sessid to null.
  */
 Drupal.sessid = null;
+
+/**
+ * Init csrf_token bool to false.
+ */
+Drupal.csrf_token = false;
 
 /**
  * Initialize a Drupal user JSON object.
@@ -16,10 +21,13 @@ Drupal.user = drupal_user_defaults();
  * @param {Object} data
  */
 function dpm(data) {
-  if (data) {
-    if (typeof data === 'object') { console.log(JSON.stringify(data)); }
-    else { console.log(data); }
+  try {
+    if (data) {
+      if (typeof data === 'object') { console.log(JSON.stringify(data)); }
+      else { console.log(data); }
+    }
   }
+  catch (error) { console.log('dpm - ' + error); }
 }
 
 /**
@@ -27,13 +35,24 @@ function dpm(data) {
  * @return {Object}
  */
 function drupal_init() {
-  return {
-    settings: {
-      site_path: '',
-      base_path: '/',
-      language_default: 'und'
-    }
-  };
+  try {
+    return {
+      settings: {
+        base_path: '/',
+        cache: {
+          entity: {
+            enabled: false,
+            expiration: 3600
+          }
+        },
+        endpoint: '',
+        file_public_path: 'sites/default/files',
+        language_default: 'und',
+        site_path: ''
+      }
+    };
+  }
+  catch (error) { console.log('drupal_init - ' + error); }
 }
 
 /**
@@ -41,10 +60,13 @@ function drupal_init() {
  * @return {Object}
  */
 function drupal_user_defaults() {
-  return {
-    'uid': '0',
-    'roles': {'1': 'anonymous user'}
-  };
+  try {
+    return {
+      'uid': '0',
+      'roles': {'1': 'anonymous user'}
+    };
+  }
+  catch (error) { console.log('drupal_user_defaults - ' + error); }
 }
 
 /**
@@ -75,6 +97,7 @@ function http_status_code_title(status) {
       case 401: title = 'Unauthorized'; break;
       case 404: title = 'Not Found'; break;
       case 406: title = 'Not Acceptable'; break;
+      case 500: title = 'Internal Server Error'; break;
     }
     return title;
   }
@@ -91,7 +114,23 @@ function http_status_code_title(status) {
  * @return {Boolean}
  */
 function in_array(needle, haystack) {
-  return (haystack.indexOf(needle) > -1);
+  try {
+    return (haystack.indexOf(needle) > -1);
+  }
+  catch (error) { console.log('in_array - ' + error); }
+}
+
+/**
+ * Given an argument, this will return true if it is an int, false otherwise.
+ * @param {Number} n
+ * @return {Boolean}
+ */
+function is_int(n) {
+  // Credit: http://stackoverflow.com/a/3886106/763010
+  if (typeof n === 'string') {
+    n = parseInt(n);
+  }
+  return typeof n === 'number' && n % 1 == 0;
 }
 
 /**
@@ -100,9 +139,40 @@ function in_array(needle, haystack) {
  */
 function language_default() {
   try {
-    return Drupal.settings.language_default;
+    if (Drupal.settings.language_default &&
+      Drupal.settings.language_default != '') {
+      return Drupal.settings.language_default;
+    }
+    return 'und';
   }
   catch (error) { console.log('language_default - ' + error); }
+}
+
+/**
+ * Javascript equivalent of php's time() function.
+ * @return {Number}
+ */
+function time() {
+  var d = new Date();
+  return Math.floor(d / 1000);
+}
+
+/**
+ * Given a string, this will change the first character to upper case and return
+ * the new string.
+ * @param {String} str
+ * @return {String}
+ */
+function ucfirst(str) {
+  // http://kevin.vanzonneveld.net
+  // +   original by: Kevin van Zonneveld (http://kevin.vanzonneveld.net)
+  // +   bugfixed by: Onno Marsman
+  // +   improved by: Brett Zamir (http://brett-zamir.me)
+  // *     example 1: ucfirst('kevin van zonneveld');
+  // *     returns 1: 'Kevin van zonneveld'
+  str += '';
+  var f = str.charAt(0).toUpperCase();
+  return f + str.substr(1);
 }
 
 /**
@@ -199,6 +269,20 @@ function entity_delete(entity_type, ids, options) {
 }
 
 /**
+ * Given an entity type and the entity id, this will return the local storage
+ * key to be used when saving/loading the entity from local storage.
+ * @param {String} entity_type
+ * @param {Number} id
+ * @return {String}
+ */
+function entity_local_storage_key(entity_type, id) {
+  try {
+    return entity_type + '_' + id;
+  }
+  catch (error) { drupalgap_error(error); }
+}
+
+/**
  * Loads an entity.
  * @param {String} entity_type
  * @param {Number} ids
@@ -206,16 +290,205 @@ function entity_delete(entity_type, ids, options) {
  */
 function entity_load(entity_type, ids, options) {
   try {
+    if (!is_int(ids)) {
+      // @todo - if an array of ints is sent in, call entity_index() instead.
+      alert('entity_load(' + entity_type + ') - only single ids supported!');
+      return;
+    }
+    var entity_id = ids;
+    // If entity caching is enabled, try to load the entity from local storage.
+    // If a copy is available in local storage, send it to the success callback.
+    var entity = false;
+    if (Drupal.settings.cache.entity && Drupal.settings.cache.entity.enabled) {
+      entity = _entity_local_storage_load(entity_type, entity_id, options);
+      if (entity) {
+        if (options.success) { options.success(entity); }
+        return;
+      }
+    }
+
+    // Verify the entity type is supported.
+    if (!in_array(entity_type, entity_types())) {
+      var message = 'WARNING: entity_load - unsupported type: ' + entity_type;
+      console.log(message);
+      if (options.error) { options.error(null, null, message); }
+      return;
+    }
+
+    // We didn't load the entity from local storage. Let's grab it from the
+    // Drupal server instead. First, let's build the call options.
+    var primary_key = entity_primary_key(entity_type);
+    var call_options = {
+      success: function(data) {
+        try {
+          // Set the entity equal to the returned data.
+          entity = data;
+          // Is entity caching enabled?
+          if (Drupal.settings.cache.entity &&
+              Drupal.settings.cache.entity.enabled) {
+            // Set the expiration time as a property on the entity that can be
+            // used later.
+            if (Drupal.settings.cache.entity.expiration !== 'undefined') {
+              var expiration = time() + Drupal.settings.cache.entity.expiration;
+              if (Drupal.settings.cache.entity.expiration == 0) {
+                expiration = 0;
+              }
+              entity.expiration = expiration;
+            }
+            // Save the entity to local storage.
+            _entity_local_storage_save(entity_type, entity_id, entity);
+          }
+          // Send the entity back to the caller's success callback function.
+          if (options.success) { options.success(entity); }
+        }
+        catch (error) {
+          console.log('entity_load - success - ' + error);
+        }
+      },
+      error: function(xhr, status, message) {
+        try {
+          if (options.error) { options.error(xhr, status, message); }
+        }
+        catch (error) {
+          console.log('entity_load - error - ' + error);
+        }
+      }
+    };
+
+    // Finally, determine the entity's retrieve function and call it.
     var function_name = entity_type + '_retrieve';
     if (function_exists(function_name)) {
+      call_options[primary_key] = entity_id;
       var fn = window[function_name];
-      fn(ids, options);
+      fn(ids, call_options);
     }
     else {
-      console.log('WARNING: entity_load - unsupported type: ' + entity_type);
+      console.log('WARNING: ' + function_name + '() does not exist!');
     }
   }
   catch (error) { console.log('entity_load - ' + error); }
+}
+
+/**
+ * An internal function used by entity_load() to attempt loading an entity
+ * from local storage.
+ * @param {String} entity_type
+ * @param {Number} entity_id
+ * @param {Object} options
+ * @return {Object}
+ */
+function _entity_local_storage_load(entity_type, entity_id, options) {
+  try {
+    var entity = false;
+    // Process options if necessary.
+    if (options) {
+      // If we are resetting, remove the item from localStorage.
+      if (options.reset) {
+        _entity_local_storage_delete(entity_type, entity_id);
+      }
+    }
+    // Attempt to load the entity from local storage.
+    var local_storage_key = entity_local_storage_key(entity_type, entity_id);
+    entity = window.localStorage.getItem(local_storage_key);
+    if (entity) {
+      entity = JSON.parse(entity);
+      // We successfully loaded the entity from local storage. If it expired
+      // remove it from local storage then continue onward with the entity
+      // retrieval from Drupal. Otherwise return the local storage entity copy.
+      if (typeof entity.expiration !== 'undefined' &&
+          entity.expiration != 0 &&
+          time() > entity.expiration) {
+        _entity_local_storage_delete(entity_type, entity_id);
+        entity = false;
+      }
+      else {
+
+        // @todo - this code belongs to DrupalGap! Figure out how to bring the
+        // idea of DrupalGap modules into jDrupal that way jDrupal can provide
+        // a hook for DrupalGap to take care of this code!
+
+        // The entity has not yet expired. If the current page options
+        // indicate reloadingPage is true (and the reset option wasn't set to
+        // false) then we'll grab a fresh copy of the entity from Drupal.
+        // If the page is reloading and the developer didn't call for a reset,
+        // then just return the cached copy.
+        if (drupalgap && drupalgap.page.options &&
+          drupalgap.page.options.reloadingPage) {
+          // Reloading page... cached entity is still valid.
+          if (typeof drupalgap.page.options.reset !== 'undefined' &&
+            drupalgap.page.options.reset == false) {
+            // We were told to not reset it, so we'll use the cached copy.
+            return entity;
+          }
+          else {
+            // Remove the entity from local storage and reset it.
+            _entity_local_storage_delete(entity_type, entity_id);
+            entity = false;
+          }
+        }
+      }
+    }
+    return entity;
+  }
+  catch (error) { console.log('_entity_load_from_local_storage - ' + error); }
+}
+
+/**
+ * An internal function used to save an entity to local storage.
+ * @param {String} entity_type
+ * @param {Number} entity_id
+ * @param {Object} entity
+ */
+function _entity_local_storage_save(entity_type, entity_id, entity) {
+  try {
+    window.localStorage.setItem(
+      entity_local_storage_key(entity_type, entity_id),
+      JSON.stringify(entity)
+    );
+  }
+  catch (error) { console.log('_entity_local_storage_save - ' + error); }
+}
+
+/**
+ * An internal function used to delete an entity from local storage.
+ * @param {String} entity_type
+ * @param {Number} entity_id
+ */
+function _entity_local_storage_delete(entity_type, entity_id) {
+  try {
+    var storage_key = entity_local_storage_key(
+      entity_type,
+      entity_id
+    );
+    window.localStorage.removeItem(storage_key);
+  }
+  catch (error) { console.log('_entity_local_storage_delete - ' + error); }
+}
+
+/**
+ * Returns an entity type's primary key.
+ * @param {String} entity_type
+ * @return {String}
+ */
+function entity_primary_key(entity_type) {
+  try {
+    var key;
+    switch (entity_type) {
+      case 'comment': key = 'cid'; break;
+      case 'file': key = 'fid'; break;
+      case 'node': key = 'nid'; break;
+      case 'taxonomy_term': key = 'tid'; break;
+      case 'taxonomy_vocabulary': key = 'vid'; break;
+      case 'user': key = 'uid'; break;
+      default:
+        console.log(
+          'entity_primary_key - unsupported entity type (' + entity_type + ')'
+        );
+        break;
+    }
+    return key;
+  }
+  catch (error) { console.log('entity_primary_key - ' + error); }
 }
 
 /**
@@ -260,6 +533,24 @@ function entity_save(entity_type, bundle, entity, options) {
     }
   }
   catch (error) { console.log('entity_save - ' + error); }
+}
+
+/**
+ * Returns an array of entity type names.
+ * @return {Array}
+ */
+function entity_types() {
+  try {
+    return [
+      'comment',
+      'file',
+      'node',
+      'taxonomy_term',
+      'taxonomy_vocabulary',
+      'user'
+    ];
+  }
+  catch (error) { console.log('entity_types - ' + error); }
 }
 
 /**
@@ -347,6 +638,18 @@ function user_load(uid, options) {
 }
 
 /**
+ * Saves a user account.
+ * @param {Object} account
+ * @param {Object} options
+ */
+function user_save(account, options) {
+  try {
+    entity_save('user', null, account, options);
+  }
+  catch (error) { console.log('user_save - ' + error); }
+}
+
+/**
  * Generates a random user password.
  * @return {String}
  */
@@ -364,18 +667,6 @@ function user_password() {
     return password;
   }
   catch (error) { console.log('user_password - ' + error); }
-}
-
-/**
- * Saves a user account.
- * @param {Object} account
- * @param {Object} options
- */
-function user_save(account, options) {
-  try {
-    entity_save('user', null, account, options);
-  }
-  catch (error) { console.log('user_save - ' + error); }
 }
 
 /**
@@ -409,75 +700,101 @@ Drupal.services.call = function(options) {
 
     // Request Success Handler
     request.onload = function(e) {
-      if (request.readyState == 4) {
-
-        // BUild a human readable response title.
-        var title = request.status + ' - ' +
-          http_status_code_title(request.status);
-
-        // 200 OK
-        if (request.status == 200) {
-          options.success(JSON.parse(request.responseText));
-        }
-        else {
-          // Not OK...
-          dpm(request);
-          console.log(method + ': ' + url + ' - ' + title);
-          if (request.responseText) { console.log(request.responseText); }
-          else { dpm(request); }
-          if (typeof options.error !== 'undefined') {
-            var message = request.responseText;
-            if (!message) { message = title; }
-            options.error(request, request.status, message);
+      try {
+        if (request.readyState == 4) {
+          // Build a human readable response title.
+          var title = request.status + ' - ' +
+            http_status_code_title(request.status);
+          // 200 OK
+          if (request.status == 200) {
+            options.success(JSON.parse(request.responseText));
+          }
+          else {
+            // Not OK...
+            dpm(request);
+            console.log(method + ': ' + url + ' - ' + title);
+            if (request.responseText) { console.log(request.responseText); }
+            else { dpm(request); }
+            if (typeof options.error !== 'undefined') {
+              var message = request.responseText || '';
+              if (!message || message == '') { message = title; }
+              options.error(request, request.status, message);
+            }
           }
         }
+        else {
+          console.log(
+            'Drupal.services.call - request.readyState = ' + request.readyState
+          );
+        }
       }
-      else {
-        console.log('request.readyState = ' + request.readyState);
+      catch (error) {
+        console.log('Drupal.services.call - onload - ' + error);
       }
     };
 
-    // Generate Token and Make the Request.
-    Drupal.services.csrf_token(method, url, request, {
+    // Get the CSRF Token and Make the Request.
+    services_get_csrf_token({
         debug: options.debug,
-        path: options.path,
         success: function(token) {
+          try {
+            // Open the request.
+            request.open(method, url, true);
 
-          // Open the request.
-          request.open(method, url, true);
-
-          // Set any headers.
-          if (method == 'POST') {
-            request.setRequestHeader(
-              'Content-type',
-              'application/x-www-form-urlencoded'
-            );
-          }
-          else if (method == 'PUT') {
-            request.setRequestHeader(
-              'Content-type',
-              'application/json'
-            );
-          }
-
-          // Add the token to the header if we have one.
-          if (token) {
-            request.setRequestHeader('X-CSRF-Token', token);
-          }
-          if (typeof options.data !== 'undefined') {
-            if (options.path != 'user/login.json') {
-              if (typeof options.data === 'object') {
-                console.log(JSON.stringify(options.data));
-              }
-              else {
-                console.log(options.data);
-              }
+            // Set any headers.
+            if (method == 'POST') {
+              request.setRequestHeader(
+                'Content-type',
+                'application/x-www-form-urlencoded'
+              );
             }
-            request.send(options.data);
+            else if (method == 'PUT') {
+              request.setRequestHeader(
+                'Content-type',
+                'application/json'
+              );
+            }
+
+            // Add the token to the header if we have one.
+            if (token) {
+              request.setRequestHeader('X-CSRF-Token', token);
+            }
+            if (typeof options.data !== 'undefined') {
+              if (options.path != 'user/login.json') {
+                if (typeof options.data === 'object') {
+                  console.log(JSON.stringify(options.data));
+                }
+                else {
+                  console.log(options.data);
+                }
+              }
+              request.send(options.data);
+            }
+            else { request.send(null); }
           }
-          else { request.send(null); }
+          catch (error) {
+            console.log(
+              'Drupal.services.call - services_get_csrf_token - success - ' +
+              error
+            );
+          }
+        },
+        error: function(xhr, status, message) {
+          try {
+            console.log(
+              'Drupal.services.call - services_get_csrf_token - ' + message
+            );
+            if (options.error) { options.error(xhr, status, message); }
+          }
+          catch (error) {
+            console.log(
+              'Drupal.services.call - services_get_csrf_token - error - ' +
+              error
+            );
+          }
         }
     });
+
   }
   catch (error) {
     console.log('Drupal.services.call - error - ' + error);
@@ -485,118 +802,96 @@ Drupal.services.call = function(options) {
 };
 
 /**
- * Drupal Services CSRF TOKEN
- * @param {String} method
- * @param {String} url
- * @param {Object} request
+ * Gets the CSRF token from Services.
  * @param {Object} options
  */
-Drupal.services.csrf_token = function(method, url, request, options) {
+function services_get_csrf_token(options) {
   try {
-    var token = false;
-    // Do we potentially need a token for this call? We most likely need one if
-    // the call option's type is not one of these types.
-    if (!in_array(method, ['GET', 'HEAD', 'OPTIONS', 'TRACE'])) {
-      // Anonymous users don't need the CSRF token, unless we're calling system
-      // connect, then we need to pass along the token if we have one.
-      if (Drupal.user.uid == 0 && options.path != 'system/connect.json') {
-        if (options.debug) {
-          dpm('Anonymous user does not need token for this call!');
-        }
-        options.success(false);
-        return;
-      }
-      // Is there a token available in local storage?
-      token = window.localStorage.getItem('sessid');
-      if (token && options.debug) {
-        dpm('Loaded token from local storage!');
-      }
-      // If we don't already have a token, is there one on Drupal.sessid?
-      if (!token && Drupal.sessid) {
-        token = Drupal.sessid;
-        if (options.debug) {
-          dpm('Loaded token from Drupal JSON object!');
-        }
-      }
-      // If we still don't have a token to use, let's grab one from Drupal.
-      if (!token) {
-        // Build the Request, URL and extract the HTTP method.
-        var token_request = new XMLHttpRequest();
-        var token_url = Drupal.settings.site_path +
-                  Drupal.settings.base_path +
-                  '?q=services/session/token';
-        // Token Request Success Handler
-        token_request.onload = function(e) {
-          if (token_request.readyState == 4) {
-            var title = token_request.status + ' - ' +
-              http_status_code_title(token_request.status);
-            if (token_request.status != 200) { // Not OK
-              console.log(token_url + ' - ' + title);
-              console.log(token_request.responseText);
-            }
-            else { // OK
-              // Save the token to local storage as sessid, set Drupal.sessid
-              // with the token, then return the token to the success function.
-              if (options.debug) {
-                dpm('Grabbed token from Drupal site!');
-              }
-              token = token_request.responseText;
-              window.localStorage.setItem('sessid', token);
-              Drupal.sessid = token;
-              options.success(token);
-            }
-          }
-          else {
-            console.log(
-              'token_request.readyState = ' + token_request.readyState
-            );
-          }
-        };
 
-        // Open the token request.
-        token_request.open('GET', token_url, true);
+    var token;
 
-        // Send the token request.
-        token_request.send(null);
-      }
-      else {
-        // We had a previous token available, let's use it.
-        if (options.debug) {
-          dpm('Previous token available, using it!');
+    // Are we resetting the token?
+    if (options.reset) {
+      Drupal.sessid = null;
+    }
+
+    // Do we already have a token? If we do, return it the success callback.
+    if (Drupal.sessid) {
+      token = Drupal.sessid;
+      if (options.debug) { dpm('Loaded token from Drupal JSON object!'); }
+    }
+    if (token) {
+      if (options.success) { options.success(token); }
+      return;
+    }
+
+    // We don't have a token, let's get it from Drupal...
+
+    // Build the Request and URL.
+    var token_request = new XMLHttpRequest();
+    var token_url = Drupal.settings.site_path +
+              Drupal.settings.base_path +
+              '?q=services/session/token';
+
+    // Token Request Success Handler
+    token_request.onload = function(e) {
+      try {
+        if (token_request.readyState == 4) {
+          var title = token_request.status + ' - ' +
+            http_status_code_title(token_request.status);
+          if (token_request.status != 200) { // Not OK
+            console.log(token_url + ' - ' + title);
+            console.log(token_request.responseText);
+          }
+          else { // OK
+            // Set Drupal.sessid with the token, then return the token to the
+            // success function.
+            if (options.debug) { dpm('Grabbed token from Drupal site!'); }
+            token = token_request.responseText;
+            Drupal.sessid = token;
+            if (options.success) { options.success(token); }
+          }
         }
-        Drupal.sessid = token;
-        options.success(token);
+        else {
+          console.log(
+            'services_get_csrf_token - readyState - ' + token_request.readyState
+          );
+        }
       }
-    }
-    else {
-      // This call's HTTP method doesn't need a token, so we return via the
-      // success function.
-      if (options.debug) {
-        dpm('Method does not need token!');
+      catch (error) {
+        console.log(
+          'services_get_csrf_token - token_request. onload - ' + error
+        );
       }
-      options.success(false);
-    }
+    };
+
+    // Open the token request.
+    token_request.open('GET', token_url, true);
+
+    // Send the token request.
+    token_request.send(null);
   }
-  catch (error) {
-    console.log('Drupal.services.call - error - ' + error);
-  }
-};
+  catch (error) { console.log('services_get_csrf_token - ' + error); }
+}
 
 /**
  * Checks if we're ready to make a Services call.
  * @return {Boolean}
  */
 function services_ready() {
-  var result = true;
-  if (Drupal.settings.site_path == '') {
-    result = false;
-    console.log('jDrupal\'s Drupal.settings.site_path is not set!');
+  try {
+    var result = true;
+    if (Drupal.settings.site_path == '') {
+      result = false;
+      console.log('jDrupal\'s Drupal.settings.site_path is not set!');
+    }
+    if (Drupal.settings.endpoint == '') {
+      result = false;
+      console.log('jDrupal\'s Drupal.settings.endpoint is not set!');
+    }
+    return result;
   }
-  if (Drupal.settings.endpoint == '') {
-    result = false;
-    console.log('jDrupal\'s Drupal.settings.endpoint is not set!');
-  }
-  return result;
+  catch (error) { console.log('services_ready - ' + error); }
 }
 
 /**
@@ -606,8 +901,6 @@ function services_ready() {
  */
 function comment_create(comment, options) {
   try {
-    options.method = 'POST';
-    options.path = 'comment.json';
     entity_create('comment', null, comment, options);
   }
   catch (error) { console.log('comment_create - ' + error); }
@@ -620,8 +913,6 @@ function comment_create(comment, options) {
  */
 function comment_retrieve(ids, options) {
   try {
-    options.method = 'GET';
-    options.path = 'comment/' + ids + '.json';
     entity_retrieve('comment', ids, options);
   }
   catch (error) { console.log('comment_retrieve - ' + error); }
@@ -634,8 +925,6 @@ function comment_retrieve(ids, options) {
  */
 function comment_update(comment, options) {
   try {
-    options.method = 'PUT';
-    options.path = 'comment/' + comment.cid + '.json';
     entity_update('comment', null, comment, options);
   }
   catch (error) { console.log('comment_update - ' + error); }
@@ -648,16 +937,7 @@ function comment_update(comment, options) {
  */
 function comment_delete(cid, options) {
   try {
-    Drupal.services.call({
-        method: 'DELETE',
-        path: 'comment/' + cid + '.json',
-        success: function(data) {
-          if (options.success) { options.success(data); }
-        },
-        error: function(xhr, status, message) {
-          if (options.error) { options.error(xhr, status, message); }
-        }
-    });
+    entity_delete('comment', cid, options);
   }
   catch (error) { console.log('comment_delete - ' + error); }
 }
@@ -684,14 +964,20 @@ function comment_index(query, options) {
 function entity_create(entity_type, bundle, entity, options) {
   try {
     Drupal.services.call({
-        method: options.method,
-        path: options.path,
+        method: 'POST',
+        path: entity_type + '.json',
         data: entity_assemble_data(entity_type, bundle, entity, options),
         success: function(data) {
-          if (options.success) { options.success(data); }
+          try {
+            if (options.success) { options.success(data); }
+          }
+          catch (error) { console.log('entity_create - success - ' + error); }
         },
         error: function(xhr, status, message) {
-          if (options.error) { options.error(xhr, status, message); }
+          try {
+            if (options.error) { options.error(xhr, status, message); }
+          }
+          catch (error) { console.log('entity_create - error - ' + error); }
         }
     });
   }
@@ -707,13 +993,19 @@ function entity_create(entity_type, bundle, entity, options) {
 function entity_retrieve(entity_type, ids, options) {
   try {
     Drupal.services.call({
-        method: options.method,
-        path: options.path,
+        method: 'GET',
+        path: entity_type + '/' + ids + '.json',
         success: function(data) {
-          if (options.success) { options.success(data); }
+          try {
+            if (options.success) { options.success(data); }
+          }
+          catch (error) { console.log('entity_retrieve - success - ' + error); }
         },
         error: function(xhr, status, message) {
-          if (options.error) { options.error(xhr, status, message); }
+          try {
+            if (options.error) { options.error(xhr, status, message); }
+          }
+          catch (error) { console.log('entity_retrieve - error - ' + error); }
         }
     });
   }
@@ -729,28 +1021,57 @@ function entity_retrieve(entity_type, ids, options) {
  */
 function entity_update(entity_type, bundle, entity, options) {
   try {
-    // Wrap entities, except for taxonomy.
-    var entity_wrapper = {};
-    if (entity_type == 'taxonomy_term' ||
-      entity_type == 'taxonomy_vocabulary' ||
-      entity_type == 'user') {
-      entity_wrapper = entity;
-    }
-    else { entity_wrapper[entity_type] = entity; }
+    var entity_wrapper = _entity_wrap(entity_type, entity);
+    var primary_key = entity_primary_key(entity_type);
     Drupal.services.call({
-        method: options.method,
-        path: options.path,
-        //data: entity_assemble_data(entity_type, bundle, entity, options),
+        method: 'PUT',
+        path: entity_type + '/' + entity[primary_key] + '.json',
         data: JSON.stringify(entity_wrapper),
         success: function(data) {
-          if (options.success) { options.success(data); }
+          try {
+            _entity_local_storage_delete(entity_type, entity[primary_key]);
+            if (options.success) { options.success(data); }
+          }
+          catch (error) { console.log('entity_update - success - ' + error); }
         },
         error: function(xhr, status, message) {
-          if (options.error) { options.error(xhr, status, message); }
+          try {
+            if (options.error) { options.error(xhr, status, message); }
+          }
+          catch (error) { console.log('entity_update - error - ' + error); }
         }
     });
   }
   catch (error) { console.log('entity_update - ' + error); }
+}
+
+/**
+ * Deletes an entity.
+ * @param {String} entity_type
+ * @param {Number} entity_id
+ * @param {Object} options
+ */
+function entity_delete(entity_type, entity_id, options) {
+  try {
+    Drupal.services.call({
+        method: 'DELETE',
+        path: entity_type + '/' + entity_id + '.json',
+        success: function(data) {
+          try {
+            _entity_local_storage_delete(entity_type, entity_id);
+            if (options.success) { options.success(data); }
+          }
+          catch (error) { console.log('entity_delete - success - ' + error); }
+        },
+        error: function(xhr, status, message) {
+          try {
+            if (options.error) { options.error(xhr, status, message); }
+          }
+          catch (error) { console.log('entity_delete - error - ' + error); }
+        }
+    });
+  }
+  catch (error) { console.log('entity_delete - ' + error); }
 }
 
 /**
@@ -773,13 +1094,17 @@ function entity_index(entity_type, query, options) {
     Drupal.services.call({
         method: 'GET',
         path: entity_type + '.json' + query_string,
-        /*data: JSON.stringify(query),*/
-        /*data:query,*/
         success: function(result) {
-          if (options.success) { options.success(result); }
+          try {
+            if (options.success) { options.success(result); }
+          }
+          catch (error) { console.log('entity_index - success - ' + error); }
         },
         error: function(xhr, status, message) {
-          if (options.error) { options.error(xhr, status, message); }
+          try {
+            if (options.error) { options.error(xhr, status, message); }
+          }
+          catch (error) { console.log('entity_index - error - ' + error); }
         }
     });
   }
@@ -830,14 +1155,33 @@ function entity_index_build_query_string(query) {
 }
 
 /**
+ * Wraps an entity in a JSON object, keyed by its type.
+ * @param {String} entity_type
+ * @param {Object} entity
+ * @return {String}
+ */
+function _entity_wrap(entity_type, entity) {
+  try {
+    // We don't wrap taxonomy or users.
+    var entity_wrapper = {};
+    if (entity_type == 'taxonomy_term' ||
+      entity_type == 'taxonomy_vocabulary' ||
+      entity_type == 'user') {
+      entity_wrapper = entity;
+    }
+    else { entity_wrapper[entity_type] = entity; }
+    return entity_wrapper;
+  }
+  catch (error) { console.log('_entity_wrap - ' + error); }
+}
+
+/**
  * Creates a node.
  * @param {Object} node
  * @param {Object} options
  */
 function node_create(node, options) {
   try {
-    options.method = 'POST';
-    options.path = 'node.json';
     entity_create('node', node.type, node, options);
   }
   catch (error) { console.log('node_create - ' + error); }
@@ -850,8 +1194,6 @@ function node_create(node, options) {
  */
 function node_retrieve(ids, options) {
   try {
-    options.method = 'GET';
-    options.path = 'node/' + ids + '.json';
     entity_retrieve('node', ids, options);
   }
   catch (error) { console.log('node_retrieve - ' + error); }
@@ -864,8 +1206,6 @@ function node_retrieve(ids, options) {
  */
 function node_update(node, options) {
   try {
-    options.method = 'PUT';
-    options.path = 'node/' + node.nid + '.json';
     entity_update('node', node.type, node, options);
   }
   catch (error) { console.log('node_update - ' + error); }
@@ -878,16 +1218,7 @@ function node_update(node, options) {
  */
 function node_delete(nid, options) {
   try {
-    Drupal.services.call({
-        method: 'DELETE',
-        path: 'node/' + nid + '.json',
-        success: function(data) {
-          if (options.success) { options.success(data); }
-        },
-        error: function(xhr, status, message) {
-          if (options.error) { options.error(xhr, status, message); }
-        }
-    });
+    entity_delete('node', nid, options);
   }
   catch (error) { console.log('node_delete - ' + error); }
 }
@@ -910,17 +1241,59 @@ function node_index(query, options) {
  */
 function system_connect(options) {
   try {
-    Drupal.services.call({
-        method: 'POST',
-        path: 'system/connect.json',
-        success: function(data) {
+
+    // Build a system connect object.
+    var system_connect = {
+      method: 'POST',
+      path: 'system/connect.json',
+      success: function(data) {
+        try {
           Drupal.user = data.user;
           if (options.success) { options.success(data); }
-        },
-        error: function(xhr, status, message) {
+        }
+        catch (error) { console.log('system_connect - success - ' + error); }
+      },
+      error: function(xhr, status, message) {
+        try {
           if (options.error) { options.error(xhr, status, message); }
         }
-    });
+        catch (error) { console.log('system_connect - error - ' + error); }
+      }
+    };
+
+    // If we don't have a token, grab one first.
+    if (!Drupal.csrf_token) {
+      services_get_csrf_token({
+          success: function(token) {
+            try {
+              if (options.debug) { console.log('Grabbed new token.'); }
+              // Now that we have a token, make the system connect call.
+              Drupal.csrf_token = true;
+              Drupal.services.call(system_connect);
+            }
+            catch (error) {
+              console.log(
+                'system_connect - services_csrf_token - success - ' + message
+              );
+            }
+          },
+          error: function(xhr, status, message) {
+            try {
+              if (options.error) { options.error(xhr, status, message); }
+            }
+            catch (error) {
+              console.log(
+                'system_connect - services_csrf_token - error - ' + message
+              );
+            }
+          }
+      });
+    }
+    else {
+      // We already have a token, make the system connect call.
+      if (options.debug) { console.log('Token already available.'); }
+      Drupal.services.call(system_connect);
+    }
   }
   catch (error) {
     console.log('system_connect - ' + error);
@@ -934,8 +1307,6 @@ function system_connect(options) {
  */
 function taxonomy_term_create(taxonomy_term, options) {
   try {
-    options.method = 'POST';
-    options.path = 'taxonomy_term.json';
     entity_create('taxonomy_term', null, taxonomy_term, options);
   }
   catch (error) { console.log('taxonomy_term_create - ' + error); }
@@ -948,8 +1319,6 @@ function taxonomy_term_create(taxonomy_term, options) {
  */
 function taxonomy_term_retrieve(ids, options) {
   try {
-    options.method = 'GET';
-    options.path = 'taxonomy_term/' + ids + '.json';
     entity_retrieve('taxonomy_term', ids, options);
   }
   catch (error) { console.log('taxonomy_term_retrieve - ' + error); }
@@ -962,8 +1331,6 @@ function taxonomy_term_retrieve(ids, options) {
  */
 function taxonomy_term_update(taxonomy_term, options) {
   try {
-    options.method = 'PUT';
-    options.path = 'taxonomy_term/' + taxonomy_term.tid + '.json';
     entity_update('taxonomy_term', null, taxonomy_term, options);
   }
   catch (error) { console.log('taxonomy_term_update - ' + error); }
@@ -976,17 +1343,7 @@ function taxonomy_term_update(taxonomy_term, options) {
  */
 function taxonomy_term_delete(tid, options) {
   try {
-    // TODO - this should be replaced with a call to entity_delete().
-    Drupal.services.call({
-        method: 'DELETE',
-        path: 'taxonomy_term/' + tid + '.json',
-        success: function(data) {
-          if (options.success) { options.success(data); }
-        },
-        error: function(xhr, status, message) {
-          if (options.error) { options.error(xhr, status, message); }
-        }
-    });
+    entity_delete('taxonomy_term', tid, options);
   }
   catch (error) { console.log('taxonomy_term_delete - ' + error); }
 }
@@ -1010,8 +1367,7 @@ function taxonomy_term_index(query, options) {
  */
 function taxonomy_vocabulary_create(taxonomy_vocabulary, options) {
   try {
-    options.method = 'POST';
-    options.path = 'taxonomy_vocabulary.json';
+    // Set a default machine name if one wasn't provided.
     if (!taxonomy_vocabulary.machine_name && taxonomy_vocabulary.name) {
       taxonomy_vocabulary.machine_name =
         taxonomy_vocabulary.name.toLowerCase().replace(' ', '_');
@@ -1028,8 +1384,6 @@ function taxonomy_vocabulary_create(taxonomy_vocabulary, options) {
  */
 function taxonomy_vocabulary_retrieve(ids, options) {
   try {
-    options.method = 'GET';
-    options.path = 'taxonomy_vocabulary/' + ids + '.json';
     entity_retrieve('taxonomy_vocabulary', ids, options);
   }
   catch (error) { console.log('taxonomy_vocabulary_retrieve - ' + error); }
@@ -1054,8 +1408,6 @@ function taxonomy_vocabulary_update(taxonomy_vocabulary, options) {
       }
       return;
     }
-    options.method = 'PUT';
-    options.path = 'taxonomy_vocabulary/' + taxonomy_vocabulary.vid + '.json';
     entity_update('taxonomy_vocabulary', null, taxonomy_vocabulary, options);
   }
   catch (error) { console.log('taxonomy_vocabulary_update - ' + error); }
@@ -1068,16 +1420,7 @@ function taxonomy_vocabulary_update(taxonomy_vocabulary, options) {
  */
 function taxonomy_vocabulary_delete(vid, options) {
   try {
-    Drupal.services.call({
-        method: 'DELETE',
-        path: 'taxonomy_vocabulary/' + vid + '.json',
-        success: function(data) {
-          if (options.success) { options.success(data); }
-        },
-        error: function(xhr, status, message) {
-          if (options.error) { options.error(xhr, status, message); }
-        }
-    });
+    entity_delete('taxonomy_vocabulary', vid, options);
   }
   catch (error) { console.log('taxonomy_vocabulary_delete - ' + error); }
 }
@@ -1101,8 +1444,6 @@ function taxonomy_vocabulary_index(query, options) {
  */
 function user_create(account, options) {
   try {
-    options.method = 'POST';
-    options.path = 'user.json';
     entity_create('user', null, account, options);
   }
   catch (error) { console.log('user_create - ' + error); }
@@ -1115,39 +1456,7 @@ function user_create(account, options) {
  */
 function user_retrieve(ids, options) {
   try {
-    options.method = 'GET';
-    options.path = 'user/' + ids + '.json';
     entity_retrieve('user', ids, options);
-  }
-  catch (error) { console.log('user_retrieve - ' + error); }
-}
-
-/**
- * Registers a user.
- * @param {Object} account
- * @param {Object} options
- */
-function user_register(account, options) {
-  try {
-    // TODO - it seems the user register resource only likes data string... ?
-    Drupal.services.call({
-        method: 'POST',
-        path: 'user/register.json',
-        data: entity_assemble_data('user', null, account, options),
-        //data: JSON.stringify({'account':account}), // wrapper
-        //data: JSON.stringify(account),
-        success: function(data) {
-          if (options.success) { options.success(data); }
-        },
-        error: function(xhr, status, message) {
-          if (status == 406) {
-            console.log(
-              'user_register - Already logged in, cannot register user!'
-            );
-          }
-          if (options.error) { options.error(xhr, status, message); }
-        }
-    });
   }
   catch (error) { console.log('user_retrieve - ' + error); }
 }
@@ -1159,8 +1468,6 @@ function user_register(account, options) {
  */
 function user_update(account, options) {
   try {
-    options.method = 'PUT';
-    options.path = 'user/' + account.uid + '.json';
     entity_update('user', null, account, options);
   }
   catch (error) { console.log('user_update - ' + error); }
@@ -1173,16 +1480,7 @@ function user_update(account, options) {
  */
 function user_delete(uid, options) {
   try {
-    Drupal.services.call({
-        method: 'DELETE',
-        path: 'user/' + uid + '.json',
-        success: function(data) {
-          if (options.success) { options.success(data); }
-        },
-        error: function(xhr, status, message) {
-          if (options.error) { options.error(xhr, status, message); }
-        }
-    });
+    entity_delete('user', uid, options);
   }
   catch (error) { console.log('user_delete - ' + error); }
 }
@@ -1200,6 +1498,40 @@ function user_index(query, options) {
 }
 
 /**
+ * Registers a user.
+ * @param {Object} account
+ * @param {Object} options
+ */
+function user_register(account, options) {
+  try {
+    // TODO - it seems the user register resource only likes data strings... ?
+    Drupal.services.call({
+        method: 'POST',
+        path: 'user/register.json',
+        data: entity_assemble_data('user', null, account, options),
+        success: function(data) {
+          try {
+            if (options.success) { options.success(data); }
+          }
+          catch (error) { console.log('user_register - success - ' + error); }
+        },
+        error: function(xhr, status, message) {
+          try {
+            if (status == 406) {
+              console.log(
+                'user_register - Already logged in, cannot register user!'
+              );
+            }
+            if (options.error) { options.error(xhr, status, message); }
+          }
+          catch (error) { console.log('user_register - error - ' + error); }
+        }
+    });
+  }
+  catch (error) { console.log('user_retrieve - ' + error); }
+}
+
+/**
  * Login user.
  * @param {String} name
  * @param {String} pass
@@ -1207,54 +1539,57 @@ function user_index(query, options) {
  */
 function user_login(name, pass, options) {
   try {
+    var valid = true;
+    if (!name || typeof name !== 'string') {
+      valid = false;
+      console.log('user_login - invalid name');
+    }
+    if (!pass || typeof pass !== 'string') {
+      valid = false;
+      console.log('user_login - invalid pass');
+    }
+    if (!valid) {
+      if (options.error) { options.error(null, 406, 'user_login - bad input'); }
+      return;
+    }
     Drupal.services.call({
         method: 'POST',
         path: 'user/login.json',
         data: 'username=' + encodeURIComponent(name) +
              '&password=' + encodeURIComponent(pass),
         success: function(data) {
-          Drupal.user = data.user;
-          // Now that we are logged in, we need to get a new CSRF token.
-          var token_request = new XMLHttpRequest();
-          var token_url = Drupal.settings.site_path +
-                    Drupal.settings.base_path +
-                    '?q=services/session/token';
-          // Token Request Success Handler
-          token_request.onload = function(e) {
-            if (token_request.readyState == 4) {
-              var title = token_request.status + ' - ' +
-                http_status_code_title(token_request.status);
-              if (token_request.status != 200) { // Not OK
-                console.log('user_login - ' + token_url + ' - ' + title);
-                console.log(token_request.responseText);
-              }
-              else { // OK
-                // Save the token to local storage as sessid, set Drupal.sessid
-                // with the token, then return the user login data to the
-                // success function.
-                //token = JSON.parse(token_request.responseText);
-                token = token_request.responseText;
-                window.localStorage.setItem('sessid', token);
-                Drupal.sessid = token;
-                if (options.success) { options.success(data); }
-              }
-            }
-            else {
-              console.log(
-                'user_login token_request.readyState = ' +
-                token_request.readyState
-              );
-            }
-          };
-
-          // Open the token request.
-          token_request.open('GET', token_url, true);
-
-          // Send the token request.
-          token_request.send(null);
+          try {
+            // Now that we are logged in, we need to get a new CSRF token.
+            Drupal.user = data.user;
+            Drupal.sessid = null;
+            services_get_csrf_token({
+                success: function(token) {
+                  try {
+                    if (options.success) { options.success(data); }
+                  }
+                  catch (error) {
+                    console.log(
+                      'user_login - services_get_csrf_token - success - ' +
+                      error
+                    );
+                  }
+                },
+                error: function(xhr, status, message) {
+                  console.log(
+                    'user_login - services_get_csrf_token - error - ' +
+                    message
+                  );
+                  if (options.error) { options.error(xhr, status, message); }
+                }
+            });
+          }
+          catch (error) { console.log('user_login - success - ' + error); }
         },
         error: function(xhr, status, message) {
-          if (options.error) { options.error(xhr, status, message); }
+          try {
+            if (options.error) { options.error(xhr, status, message); }
+          }
+          catch (error) { console.log('user_login - error - ' + error); }
         }
     });
   }
@@ -1273,13 +1608,42 @@ function user_logout(options) {
         method: 'POST',
         path: 'user/logout.json',
         success: function(data) {
-          Drupal.user = drupal_user_defaults();
-          Drupal.sessid = null;
-          window.localStorage.removeItem('sessid');
-          if (options.success) { options.success(data); }
+          try {
+            // Now that we logged out, clear the sessid and call system connect.
+            Drupal.user = drupal_user_defaults();
+            Drupal.sessid = null;
+            system_connect({
+                success: function(result) {
+                  try {
+                    if (options.success) { options.success(data); }
+                  }
+                  catch (error) {
+                    console.log(
+                      'user_logout - system_connect - success - ' +
+                      error
+                    );
+                  }
+                },
+                error: function(xhr, status, message) {
+                  try {
+                    if (options.error) { options.error(xhr, status, message); }
+                  }
+                  catch (error) {
+                    console.log(
+                      'user_logout - system_connect - error - ' +
+                      error
+                    );
+                  }
+                }
+            });
+          }
+          catch (error) { console.log('user_logout - success - ' + error); }
         },
         error: function(xhr, status, message) {
-          if (options.error) { options.error(xhr, status, message); }
+          try {
+            if (options.error) { options.error(xhr, status, message); }
+          }
+          catch (error) { console.log('user_logout - error - ' + error); }
         }
     });
   }
