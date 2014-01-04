@@ -7,6 +7,7 @@
 
 # Create the list of files
 lintfiles = src/drupal.js\
+        src/includes/module.inc.js\
 				src/comment.js\
 				src/entity.js\
 				src/node.js\
@@ -23,6 +24,7 @@ lintfiles = src/drupal.js\
 				src/services.user.js\
 
 files =				 src/drupal.js\
+        src/includes/module.inc.js\
 				src/comment.js\
 				src/entity.js\
 				src/node.js\
