@@ -5,6 +5,7 @@
  */
 function user_create(account, options) {
   try {
+    services_resource_defaults(options, 'user', 'create');
     entity_create('user', null, account, options);
   }
   catch (error) { console.log('user_create - ' + error); }
@@ -17,6 +18,7 @@ function user_create(account, options) {
  */
 function user_retrieve(ids, options) {
   try {
+    services_resource_defaults(options, 'user', 'create');
     entity_retrieve('user', ids, options);
   }
   catch (error) { console.log('user_retrieve - ' + error); }
@@ -29,6 +31,7 @@ function user_retrieve(ids, options) {
  */
 function user_update(account, options) {
   try {
+    services_resource_defaults(options, 'user', 'create');
     entity_update('user', null, account, options);
   }
   catch (error) { console.log('user_update - ' + error); }
@@ -41,6 +44,7 @@ function user_update(account, options) {
  */
 function user_delete(uid, options) {
   try {
+    services_resource_defaults(options, 'user', 'create');
     entity_delete('user', uid, options);
   }
   catch (error) { console.log('user_delete - ' + error); }
@@ -53,6 +57,7 @@ function user_delete(uid, options) {
  */
 function user_index(query, options) {
   try {
+    services_resource_defaults(options, 'user', 'create');
     entity_index('user', query, options);
   }
   catch (error) { console.log('user_index - ' + error); }
@@ -67,6 +72,8 @@ function user_register(account, options) {
   try {
     // TODO - it seems the user register resource only likes data strings... ?
     Drupal.services.call({
+        service: 'user',
+        resource: 'register',
         method: 'POST',
         path: 'user/register.json',
         data: entity_assemble_data('user', null, account, options),
@@ -114,6 +121,8 @@ function user_login(name, pass, options) {
       return;
     }
     Drupal.services.call({
+        service: 'user',
+        resource: 'login',
         method: 'POST',
         path: 'user/login.json',
         data: 'username=' + encodeURIComponent(name) +
@@ -166,6 +175,8 @@ function user_login(name, pass, options) {
 function user_logout(options) {
   try {
     Drupal.services.call({
+        service: 'user',
+        resource: 'logout',
         method: 'POST',
         path: 'user/logout.json',
         success: function(data) {

@@ -10,6 +10,7 @@ function taxonomy_vocabulary_create(taxonomy_vocabulary, options) {
       taxonomy_vocabulary.machine_name =
         taxonomy_vocabulary.name.toLowerCase().replace(' ', '_');
     }
+    services_resource_defaults(options, 'taxonomy_vocabulary', 'create');
     entity_create('taxonomy_vocabulary', null, taxonomy_vocabulary, options);
   }
   catch (error) { console.log('taxonomy_vocabulary_create - ' + error); }
@@ -22,6 +23,7 @@ function taxonomy_vocabulary_create(taxonomy_vocabulary, options) {
  */
 function taxonomy_vocabulary_retrieve(ids, options) {
   try {
+    services_resource_defaults(options, 'taxonomy_vocabulary', 'retrieve');
     entity_retrieve('taxonomy_vocabulary', ids, options);
   }
   catch (error) { console.log('taxonomy_vocabulary_retrieve - ' + error); }
@@ -46,6 +48,7 @@ function taxonomy_vocabulary_update(taxonomy_vocabulary, options) {
       }
       return;
     }
+    services_resource_defaults(options, 'taxonomy_vocabulary', 'update');
     entity_update('taxonomy_vocabulary', null, taxonomy_vocabulary, options);
   }
   catch (error) { console.log('taxonomy_vocabulary_update - ' + error); }
@@ -58,6 +61,7 @@ function taxonomy_vocabulary_update(taxonomy_vocabulary, options) {
  */
 function taxonomy_vocabulary_delete(vid, options) {
   try {
+    services_resource_defaults(options, 'taxonomy_vocabulary', 'delete');
     entity_delete('taxonomy_vocabulary', vid, options);
   }
   catch (error) { console.log('taxonomy_vocabulary_delete - ' + error); }
@@ -70,6 +74,7 @@ function taxonomy_vocabulary_delete(vid, options) {
  */
 function taxonomy_vocabulary_index(query, options) {
   try {
+    services_resource_defaults(options, 'taxonomy_vocabulary', 'index');
     entity_index('taxonomy_vocabulary', query, options);
   }
   catch (error) { console.log('taxonomy_vocabulary_index - ' + error); }

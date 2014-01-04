@@ -7,6 +7,8 @@ function system_connect(options) {
 
     // Build a system connect object.
     var system_connect = {
+      service: 'system',
+      resource: 'connect',
       method: 'POST',
       path: 'system/connect.json',
       success: function(data) {

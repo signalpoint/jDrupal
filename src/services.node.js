@@ -5,6 +5,7 @@
  */
 function node_create(node, options) {
   try {
+    services_resource_defaults(options, 'node', 'create');
     entity_create('node', node.type, node, options);
   }
   catch (error) { console.log('node_create - ' + error); }
@@ -17,6 +18,7 @@ function node_create(node, options) {
  */
 function node_retrieve(ids, options) {
   try {
+    services_resource_defaults(options, 'node', 'retrieve');
     entity_retrieve('node', ids, options);
   }
   catch (error) { console.log('node_retrieve - ' + error); }
@@ -29,6 +31,7 @@ function node_retrieve(ids, options) {
  */
 function node_update(node, options) {
   try {
+    services_resource_defaults(options, 'node', 'update');
     entity_update('node', node.type, node, options);
   }
   catch (error) { console.log('node_update - ' + error); }
@@ -41,6 +44,7 @@ function node_update(node, options) {
  */
 function node_delete(nid, options) {
   try {
+    services_resource_defaults(options, 'node', 'delete');
     entity_delete('node', nid, options);
   }
   catch (error) { console.log('node_delete - ' + error); }
@@ -53,6 +57,7 @@ function node_delete(nid, options) {
  */
 function node_index(query, options) {
   try {
+    services_resource_defaults(options, 'node', 'index');
     entity_index('node', query, options);
   }
   catch (error) { console.log('node_index - ' + error); }
