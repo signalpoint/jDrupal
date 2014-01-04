@@ -6,6 +6,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     
+    <script src="src/includes/module.inc.js"></script>
     <script src="src/comment.js"></script>
     <script src="src/drupal.js"></script>
     <script src="src/entity.js"></script>
@@ -33,12 +34,6 @@
     <script type="text/javascript">
     
       function hello_world() {
-        
-        // Set the site path (without the trailing slash).
-        Drupal.settings.site_path = ""; // http://www.example.com
-        
-        // Set the Service Resource endpoint path.
-        Drupal.settings.endpoint = "";
         
         system_connect({
             success:function(result){
