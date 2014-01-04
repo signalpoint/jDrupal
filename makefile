@@ -10,35 +10,37 @@ lintfiles = src/drupal.js\
         src/includes/module.inc.js\
 				src/comment.js\
 				src/entity.js\
+				src/file.js\
 				src/node.js\
 				src/taxonomy_term.js\
 				src/taxonomy_vocabulary.js\
 				src/user.js\
-				src/services.js\
-        src/services.comment.js\
-				src/services.entity.js\
-				src/services.node.js\
-				src/services.system.js\
-				src/services.taxonomy_term.js\
-				src/services.taxonomy_vocabulary.js\
-				src/services.user.js\
+				src/services/services.js\
+        src/services/services.comment.js\
+				src/services/services.entity.js\
+				src/services/services.node.js\
+				src/services/services.system.js\
+				src/services/services.taxonomy_term.js\
+				src/services/services.taxonomy_vocabulary.js\
+				src/services/services.user.js\
 
 files =				 src/drupal.js\
         src/includes/module.inc.js\
 				src/comment.js\
 				src/entity.js\
+				src/file.js\
 				src/node.js\
 				src/taxonomy_term.js\
 				src/taxonomy_vocabulary.js\
 				src/user.js\
-				src/services.js\
-        src/services.comment.js\
-				src/services.entity.js\
-				src/services.node.js\
-				src/services.system.js\
-				src/services.taxonomy_term.js\
-				src/services.taxonomy_vocabulary.js\
-				src/services.user.js\
+				src/services/services.js\
+        src/services/services.comment.js\
+				src/services/services.entity.js\
+				src/services/services.node.js\
+				src/services/services.system.js\
+				src/services/services.taxonomy_term.js\
+				src/services/services.taxonomy_vocabulary.js\
+				src/services/services.user.js\
 
 .DEFAULT_GOAL := all
 
