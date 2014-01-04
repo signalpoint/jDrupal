@@ -1,20 +1,79 @@
-// Initialize the Drupal JSON object.
-var Drupal = Drupal || drupal_init();
+// Initialize the Drupal JSON object and run the bootstrap, if necessary.
+var Drupal = {}; drupal_init();
 
 /**
- * Init sessid to null.
+ * Initializes the Drupal JSON object.
  */
-Drupal.sessid = null;
+function drupal_init() {
+  try {
+    if (!Drupal) { Drupal = {}; }
+
+    // General properties.
+    Drupal.bootstrapped = false;
+    Drupal.csrf_token = false;
+    Drupal.sessid = null;
+    Drupal.user = drupal_user_defaults();
+
+    // Settings.
+    Drupal.settings = {
+      app_directory: 'app',
+      base_path: '/',
+      cache: {
+        entity: {
+          enabled: false,
+          expiration: 3600
+        }
+      },
+      debug: false,
+      endpoint: '',
+      file_public_path: 'sites/default/files',
+      language_default: 'und',
+      site_path: ''
+    };
+    // Includes. Although we no longer dynamically load the includes, we want
+    // to place them each in their own JSON object, so we have an easy way to
+    // access them.
+    Drupal.includes = {};
+    Drupal.includes['module'] = {};
+    // Modules. Although we no longer dynamically load the core modules, we want
+    // to place them each in their own JSON object, so we have an easy way to
+    // access them.
+    Drupal.modules = {};
+    drupal_bootstrap();
+  }
+  catch (error) { console.log('drupal_init - ' + error); }
+}
 
 /**
- * Init csrf_token bool to false.
+ * Loads up all necessary assets to make jDrupal ready.
  */
-Drupal.csrf_token = false;
+function drupal_bootstrap() {
+  try {
+    drupal_load_settings();
+    // drupal_includes_load();
+    //module_invoke_all('bootstrap');
+    Drupal.bootstrapped = true;
+  }
+  catch (error) { console.log('drupal_bootstrap - ' + error); }
+}
 
 /**
- * Initialize a Drupal user JSON object.
+ * Loads the settings specified in [app]/settings.js into the document scope.
  */
-Drupal.user = drupal_user_defaults();
+function drupal_load_settings() {
+  try {
+    // @todo - this isn't always loading properly!!!!
+    var settings_file_path = Drupal.settings.app_directory + '/settings.js';
+    var head = document.getElementsByTagName('head')[0];
+    var script = document.createElement('script');
+    script.type = 'text/javascript';
+    script.src = settings_file_path;
+    head.appendChild(script);
+  }
+  catch (error) {
+    console.log('drupal_load_settings - ' + error);
+  }
+}
 
 /**
  * Given a JSON object or string, this will print it to the console.
@@ -31,39 +90,15 @@ function dpm(data) {
 }
 
 /**
- * Returns a default JSON object for Drupal.
- * @return {Object}
- */
-function drupal_init() {
-  try {
-    return {
-      settings: {
-        base_path: '/',
-        cache: {
-          entity: {
-            enabled: false,
-            expiration: 3600
-          }
-        },
-        endpoint: '',
-        file_public_path: 'sites/default/files',
-        language_default: 'und',
-        site_path: ''
-      }
-    };
-  }
-  catch (error) { console.log('drupal_init - ' + error); }
-}
-
-/**
  * Returns a default JSON object representing an anonymous Drupal user account.
  * @return {Object}
  */
 function drupal_user_defaults() {
   try {
     return {
-      'uid': '0',
-      'roles': {'1': 'anonymous user'}
+      uid: '0',
+      roles: {'1': 'anonymous user'},
+      permissions: []
     };
   }
   catch (error) { console.log('drupal_user_defaults - ' + error); }
