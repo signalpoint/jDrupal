@@ -36,7 +36,13 @@ Drupal.services.call = function(options) {
             http_status_code_title(request.status);
           // 200 OK
           if (request.status == 200) {
-            options.success(JSON.parse(request.responseText));
+            var result = JSON.parse(request.responseText);
+            module_invoke_all(
+              'services_request_postprocess_alter',
+              options,
+              result
+            );
+            options.success(result);
           }
           else {
             // Not OK...
@@ -221,5 +227,20 @@ function services_ready() {
     return result;
   }
   catch (error) { console.log('services_ready - ' + error); }
+}
+
+/**
+ * Given the options for a service call, the service name and the resource name,
+ * this will attach the names and their values as properties on the options.
+ * @param {Object} options
+ * @param {String} service
+ * @param {String} resource
+ */
+function services_resource_defaults(options, service, resource) {
+  try {
+    if (!options.service) { options.service = service; }
+    if (!options.resource) { options.resource = resource; }
+  }
+  catch (error) { console.log('services_resource_defaults - ' + error); }
 }
 
