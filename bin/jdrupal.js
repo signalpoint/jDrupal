@@ -1,20 +1,79 @@
-// Initialize the Drupal JSON object.
-var Drupal = Drupal || drupal_init();
+// Initialize the Drupal JSON object and run the bootstrap, if necessary.
+var Drupal = {}; drupal_init();
 
 /**
- * Init sessid to null.
+ * Initializes the Drupal JSON object.
  */
-Drupal.sessid = null;
+function drupal_init() {
+  try {
+    if (!Drupal) { Drupal = {}; }
+
+    // General properties.
+    Drupal.bootstrapped = false;
+    Drupal.csrf_token = false;
+    Drupal.sessid = null;
+    Drupal.user = drupal_user_defaults();
+
+    // Settings.
+    Drupal.settings = {
+      app_directory: 'app',
+      base_path: '/',
+      cache: {
+        entity: {
+          enabled: false,
+          expiration: 3600
+        }
+      },
+      debug: false,
+      endpoint: '',
+      file_public_path: 'sites/default/files',
+      language_default: 'und',
+      site_path: ''
+    };
+    // Includes. Although we no longer dynamically load the includes, we want
+    // to place them each in their own JSON object, so we have an easy way to
+    // access them.
+    Drupal.includes = {};
+    Drupal.includes['module'] = {};
+    // Modules. Although we no longer dynamically load the core modules, we want
+    // to place them each in their own JSON object, so we have an easy way to
+    // access them.
+    Drupal.modules = {};
+    drupal_bootstrap();
+  }
+  catch (error) { console.log('drupal_init - ' + error); }
+}
 
 /**
- * Init csrf_token bool to false.
+ * Loads up all necessary assets to make jDrupal ready.
  */
-Drupal.csrf_token = false;
+function drupal_bootstrap() {
+  try {
+    drupal_load_settings();
+    // drupal_includes_load();
+    //module_invoke_all('bootstrap');
+    Drupal.bootstrapped = true;
+  }
+  catch (error) { console.log('drupal_bootstrap - ' + error); }
+}
 
 /**
- * Initialize a Drupal user JSON object.
+ * Loads the settings specified in [app]/settings.js into the document scope.
  */
-Drupal.user = drupal_user_defaults();
+function drupal_load_settings() {
+  try {
+    // @todo - this isn't always loading properly!!!!
+    var settings_file_path = Drupal.settings.app_directory + '/settings.js';
+    var head = document.getElementsByTagName('head')[0];
+    var script = document.createElement('script');
+    script.type = 'text/javascript';
+    script.src = settings_file_path;
+    head.appendChild(script);
+  }
+  catch (error) {
+    console.log('drupal_load_settings - ' + error);
+  }
+}
 
 /**
  * Given a JSON object or string, this will print it to the console.
@@ -31,39 +90,15 @@ function dpm(data) {
 }
 
 /**
- * Returns a default JSON object for Drupal.
- * @return {Object}
- */
-function drupal_init() {
-  try {
-    return {
-      settings: {
-        base_path: '/',
-        cache: {
-          entity: {
-            enabled: false,
-            expiration: 3600
-          }
-        },
-        endpoint: '',
-        file_public_path: 'sites/default/files',
-        language_default: 'und',
-        site_path: ''
-      }
-    };
-  }
-  catch (error) { console.log('drupal_init - ' + error); }
-}
-
-/**
  * Returns a default JSON object representing an anonymous Drupal user account.
  * @return {Object}
  */
 function drupal_user_defaults() {
   try {
     return {
-      'uid': '0',
-      'roles': {'1': 'anonymous user'}
+      uid: '0',
+      roles: {'1': 'anonymous user'},
+      permissions: []
     };
   }
   catch (error) { console.log('drupal_user_defaults - ' + error); }
@@ -173,6 +208,124 @@ function ucfirst(str) {
   str += '';
   var f = str.charAt(0).toUpperCase();
   return f + str.substr(1);
+}
+
+/**
+ * Determines which modules are implementing a hook. Returns an array with the
+ * names of the modules which are implementing this hook. If no modules
+ * implement the hook, it returns false.
+ * @param {String} hook
+ * @return {Array}
+ */
+function module_implements(hook) {
+  try {
+    var modules_that_implement = [];
+    if (hook) {
+      for (var module in Drupal.modules) {
+          if (function_exists(module + '_' + hook)) {
+            modules_that_implement.push(module);
+          }
+      }
+    }
+    if (modules_that_implement.length == 0) { return false; }
+    return modules_that_implement;
+  }
+  catch (error) {
+    console.log('module_implements - ' + error);
+  }
+}
+
+/**
+ * Given a module name and a hook name, this will invoke that module's hook.
+ * @param {String} module
+ * @param {String} hook
+ * @return {*}
+ */
+function module_invoke(module, hook) {
+  try {
+    var module_invocation_results = null;
+    if (drupalgap_module_load(module)) {
+      var module_arguments = Array.prototype.slice.call(arguments);
+      var function_name = module + '_' + hook;
+      if (function_exists(function_name)) {
+        // Get the hook function.
+        var fn = window[function_name];
+        // Remove the module name and hook from the arguments.
+        module_arguments.splice(0, 2);
+        // If there are no arguments, just call the hook directly, otherwise
+        // call the hook and pass along all the arguments.
+        if (Object.getOwnPropertyNames(module_arguments).length == 0) {
+          module_invocation_results = fn();
+        }
+        else { module_invocation_results = fn.apply(null, module_arguments); }
+      }
+    }
+    return module_invocation_results;
+  }
+  catch (error) {
+    console.log('module_invoke - ' + error);
+  }
+}
+
+var module_invoke_results = null;
+var module_invoke_continue = null;
+/**
+ * Given a hook name, this will invoke all modules that implement the hook.
+ * @param {String} hook
+ * @return {Array}
+ */
+function module_invoke_all(hook) {
+  try {
+    if (Drupal.settings.debug) { console.log('module_invoke_all - ' + hook); }
+    // Prepare the invocation results.
+    module_invoke_results = new Array();
+    // Copy the arguments and remove the hook name from the first index so the
+    // rest can be passed along to the hook.
+    var module_arguments = Array.prototype.slice.call(arguments);
+    module_arguments.splice(0, 1);
+    // Try to fire the hook in every module.
+    module_invoke_continue = true;
+    for (var name in Drupal.modules) {
+      console.log(name);
+      var function_name = name + '_' + hook;
+      if (function_exists(function_name)) {
+        console.log(function_name);
+        // If there are no arguments, just call the hook directly,
+        // otherwise call the hook and pass along all the arguments.
+        var invocation_results = null;
+        if (Object.getOwnPropertyNames(module_arguments).length == 0) {
+          invocation_results = module_invoke(name, hook);
+        }
+        else {
+          // Place the module name and hook name on the front of the
+          // arguments.
+          module_arguments.unshift(name, hook);
+          var fn = window['module_invoke'];
+          invocation_results = fn.apply(null, module_arguments);
+          module_arguments.splice(0, 2);
+        }
+        if (typeof invocation_results !== 'undefined') {
+          module_invoke_results.push(invocation_results);
+        }
+      }
+    }
+    return module_invoke_results;
+  }
+  catch (error) {
+    console.log('module_invoke_all - ' + error);
+  }
+}
+
+/**
+ * Given a module name, this will return the module inside drupalgap.modules.
+ * @param {String} name
+ * @return {Object}
+ */
+function module_load(name) {
+  try {
+    return Drupal.modules[name];
+  }
+  catch (error) { alert('module_load - ' + error); }
 }
 
 /**
@@ -707,7 +860,13 @@ Drupal.services.call = function(options) {
             http_status_code_title(request.status);
           // 200 OK
           if (request.status == 200) {
-            options.success(JSON.parse(request.responseText));
+            var result = JSON.parse(request.responseText);
+            module_invoke_all(
+              'services_request_postprocess_alter',
+              options,
+              result
+            );
+            options.success(result);
           }
           else {
             // Not OK...
@@ -895,12 +1054,28 @@ function services_ready() {
 }
 
 /**
+ * Given the options for a service call, the service name and the resource name,
+ * this will attach the names and their values as properties on the options.
+ * @param {Object} options
+ * @param {String} service
+ * @param {String} resource
+ */
+function services_resource_defaults(options, service, resource) {
+  try {
+    if (!options.service) { options.service = service; }
+    if (!options.resource) { options.resource = resource; }
+  }
+  catch (error) { console.log('services_resource_defaults - ' + error); }
+}
+
+/**
  * Creates a comment.
  * @param {Object} comment
  * @param {Object} options
  */
 function comment_create(comment, options) {
   try {
+    services_resource_defaults(options, 'comment', 'create');
     entity_create('comment', null, comment, options);
   }
   catch (error) { console.log('comment_create - ' + error); }
@@ -913,6 +1088,7 @@ function comment_create(comment, options) {
  */
 function comment_retrieve(ids, options) {
   try {
+    services_resource_defaults(options, 'comment', 'retrieve');
     entity_retrieve('comment', ids, options);
   }
   catch (error) { console.log('comment_retrieve - ' + error); }
@@ -925,6 +1101,7 @@ function comment_retrieve(ids, options) {
  */
 function comment_update(comment, options) {
   try {
+    services_resource_defaults(options, 'comment', 'update');
     entity_update('comment', null, comment, options);
   }
   catch (error) { console.log('comment_update - ' + error); }
@@ -937,6 +1114,7 @@ function comment_update(comment, options) {
  */
 function comment_delete(cid, options) {
   try {
+    services_resource_defaults(options, 'comment', 'delete');
     entity_delete('comment', cid, options);
   }
   catch (error) { console.log('comment_delete - ' + error); }
@@ -949,6 +1127,7 @@ function comment_delete(cid, options) {
  */
 function comment_index(query, options) {
   try {
+    services_resource_defaults(options, 'comment', 'index');
     entity_index('comment', query, options);
   }
   catch (error) { console.log('comment_index - ' + error); }
@@ -1182,6 +1361,7 @@ function _entity_wrap(entity_type, entity) {
  */
 function node_create(node, options) {
   try {
+    services_resource_defaults(options, 'node', 'create');
     entity_create('node', node.type, node, options);
   }
   catch (error) { console.log('node_create - ' + error); }
@@ -1194,6 +1374,7 @@ function node_create(node, options) {
  */
 function node_retrieve(ids, options) {
   try {
+    services_resource_defaults(options, 'node', 'retrieve');
     entity_retrieve('node', ids, options);
   }
   catch (error) { console.log('node_retrieve - ' + error); }
@@ -1206,6 +1387,7 @@ function node_retrieve(ids, options) {
  */
 function node_update(node, options) {
   try {
+    services_resource_defaults(options, 'node', 'update');
     entity_update('node', node.type, node, options);
   }
   catch (error) { console.log('node_update - ' + error); }
@@ -1218,6 +1400,7 @@ function node_update(node, options) {
  */
 function node_delete(nid, options) {
   try {
+    services_resource_defaults(options, 'node', 'delete');
     entity_delete('node', nid, options);
   }
   catch (error) { console.log('node_delete - ' + error); }
@@ -1230,6 +1413,7 @@ function node_delete(nid, options) {
  */
 function node_index(query, options) {
   try {
+    services_resource_defaults(options, 'node', 'index');
     entity_index('node', query, options);
   }
   catch (error) { console.log('node_index - ' + error); }
@@ -1244,6 +1428,8 @@ function system_connect(options) {
 
     // Build a system connect object.
     var system_connect = {
+      service: 'system',
+      resource: 'connect',
       method: 'POST',
       path: 'system/connect.json',
       success: function(data) {
@@ -1307,6 +1493,7 @@ function system_connect(options) {
  */
 function taxonomy_term_create(taxonomy_term, options) {
   try {
+    services_resource_defaults(options, 'taxonomy_term', 'create');
     entity_create('taxonomy_term', null, taxonomy_term, options);
   }
   catch (error) { console.log('taxonomy_term_create - ' + error); }
@@ -1319,6 +1506,7 @@ function taxonomy_term_create(taxonomy_term, options) {
  */
 function taxonomy_term_retrieve(ids, options) {
   try {
+    services_resource_defaults(options, 'taxonomy_term', 'retrieve');
     entity_retrieve('taxonomy_term', ids, options);
   }
   catch (error) { console.log('taxonomy_term_retrieve - ' + error); }
@@ -1331,6 +1519,7 @@ function taxonomy_term_retrieve(ids, options) {
  */
 function taxonomy_term_update(taxonomy_term, options) {
   try {
+    services_resource_defaults(options, 'taxonomy_term', 'update');
     entity_update('taxonomy_term', null, taxonomy_term, options);
   }
   catch (error) { console.log('taxonomy_term_update - ' + error); }
@@ -1343,6 +1532,7 @@ function taxonomy_term_update(taxonomy_term, options) {
  */
 function taxonomy_term_delete(tid, options) {
   try {
+    services_resource_defaults(options, 'taxonomy_term', 'delete');
     entity_delete('taxonomy_term', tid, options);
   }
   catch (error) { console.log('taxonomy_term_delete - ' + error); }
@@ -1355,6 +1545,7 @@ function taxonomy_term_delete(tid, options) {
  */
 function taxonomy_term_index(query, options) {
   try {
+    services_resource_defaults(options, 'taxonomy_term', 'index');
     entity_index('taxonomy_term', query, options);
   }
   catch (error) { console.log('taxonomy_term_index - ' + error); }
@@ -1372,6 +1563,7 @@ function taxonomy_vocabulary_create(taxonomy_vocabulary, options) {
       taxonomy_vocabulary.machine_name =
         taxonomy_vocabulary.name.toLowerCase().replace(' ', '_');
     }
+    services_resource_defaults(options, 'taxonomy_vocabulary', 'create');
     entity_create('taxonomy_vocabulary', null, taxonomy_vocabulary, options);
   }
   catch (error) { console.log('taxonomy_vocabulary_create - ' + error); }
@@ -1384,6 +1576,7 @@ function taxonomy_vocabulary_create(taxonomy_vocabulary, options) {
  */
 function taxonomy_vocabulary_retrieve(ids, options) {
   try {
+    services_resource_defaults(options, 'taxonomy_vocabulary', 'retrieve');
     entity_retrieve('taxonomy_vocabulary', ids, options);
   }
   catch (error) { console.log('taxonomy_vocabulary_retrieve - ' + error); }
@@ -1408,6 +1601,7 @@ function taxonomy_vocabulary_update(taxonomy_vocabulary, options) {
       }
       return;
     }
+    services_resource_defaults(options, 'taxonomy_vocabulary', 'update');
     entity_update('taxonomy_vocabulary', null, taxonomy_vocabulary, options);
   }
   catch (error) { console.log('taxonomy_vocabulary_update - ' + error); }
@@ -1420,6 +1614,7 @@ function taxonomy_vocabulary_update(taxonomy_vocabulary, options) {
  */
 function taxonomy_vocabulary_delete(vid, options) {
   try {
+    services_resource_defaults(options, 'taxonomy_vocabulary', 'delete');
     entity_delete('taxonomy_vocabulary', vid, options);
   }
   catch (error) { console.log('taxonomy_vocabulary_delete - ' + error); }
@@ -1432,6 +1627,7 @@ function taxonomy_vocabulary_delete(vid, options) {
  */
 function taxonomy_vocabulary_index(query, options) {
   try {
+    services_resource_defaults(options, 'taxonomy_vocabulary', 'index');
     entity_index('taxonomy_vocabulary', query, options);
   }
   catch (error) { console.log('taxonomy_vocabulary_index - ' + error); }
@@ -1444,6 +1640,7 @@ function taxonomy_vocabulary_index(query, options) {
  */
 function user_create(account, options) {
   try {
+    services_resource_defaults(options, 'user', 'create');
     entity_create('user', null, account, options);
   }
   catch (error) { console.log('user_create - ' + error); }
@@ -1456,6 +1653,7 @@ function user_create(account, options) {
  */
 function user_retrieve(ids, options) {
   try {
+    services_resource_defaults(options, 'user', 'create');
     entity_retrieve('user', ids, options);
   }
   catch (error) { console.log('user_retrieve - ' + error); }
@@ -1468,6 +1666,7 @@ function user_retrieve(ids, options) {
  */
 function user_update(account, options) {
   try {
+    services_resource_defaults(options, 'user', 'create');
     entity_update('user', null, account, options);
   }
   catch (error) { console.log('user_update - ' + error); }
@@ -1480,6 +1679,7 @@ function user_update(account, options) {
  */
 function user_delete(uid, options) {
   try {
+    services_resource_defaults(options, 'user', 'create');
     entity_delete('user', uid, options);
   }
   catch (error) { console.log('user_delete - ' + error); }
@@ -1492,6 +1692,7 @@ function user_delete(uid, options) {
  */
 function user_index(query, options) {
   try {
+    services_resource_defaults(options, 'user', 'create');
     entity_index('user', query, options);
   }
   catch (error) { console.log('user_index - ' + error); }
@@ -1506,6 +1707,8 @@ function user_register(account, options) {
   try {
     // TODO - it seems the user register resource only likes data strings... ?
     Drupal.services.call({
+        service: 'user',
+        resource: 'register',
         method: 'POST',
         path: 'user/register.json',
         data: entity_assemble_data('user', null, account, options),
@@ -1553,6 +1756,8 @@ function user_login(name, pass, options) {
       return;
     }
     Drupal.services.call({
+        service: 'user',
+        resource: 'login',
         method: 'POST',
         path: 'user/login.json',
         data: 'username=' + encodeURIComponent(name) +
@@ -1605,6 +1810,8 @@ function user_login(name, pass, options) {
 function user_logout(options) {
   try {
     Drupal.services.call({
+        service: 'user',
+        resource: 'logout',
         method: 'POST',
         path: 'user/logout.json',
         success: function(data) {
