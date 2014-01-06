@@ -38,7 +38,11 @@ function drupal_init() {
     // Modules. Although we no longer dynamically load the core modules, we want
     // to place them each in their own JSON object, so we have an easy way to
     // access them.
-    Drupal.modules = {};
+    Drupal.modules = {
+      core: {},
+      contrib: {},
+      custom: {}
+    };
     drupal_bootstrap();
   }
   catch (error) { console.log('drupal_init - ' + error); }
@@ -50,8 +54,6 @@ function drupal_init() {
 function drupal_bootstrap() {
   try {
     drupal_load_settings();
-    // drupal_includes_load();
-    //module_invoke_all('bootstrap');
     Drupal.bootstrapped = true;
   }
   catch (error) { console.log('drupal_bootstrap - ' + error); }
@@ -62,7 +64,6 @@ function drupal_bootstrap() {
  */
 function drupal_load_settings() {
   try {
-    // @todo - this isn't always loading properly!!!!
     var settings_file_path = Drupal.settings.app_directory + '/settings.js';
     var head = document.getElementsByTagName('head')[0];
     var script = document.createElement('script');
@@ -70,9 +71,7 @@ function drupal_load_settings() {
     script.src = settings_file_path;
     head.appendChild(script);
   }
-  catch (error) {
-    console.log('drupal_load_settings - ' + error);
-  }
+  catch (error) { console.log('drupal_load_settings - ' + error); }
 }
 
 /**

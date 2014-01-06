@@ -36,6 +36,7 @@ Drupal.services.call = function(options) {
             http_status_code_title(request.status);
           // 200 OK
           if (request.status == 200) {
+            console.log('200 - OK');
             var result = JSON.parse(request.responseText);
             module_invoke_all(
               'services_request_postprocess_alter',
@@ -46,8 +47,8 @@ Drupal.services.call = function(options) {
           }
           else {
             // Not OK...
-            dpm(request);
             console.log(method + ': ' + url + ' - ' + title);
+            dpm(request);
             if (request.responseText) { console.log(request.responseText); }
             else { dpm(request); }
             if (typeof options.error !== 'undefined') {
