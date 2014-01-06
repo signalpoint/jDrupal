@@ -38,7 +38,11 @@ function drupal_init() {
     // Modules. Although we no longer dynamically load the core modules, we want
     // to place them each in their own JSON object, so we have an easy way to
     // access them.
-    Drupal.modules = {};
+    Drupal.modules = {
+      core: {},
+      contrib: {},
+      custom: {}
+    };
     drupal_bootstrap();
   }
   catch (error) { console.log('drupal_init - ' + error); }
@@ -50,8 +54,6 @@ function drupal_init() {
 function drupal_bootstrap() {
   try {
     drupal_load_settings();
-    // drupal_includes_load();
-    //module_invoke_all('bootstrap');
     Drupal.bootstrapped = true;
   }
   catch (error) { console.log('drupal_bootstrap - ' + error); }
@@ -62,7 +64,6 @@ function drupal_bootstrap() {
  */
 function drupal_load_settings() {
   try {
-    // @todo - this isn't always loading properly!!!!
     var settings_file_path = Drupal.settings.app_directory + '/settings.js';
     var head = document.getElementsByTagName('head')[0];
     var script = document.createElement('script');
@@ -70,9 +71,7 @@ function drupal_load_settings() {
     script.src = settings_file_path;
     head.appendChild(script);
   }
-  catch (error) {
-    console.log('drupal_load_settings - ' + error);
-  }
+  catch (error) { console.log('drupal_load_settings - ' + error); }
 }
 
 /**
@@ -221,18 +220,22 @@ function module_implements(hook) {
   try {
     var modules_that_implement = [];
     if (hook) {
-      for (var module in Drupal.modules) {
-          if (function_exists(module + '_' + hook)) {
-            modules_that_implement.push(module);
+      var bundles = module_types();
+      for (var i = 0; i < bundles.length; i++) {
+        var bundle = bundles[i];
+        for (var module in Drupal.modules[bundle]) {
+          if (Drupal.modules[bundle].hasOwnProperty(module)) {
+            if (function_exists(module + '_' + hook)) {
+              modules_that_implement.push(module);
+            }
           }
+        }
       }
     }
     if (modules_that_implement.length == 0) { return false; }
     return modules_that_implement;
   }
-  catch (error) {
-    console.log('module_implements - ' + error);
-  }
+  catch (error) { console.log('module_implements - ' + error); }
 }
 
 /**
@@ -260,11 +263,14 @@ function module_invoke(module, hook) {
         else { module_invocation_results = fn.apply(null, module_arguments); }
       }
     }
+    else {
+      console.log(
+        'WARNING: module_invoke() - Failed to load module: ' + module
+      );
+    }
     return module_invocation_results;
   }
-  catch (error) {
-    console.log('module_invoke - ' + error);
-  }
+  catch (error) { console.log('module_invoke - ' + error); }
 }
 
 var module_invoke_results = null;
@@ -276,7 +282,6 @@ var module_invoke_continue = null;
  */
 function module_invoke_all(hook) {
   try {
-    if (Drupal.settings.debug) { console.log('module_invoke_all - ' + hook); }
     // Prepare the invocation results.
     module_invoke_results = new Array();
     // Copy the arguments and remove the hook name from the first index so the
@@ -285,47 +290,81 @@ function module_invoke_all(hook) {
     module_arguments.splice(0, 1);
     // Try to fire the hook in every module.
     module_invoke_continue = true;
-    for (var name in Drupal.modules) {
-      console.log(name);
-      var function_name = name + '_' + hook;
-      if (function_exists(function_name)) {
-        console.log(function_name);
-        // If there are no arguments, just call the hook directly,
-        // otherwise call the hook and pass along all the arguments.
-        var invocation_results = null;
-        if (Object.getOwnPropertyNames(module_arguments).length == 0) {
-          invocation_results = module_invoke(name, hook);
-        }
-        else {
-          // Place the module name and hook name on the front of the
-          // arguments.
-          module_arguments.unshift(name, hook);
-          var fn = window['module_invoke'];
-          invocation_results = fn.apply(null, module_arguments);
-          module_arguments.splice(0, 2);
-        }
-        if (typeof invocation_results !== 'undefined') {
-          module_invoke_results.push(invocation_results);
+    var bundles = module_types();
+    for (var i = 0; i < bundles.length; i++) {
+      var bundle = bundles[i];
+      for (var module in Drupal.modules[bundle]) {
+        if (Drupal.modules[bundle].hasOwnProperty(module)) {
+          var function_name = module + '_' + hook;
+          if (function_exists(function_name)) {
+            // If there are no arguments, just call the hook directly,
+            // otherwise call the hook and pass along all the arguments.
+            var invocation_results = null;
+            if (module_arguments.length == 0) {
+              invocation_results = module_invoke(module, hook);
+            }
+            else {
+              // Place the module name and hook name on the front of the
+              // arguments.
+              module_arguments.unshift(module, hook);
+              var fn = window['module_invoke'];
+              invocation_results = fn.apply(null, module_arguments);
+              module_arguments.splice(0, 2);
+            }
+            if (typeof invocation_results !== 'undefined') {
+              module_invoke_results.push(invocation_results);
+            }
+          }
         }
       }
     }
     return module_invoke_results;
   }
-  catch (error) {
-    console.log('module_invoke_all - ' + error);
-  }
+  catch (error) { console.log('module_invoke_all - ' + error); }
 }
 
 /**
- * Given a module name, this will return the module inside drupalgap.modules.
+ * Given a module name, this will return the module inside Drupal.modules, or
+ * false if it fails to find it.
  * @param {String} name
- * @return {Object}
+ * @return {Object,Boolean}
  */
 function module_load(name) {
   try {
-    return Drupal.modules[name];
+    var bundles = module_types();
+    for (var i = 0; i < bundles.length; i++) {
+      var bundle = bundles[i];
+      if (Drupal.modules[bundle][name]) {
+        return Drupal.modules[bundle][name];
+      }
+    }
+    return false;
   }
-  catch (error) { alert('module_load - ' + error); }
+  catch (error) { console.log('module_load - ' + error); }
+}
+
+/**
+ * Initializes and returns a JSON object template that all modules should use
+ * when declaring themselves.
+ * @param {String} name
+ * @return {Object}
+ */
+function module_object_template(name) {
+  try {
+    return { 'name': name };
+  }
+  catch (error) { console.log('module_object_template - ' + error); }
+}
+
+/**
+ * Returns an array of module type names.
+ * @return {Array}
+ */
+function module_types() {
+  try {
+    return ['core', 'contrib', 'custom'];
+  }
+  catch (error) { console.log('module_types - ' + error); }
 }
 
 /**
@@ -707,6 +746,18 @@ function entity_types() {
 }
 
 /**
+ * Loads a file, given a file id.
+ * @param {Number} fid
+ * @param {Object} options
+ */
+function file_load(fid, options) {
+  try {
+    entity_load('file', fid, options);
+  }
+  catch (error) { console.log('file_load - ' + error); }
+}
+
+/**
  * Loads a node.
  * @param {Number} nid
  * @param {Object} options
@@ -860,6 +911,7 @@ Drupal.services.call = function(options) {
             http_status_code_title(request.status);
           // 200 OK
           if (request.status == 200) {
+            console.log('200 - OK');
             var result = JSON.parse(request.responseText);
             module_invoke_all(
               'services_request_postprocess_alter',
@@ -870,8 +922,8 @@ Drupal.services.call = function(options) {
           }
           else {
             // Not OK...
-            dpm(request);
             console.log(method + ': ' + url + ' - ' + title);
+            dpm(request);
             if (request.responseText) { console.log(request.responseText); }
             else { dpm(request); }
             if (typeof options.error !== 'undefined') {
