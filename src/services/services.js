@@ -22,8 +22,15 @@ Drupal.services.call = function(options) {
     // Build the Request, URL and extract the HTTP method.
     var request = new XMLHttpRequest();
     var url = Drupal.settings.site_path +
-              Drupal.settings.base_path + '?q=' +
-              Drupal.settings.endpoint + '/' + options.path;
+              Drupal.settings.base_path + '?q=';
+    // Use an endpoint, unless someone passed in an empty string.
+    if (typeof options.endpoint === 'undefined') {
+      url += Drupal.settings.endpoint + '/';
+    }
+    else if (options.endpoint != '') {
+      url += options.endpoint + '/';
+    }
+    url += options.path;
     var method = options.method.toUpperCase();
     console.log(method + ': ' + url);
 
