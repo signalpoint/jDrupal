@@ -53,7 +53,7 @@ function drupal_init() {
  */
 function drupal_bootstrap() {
   try {
-    drupal_load_settings();
+    //drupal_load_settings();
     Drupal.bootstrapped = true;
   }
   catch (error) { console.log('drupal_bootstrap - ' + error); }
