@@ -22,7 +22,9 @@ function entity_assemble_data(entity_type, bundle, entity, options) {
                 if (entity[property][language].hasOwnProperty(delta)) {
                   for (var value in entity[property][language][delta]) {
                     if (
-                      entity[property][language][delta].hasOwnProperty(value)) {
+                      entity[property][language][delta].hasOwnProperty(value) &&
+                      !empty(entity[property][language][delta][value])
+                    ) {
                       data += property +
                         '[' + language + '][' + delta + '][' + value + ']=' +
                         encodeURIComponent(
@@ -37,7 +39,9 @@ function entity_assemble_data(entity_type, bundle, entity, options) {
         }
         // Assemble flat properties.
         else {
-          data += property + '=' + encodeURIComponent(entity[property]) + '&';
+          if (!empty(entity[property])) {
+            data += property + '=' + encodeURIComponent(entity[property]) + '&';
+          }
         }
       }
     }
