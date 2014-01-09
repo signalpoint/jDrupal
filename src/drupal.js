@@ -104,6 +104,18 @@ function drupal_user_defaults() {
 }
 
 /**
+ * Returns true if given value is empty. A generic way to test for emptiness.
+ * @param {*} value
+ * @return {Boolean}
+ */
+function empty(value) {
+  try {
+    return (typeof value === 'undefined' || value === null || value == '');
+  }
+  catch (error) { console.log('empty - ' + error); }
+}
+
+/**
  * Given a JS function name, this returns true if the function exists in the
  * scope, false otherwise.
  * @param {String} name
