@@ -53,7 +53,7 @@ function drupal_init() {
  */
 function drupal_bootstrap() {
   try {
-    drupal_load_settings();
+    //drupal_load_settings();
     Drupal.bootstrapped = true;
   }
   catch (error) { console.log('drupal_bootstrap - ' + error); }
@@ -101,6 +101,18 @@ function drupal_user_defaults() {
     };
   }
   catch (error) { console.log('drupal_user_defaults - ' + error); }
+}
+
+/**
+ * Returns true if given value is empty. A generic way to test for emptiness.
+ * @param {*} value
+ * @return {Boolean}
+ */
+function empty(value) {
+  try {
+    return (typeof value === 'undefined' || value === null || value == '');
+  }
+  catch (error) { console.log('empty - ' + error); }
 }
 
 /**
@@ -415,7 +427,9 @@ function entity_assemble_data(entity_type, bundle, entity, options) {
                 if (entity[property][language].hasOwnProperty(delta)) {
                   for (var value in entity[property][language][delta]) {
                     if (
-                      entity[property][language][delta].hasOwnProperty(value)) {
+                      entity[property][language][delta].hasOwnProperty(value) &&
+                      !empty(entity[property][language][delta][value])
+                    ) {
                       data += property +
                         '[' + language + '][' + delta + '][' + value + ']=' +
                         encodeURIComponent(
@@ -430,7 +444,9 @@ function entity_assemble_data(entity_type, bundle, entity, options) {
         }
         // Assemble flat properties.
         else {
-          data += property + '=' + encodeURIComponent(entity[property]) + '&';
+          if (!empty(entity[property])) {
+            data += property + '=' + encodeURIComponent(entity[property]) + '&';
+          }
         }
       }
     }
@@ -897,8 +913,15 @@ Drupal.services.call = function(options) {
     // Build the Request, URL and extract the HTTP method.
     var request = new XMLHttpRequest();
     var url = Drupal.settings.site_path +
-              Drupal.settings.base_path + '?q=' +
-              Drupal.settings.endpoint + '/' + options.path;
+              Drupal.settings.base_path + '?q=';
+    // Use an endpoint, unless someone passed in an empty string.
+    if (typeof options.endpoint === 'undefined') {
+      url += Drupal.settings.endpoint + '/';
+    }
+    else if (options.endpoint != '') {
+      url += options.endpoint + '/';
+    }
+    url += options.path;
     var method = options.method.toUpperCase();
     console.log(method + ': ' + url);
 
