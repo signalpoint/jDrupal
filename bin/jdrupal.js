@@ -1220,6 +1220,8 @@ function entity_create(entity_type, bundle, entity, options) {
     Drupal.services.call({
         method: 'POST',
         path: entity_type + '.json',
+        service: options.service,
+        resource: options.resource,
         data: entity_assemble_data(entity_type, bundle, entity, options),
         success: function(data) {
           try {
@@ -1249,6 +1251,8 @@ function entity_retrieve(entity_type, ids, options) {
     Drupal.services.call({
         method: 'GET',
         path: entity_type + '/' + ids + '.json',
+        service: options.service,
+        resource: options.resource,
         success: function(data) {
           try {
             if (options.success) { options.success(data); }
@@ -1280,6 +1284,8 @@ function entity_update(entity_type, bundle, entity, options) {
     Drupal.services.call({
         method: 'PUT',
         path: entity_type + '/' + entity[primary_key] + '.json',
+        service: options.service,
+        resource: options.resource,
         data: JSON.stringify(entity_wrapper),
         success: function(data) {
           try {
@@ -1310,6 +1316,8 @@ function entity_delete(entity_type, entity_id, options) {
     Drupal.services.call({
         method: 'DELETE',
         path: entity_type + '/' + entity_id + '.json',
+        service: options.service,
+        resource: options.resource,
         success: function(data) {
           try {
             _entity_local_storage_delete(entity_type, entity_id);
@@ -1348,6 +1356,8 @@ function entity_index(entity_type, query, options) {
     Drupal.services.call({
         method: 'GET',
         path: entity_type + '.json' + query_string,
+        service: options.service,
+        resource: options.resource,
         success: function(result) {
           try {
             if (options.success) { options.success(result); }
