@@ -32,7 +32,7 @@ Drupal.services.call = function(options) {
     }
     url += options.path;
     var method = options.method.toUpperCase();
-    console.log(method + ': ' + url);
+    if (Drupal.settings.debug) { console.log(method + ': ' + url); }
 
     // Request Success Handler
     request.onload = function(e) {
@@ -43,19 +43,26 @@ Drupal.services.call = function(options) {
             http_status_code_title(request.status);
           // 200 OK
           if (request.status == 200) {
-            console.log('200 - OK');
+            if (Drupal.settings.debug) { console.log('200 - OK'); }
             var result = JSON.parse(request.responseText);
+            module_invoke_all(
+              'services_request_pre_postprocess_alter',
+              options,
+              result
+            );
+            options.success(result);
             module_invoke_all(
               'services_request_postprocess_alter',
               options,
               result
             );
-            options.success(result);
           }
           else {
             // Not OK...
-            console.log(method + ': ' + url + ' - ' + title);
-            dpm(request);
+            if (Drupal.settings.debug) {
+              console.log(method + ': ' + url + ' - ' + title);
+              dpm(request);
+            }
             if (request.responseText) { console.log(request.responseText); }
             else { dpm(request); }
             if (typeof options.error !== 'undefined') {
@@ -103,14 +110,22 @@ Drupal.services.call = function(options) {
               request.setRequestHeader('X-CSRF-Token', token);
             }
             if (typeof options.data !== 'undefined') {
-              if (options.path != 'user/login.json') {
-                if (typeof options.data === 'object') {
-                  console.log(JSON.stringify(options.data));
-                }
-                else {
-                  console.log(options.data);
+              // Print out debug information if debug is enabled. Don't print
+              // out any sensitive debug data containing passwords.
+              if (Drupal.settings.debug) {
+                if (
+                  options.service == 'user' &&
+                  !in_array(options.resource, ['login', 'create', 'update'])
+                ) {
+                  if (typeof options.data === 'object') {
+                    console.log(JSON.stringify(options.data));
+                  }
+                  else {
+                    console.log(options.data);
+                  }
                 }
               }
+              // Send the service call.
               request.send(options.data);
             }
             else { request.send(null); }
