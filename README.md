@@ -7,10 +7,10 @@ The library utilizes the Services module (3.5 or later) to provide an asynchrono
 
 ```
 node_load(123, {
-    success:function(node){
-      alert('Loaded node #' + node.nid + '!');
+    success: function(node) {
+      alert('Loaded node: ' + node.title);
     },
-    error:function(xhr, status, message){
+    error: function(xhr, status, message) {
       alert(message)
     }
 });
