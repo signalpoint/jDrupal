@@ -31,7 +31,9 @@ function user_retrieve(ids, options) {
  */
 function user_update(account, options) {
   try {
-    services_resource_defaults(options, 'user', 'create');
+    var mode = 'create';
+    if (account.uid) { mode = 'update'; }
+    services_resource_defaults(options, 'user', mode);
     entity_update('user', null, account, options);
   }
   catch (error) { console.log('user_update - ' + error); }
@@ -129,13 +131,41 @@ function user_login(name, pass, options) {
              '&password=' + encodeURIComponent(pass),
         success: function(data) {
           try {
-            // Now that we are logged in, we need to get a new CSRF token.
+            // Now that we are logged in, we need to get a new CSRF token, and
+            // then make a system connect call.
             Drupal.user = data.user;
             Drupal.sessid = null;
             services_get_csrf_token({
                 success: function(token) {
                   try {
-                    if (options.success) { options.success(data); }
+                    if (options.success) {
+                      system_connect({
+                          success: function(result) {
+                            try {
+                              if (options.success) { options.success(data); }
+                            }
+                            catch (error) {
+                              console.log(
+                                'user_login - system_connect - success - ' +
+                                error
+                              );
+                            }
+                          },
+                          error: function(xhr, status, message) {
+                            try {
+                              if (options.error) {
+                                options.error(xhr, status, message);
+                              }
+                            }
+                            catch (error) {
+                              console.log(
+                                'user_login - system_connect - error - ' +
+                                error
+                              );
+                            }
+                          }
+                      });
+                    }
                   }
                   catch (error) {
                     console.log(
