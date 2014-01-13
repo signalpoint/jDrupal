@@ -19,6 +19,8 @@ Drupal.services.call = function(options) {
       return;
     }
 
+    module_invoke_all('services_preprocess', options);
+
     // Build the Request, URL and extract the HTTP method.
     var request = new XMLHttpRequest();
     var url = Drupal.settings.site_path +
@@ -56,6 +58,7 @@ Drupal.services.call = function(options) {
               options,
               result
             );
+            module_invoke_all('services_postprocess', options, result);
           }
           else {
             // Not OK...
@@ -70,6 +73,7 @@ Drupal.services.call = function(options) {
               if (!message || message == '') { message = title; }
               options.error(request, request.status, message);
             }
+            module_invoke_all('services_postprocess', options, request);
           }
         }
         else {

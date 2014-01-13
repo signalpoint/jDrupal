@@ -1,8 +1,29 @@
+/**
+ * Preprocess a service call.
+ * @param {Object} options
+ */
+function hook_services_preprocess(options) {
+  try {
+    // Do stuff before the service call...
+  }
+  catch (error) { console.log('hook_services_preprocess - ' + error); }
+}
 
+/**
+ * Postprocess a service call.
+ * @param {Object} options
+ * @param {Object} result
+ */
+function hook_services_postprocess(options, result) {
+  try {
+    // Do stuff after the service call...
+  }
+  catch (error) { console.log('hook_services_postprocess - ' + error); }
+}
 
 /**
  * Alter the result data of a service call, before its success function.
- * @param {object} controller
+ * @param {object} options
  * @param {Object} result
  */
 function hook_services_request_pre_postprocess_alter(options, result) {
@@ -18,7 +39,7 @@ function hook_services_request_pre_postprocess_alter(options, result) {
 
 /**
  * Alter the result data of a service call, after its success function.
- * @param {object} controller
+ * @param {object} options
  * @param {Object} result
  */
 function hook_services_request_postprocess_alter(options, result) {
