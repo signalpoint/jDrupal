@@ -61,7 +61,6 @@ var test_taxonomy_term_crud = function(callback) {
                                     };
                                     taxonomy_term_index(query, {
                                         success:function(taxonomy_term_index_results){
-                                          dpm(taxonomy_term_index_results);
                                           var index = taxonomy_term_index_results.length-1;
                                           var old_name = taxonomy_term.name;
                                           taxonomy_term = taxonomy_term_index_results[index];
