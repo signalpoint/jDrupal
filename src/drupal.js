@@ -22,6 +22,10 @@ function drupal_init() {
         entity: {
           enabled: false,
           expiration: 3600
+        },
+        views: {
+          enabled: false,
+          expiration: 3600
         }
       },
       debug: false,
