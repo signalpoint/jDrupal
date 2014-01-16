@@ -960,13 +960,8 @@ Drupal.services.call = function(options) {
             // Set any headers.
             if (method == 'POST') {
               var content_type = 'application/json';
-              // The file create reasource needs its content type adjusted and
-              // the data must be stringified.
-              if (options.service == 'file') {
-                content_type = 'application/json';
-                options.data = JSON.stringify(options.data);
-              }
-              else if (options.service == 'user' &&
+              // The user login resource needs a url encoded data string.
+              if (options.service == 'user' &&
                 options.resource == 'login') {
                 content_type = 'application/x-www-form-urlencoded';
               }
