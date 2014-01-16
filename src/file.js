@@ -10,3 +10,15 @@ function file_load(fid, options) {
   catch (error) { console.log('file_load - ' + error); }
 }
 
+/**
+ * Saves a file.
+ * @param {Object} file
+ * @param {Object} options
+ */
+function file_save(file, options) {
+  try {
+    entity_save('file', null, file, options);
+  }
+  catch (error) { console.log('file_save - ' + error); }
+}
+
