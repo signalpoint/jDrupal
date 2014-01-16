@@ -78,7 +78,7 @@ function user_register(account, options) {
         resource: 'register',
         method: 'POST',
         path: 'user/register.json',
-        data: entity_assemble_data('user', null, account, options),
+        data: JSON.stringify(account),
         success: function(data) {
           try {
             if (options.success) { options.success(data); }
