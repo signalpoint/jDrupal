@@ -22,6 +22,10 @@ function drupal_init() {
         entity: {
           enabled: false,
           expiration: 3600
+        },
+        views: {
+          enabled: false,
+          expiration: 3600
         }
       },
       debug: false,
@@ -404,59 +408,6 @@ function comment_save(comment, options) {
 }
 
 /**
- * Assembles the data string used in Service calls.
- * @param {String} entity_type
- * @param {String} bundle
- * @param {Object} entity
- * @param {Object} options
- * @return {String} data
- */
-function entity_assemble_data(entity_type, bundle, entity, options) {
-  try {
-    // TODO, this function is being replaced by sending JSON object directly
-    // via Content-Type application/json. This will eventually go away.
-    var data = '';
-    for (var property in entity) {
-      if (entity.hasOwnProperty(property)) {
-        var type = typeof entity[property];
-        // Assemble field items.
-        if (type === 'object') {
-          for (var language in entity[property]) {
-            if (entity[property].hasOwnProperty(language)) {
-              for (var delta in entity[property][language]) {
-                if (entity[property][language].hasOwnProperty(delta)) {
-                  for (var value in entity[property][language][delta]) {
-                    if (
-                      entity[property][language][delta].hasOwnProperty(value) &&
-                      !empty(entity[property][language][delta][value])
-                    ) {
-                      data += property +
-                        '[' + language + '][' + delta + '][' + value + ']=' +
-                        encodeURIComponent(
-                          entity[property][language][delta][value]
-                        ) + '&';
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-        // Assemble flat properties.
-        else {
-          if (!empty(entity[property])) {
-            data += property + '=' + encodeURIComponent(entity[property]) + '&';
-          }
-        }
-      }
-    }
-    if (data != '') { data = data.substring(0, data.length - 1); }
-    return data;
-  }
-  catch (error) { console.log('entity_assemble_data - ' + error); }
-}
-
-/**
  * Delete an entity.
  * @param {String} entity_type
  * @param {Number} ids
@@ -714,6 +665,9 @@ function entity_save(entity_type, bundle, entity, options) {
         if (!entity.cid) { function_name = 'comment_create'; }
         else { function_name = 'comment_update'; }
         break;
+      case 'file':
+        function_name = 'file_create';
+        break;
       case 'node':
         if (!entity.language) { entity.language = language_default(); }
         if (!entity.nid) { function_name = 'node_create'; }
@@ -771,6 +725,18 @@ function file_load(fid, options) {
     entity_load('file', fid, options);
   }
   catch (error) { console.log('file_load - ' + error); }
+}
+
+/**
+ * Saves a file.
+ * @param {Object} file
+ * @param {Object} options
+ */
+function file_save(file, options) {
+  try {
+    entity_save('file', null, file, options);
+  }
+  catch (error) { console.log('file_save - ' + error); }
 }
 
 /**
@@ -910,6 +876,8 @@ Drupal.services.call = function(options) {
       return;
     }
 
+    module_invoke_all('services_preprocess', options);
+
     // Build the Request, URL and extract the HTTP method.
     var request = new XMLHttpRequest();
     var url = Drupal.settings.site_path +
@@ -947,12 +915,13 @@ Drupal.services.call = function(options) {
               options,
               result
             );
+            module_invoke_all('services_postprocess', options, result);
           }
           else {
             // Not OK...
             if (Drupal.settings.debug) {
               console.log(method + ': ' + url + ' - ' + title);
-              dpm(request);
+              console.log(request.getAllResponseHeaders());
             }
             if (request.responseText) { console.log(request.responseText); }
             else { dpm(request); }
@@ -961,6 +930,7 @@ Drupal.services.call = function(options) {
               if (!message || message == '') { message = title; }
               options.error(request, request.status, message);
             }
+            module_invoke_all('services_postprocess', options, request);
           }
         }
         else {
@@ -979,15 +949,28 @@ Drupal.services.call = function(options) {
         debug: options.debug,
         success: function(token) {
           try {
+            // Async, or sync? By default we'll use async if none is provided.
+            var async = true;
+            if (typeof options.async !== 'undefined' &&
+              options.async === false) { async = false; }
+
             // Open the request.
-            request.open(method, url, true);
+            request.open(method, url, async);
 
             // Set any headers.
             if (method == 'POST') {
-              request.setRequestHeader(
-                'Content-type',
-                'application/x-www-form-urlencoded'
-              );
+              var content_type = 'application/json';
+              // The file create reasource needs its content type adjusted and
+              // the data must be stringified.
+              if (options.service == 'file') {
+                content_type = 'application/json';
+                options.data = JSON.stringify(options.data);
+              }
+              else if (options.service == 'user' &&
+                options.resource == 'login') {
+                content_type = 'application/x-www-form-urlencoded';
+              }
+              request.setRequestHeader('Content-type', content_type);
             }
             else if (method == 'PUT') {
               request.setRequestHeader(
@@ -1000,26 +983,28 @@ Drupal.services.call = function(options) {
             if (token) {
               request.setRequestHeader('X-CSRF-Token', token);
             }
+
+            // Send the request with or without data.
             if (typeof options.data !== 'undefined') {
               // Print out debug information if debug is enabled. Don't print
               // out any sensitive debug data containing passwords.
               if (Drupal.settings.debug) {
-                if (
-                  options.service == 'user' &&
-                  !in_array(options.resource, ['login', 'create', 'update'])
-                ) {
+                var show = true;
+                if (options.service == 'user' &&
+                  in_array(options.resource, ['login', 'create', 'update'])) {
+                  show = false;
+                }
+                if (show) {
                   if (typeof options.data === 'object') {
                     console.log(JSON.stringify(options.data));
                   }
-                  else {
-                    console.log(options.data);
-                  }
+                  else { console.log(options.data); }
                 }
               }
-              // Send the service call.
               request.send(options.data);
             }
             else { request.send(null); }
+
           }
           catch (error) {
             console.log(
@@ -1060,15 +1045,10 @@ function services_get_csrf_token(options) {
     var token;
 
     // Are we resetting the token?
-    if (options.reset) {
-      Drupal.sessid = null;
-    }
+    if (options.reset) { Drupal.sessid = null; }
 
     // Do we already have a token? If we do, return it the success callback.
-    if (Drupal.sessid) {
-      token = Drupal.sessid;
-      if (options.debug) { dpm('Loaded token from Drupal JSON object!'); }
-    }
+    if (Drupal.sessid) { token = Drupal.sessid; }
     if (token) {
       if (options.success) { options.success(token); }
       return;
@@ -1095,7 +1075,6 @@ function services_get_csrf_token(options) {
           else { // OK
             // Set Drupal.sessid with the token, then return the token to the
             // success function.
-            if (options.debug) { dpm('Grabbed token from Drupal site!'); }
             token = token_request.responseText;
             Drupal.sessid = token;
             if (options.success) { options.success(token); }
@@ -1234,12 +1213,13 @@ function entity_create(entity_type, bundle, entity, options) {
   try {
     Drupal.services.call({
         method: 'POST',
+        async: options.async,
         path: entity_type + '.json',
         service: options.service,
         resource: options.resource,
         entity_type: entity_type,
         bundle: bundle,
-        data: entity_assemble_data(entity_type, bundle, entity, options),
+        data: JSON.stringify(entity),
         success: function(data) {
           try {
             if (options.success) { options.success(data); }
@@ -1462,6 +1442,32 @@ function _entity_wrap(entity_type, entity) {
     return entity_wrapper;
   }
   catch (error) { console.log('_entity_wrap - ' + error); }
+}
+
+/**
+ * Creates a file.
+ * @param {Object} file
+ * @param {Object} options
+ */
+function file_create(file, options) {
+  try {
+    services_resource_defaults(options, 'file', 'create');
+    entity_create('file', null, file, options);
+  }
+  catch (error) { console.log('file_create - ' + error); }
+}
+
+/**
+ * Retrieves a file.
+ * @param {Number} ids
+ * @param {Object} options
+ */
+function file_retrieve(ids, options) {
+  try {
+    services_resource_defaults(options, 'file', 'retrieve');
+    entity_retrieve('file', ids, options);
+  }
+  catch (error) { console.log('file_retrieve - ' + error); }
 }
 
 /**
@@ -1823,7 +1829,7 @@ function user_register(account, options) {
         resource: 'register',
         method: 'POST',
         path: 'user/register.json',
-        data: entity_assemble_data('user', null, account, options),
+        data: JSON.stringify(account),
         success: function(data) {
           try {
             if (options.success) { options.success(data); }
