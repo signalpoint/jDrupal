@@ -102,12 +102,16 @@ Drupal.services.call = function(options) {
 
             // Set any headers.
             if (method == 'POST') {
-              var content_type = 'application/x-www-form-urlencoded';
+              var content_type = 'application/json';
               // The file create reasource needs its content type adjusted and
               // the data must be stringified.
               if (options.service == 'file') {
                 content_type = 'application/json';
                 options.data = JSON.stringify(options.data);
+              }
+              else if (options.service == 'user' &&
+                options.resource == 'login') {
+                content_type = 'application/x-www-form-urlencoded';
               }
               request.setRequestHeader('Content-type', content_type);
             }
@@ -184,14 +188,10 @@ function services_get_csrf_token(options) {
     var token;
 
     // Are we resetting the token?
-    if (options.reset) {
-      Drupal.sessid = null;
-    }
+    if (options.reset) { Drupal.sessid = null; }
 
     // Do we already have a token? If we do, return it the success callback.
-    if (Drupal.sessid) {
-      token = Drupal.sessid;
-    }
+    if (Drupal.sessid) { token = Drupal.sessid; }
     if (token) {
       if (options.success) { options.success(token); }
       return;
