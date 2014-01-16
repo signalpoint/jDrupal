@@ -142,29 +142,6 @@ Drupal.services.call = function(options) {
             }
             else { request.send(null); }
 
-            // If it was a synchronous call, follow up by calling the success
-            // or error function depending on what happened.
-            /*if (!async) {
-              console.log('SYNCRHONOUS CALL');
-              if (request.status === 200) { // OK
-                if (Drupal.settings.debug) { console.log('200 - OK - SYNC'); }
-                var response = JSON.parse(request.responseText);
-                console.log(response);
-                if (options.success) { options.success(response); }
-              }
-              else { // NOT OK
-                if (Drupal.settings.debug) {
-                  console.log(method + ' (SYNC): ' + url + ' - ' + title);
-                  dpm(request);
-                }
-                if (options.error) {
-                  var message = request.responseText || '';
-                  if (!message || message == '') { message = title; }
-                  options.error(request, request.status, message);
-                }
-              }
-            }*/
-
           }
           catch (error) {
             console.log(
