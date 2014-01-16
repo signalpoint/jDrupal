@@ -9,6 +9,7 @@ function entity_create(entity_type, bundle, entity, options) {
   try {
     Drupal.services.call({
         method: 'POST',
+        async: options.async,
         path: entity_type + '.json',
         service: options.service,
         resource: options.resource,
