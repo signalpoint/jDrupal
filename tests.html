@@ -12,8 +12,8 @@
     <script type='text/javascript' src='http://code.jquery.com/qunit/qunit-1.12.0.js'></script>
     
     <!-- include to test binary -->
-    <!--<script src="bin/jdrupal.js"></script>-->
-    <script src="bin/jdrupal.min.js"></script>
+    <script src="bin/jdrupal.js"></script>
+    <!--<script src="bin/jdrupal.min.js"></script>-->
     
     <!-- includes to test source code -->
     <!--<script src="src/includes/module.inc.js"></script>
@@ -80,6 +80,8 @@
     
     <script type="text/javascript">
       $().ready(function() {
+          
+          Drupal.settings.debug = true;
           
           // Set the site path.
           Drupal.settings.site_path = window.location.href.replace(
