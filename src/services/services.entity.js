@@ -15,7 +15,7 @@ function entity_create(entity_type, bundle, entity, options) {
         resource: options.resource,
         entity_type: entity_type,
         bundle: bundle,
-        data: entity_assemble_data(entity_type, bundle, entity, options),
+        data: JSON.stringify(entity),
         success: function(data) {
           try {
             if (options.success) { options.success(data); }
