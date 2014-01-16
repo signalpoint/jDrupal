@@ -64,7 +64,7 @@ Drupal.services.call = function(options) {
             // Not OK...
             if (Drupal.settings.debug) {
               console.log(method + ': ' + url + ' - ' + title);
-              dpm(request);
+              console.log(request.getAllResponseHeaders());
             }
             if (request.responseText) { console.log(request.responseText); }
             else { dpm(request); }
@@ -103,8 +103,11 @@ Drupal.services.call = function(options) {
             // Set any headers.
             if (method == 'POST') {
               var content_type = 'application/x-www-form-urlencoded';
+              // The file create reasource needs its content type adjusted and
+              // the data must be stringified.
               if (options.service == 'file') {
                 content_type = 'application/json';
+                options.data = JSON.stringify(options.data);
               }
               request.setRequestHeader('Content-type', content_type);
             }
@@ -125,19 +128,18 @@ Drupal.services.call = function(options) {
               // Print out debug information if debug is enabled. Don't print
               // out any sensitive debug data containing passwords.
               if (Drupal.settings.debug) {
-                if (
-                  options.service == 'user' &&
-                  !in_array(options.resource, ['login', 'create', 'update'])
-                ) {
+                var show = true;
+                if (options.service == 'user' &&
+                  in_array(options.resource, ['login', 'create', 'update'])) {
+                  show = false;
+                }
+                if (show) {
                   if (typeof options.data === 'object') {
                     console.log(JSON.stringify(options.data));
                   }
-                  else {
-                    console.log(options.data);
-                  }
+                  else { console.log(options.data); }
                 }
               }
-              // Send the service call.
               request.send(options.data);
             }
             else { request.send(null); }
