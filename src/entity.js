@@ -24,6 +24,11 @@ function entity_assemble_data(entity_type, bundle, entity, options) {
               for (var delta in entity[property][language]) {
                 if (entity[property][language].hasOwnProperty(delta)) {
                   for (var value in entity[property][language][delta]) {
+                    // On the off chance the field value at this delta is the
+                    // string 'null', then set it to a null value instead.
+                    if (entity[property][language][delta][value] == 'null') {
+                      entity[property][language][delta][value] = null;
+                    }
                     if (
                       entity[property][language][delta].hasOwnProperty(value) &&
                       !empty(entity[property][language][delta][value])
