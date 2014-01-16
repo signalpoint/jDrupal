@@ -8,7 +8,10 @@
  */
 function entity_assemble_data(entity_type, bundle, entity, options) {
   try {
-    // TODO, this function is being replaced by sending JSON object directly
+    // If we're dealing with a file, return the file data string bundled in the
+    // entity.
+    if (entity_type == 'file') { return entity; }
+    // @todo - this function is being replaced by sending JSON object directly
     // via Content-Type application/json. This will eventually go away.
     var data = '';
     for (var property in entity) {
@@ -308,6 +311,9 @@ function entity_save(entity_type, bundle, entity, options) {
       case 'comment':
         if (!entity.cid) { function_name = 'comment_create'; }
         else { function_name = 'comment_update'; }
+        break;
+      case 'file':
+        function_name = 'file_create';
         break;
       case 'node':
         if (!entity.language) { entity.language = language_default(); }
