@@ -92,15 +92,21 @@ Drupal.services.call = function(options) {
         debug: options.debug,
         success: function(token) {
           try {
+            // Async, or sync? By default we'll use async if none is provided.
+            var async = true;
+            if (typeof options.async !== 'undefined' &&
+              options.async === false) { async = false; }
+
             // Open the request.
-            request.open(method, url, true);
+            request.open(method, url, async);
 
             // Set any headers.
             if (method == 'POST') {
-              request.setRequestHeader(
-                'Content-type',
-                'application/x-www-form-urlencoded'
-              );
+              var content_type = 'application/x-www-form-urlencoded';
+              if (options.service == 'file') {
+                content_type = 'application/json';
+              }
+              request.setRequestHeader('Content-type', content_type);
             }
             else if (method == 'PUT') {
               request.setRequestHeader(
@@ -113,6 +119,8 @@ Drupal.services.call = function(options) {
             if (token) {
               request.setRequestHeader('X-CSRF-Token', token);
             }
+
+            // Send the request with or without data.
             if (typeof options.data !== 'undefined') {
               // Print out debug information if debug is enabled. Don't print
               // out any sensitive debug data containing passwords.
@@ -133,6 +141,30 @@ Drupal.services.call = function(options) {
               request.send(options.data);
             }
             else { request.send(null); }
+
+            // If it was a synchronous call, follow up by calling the success
+            // or error function depending on what happened.
+            /*if (!async) {
+              console.log('SYNCRHONOUS CALL');
+              if (request.status === 200) { // OK
+                if (Drupal.settings.debug) { console.log('200 - OK - SYNC'); }
+                var response = JSON.parse(request.responseText);
+                console.log(response);
+                if (options.success) { options.success(response); }
+              }
+              else { // NOT OK
+                if (Drupal.settings.debug) {
+                  console.log(method + ' (SYNC): ' + url + ' - ' + title);
+                  dpm(request);
+                }
+                if (options.error) {
+                  var message = request.responseText || '';
+                  if (!message || message == '') { message = title; }
+                  options.error(request, request.status, message);
+                }
+              }
+            }*/
+
           }
           catch (error) {
             console.log(
@@ -180,7 +212,6 @@ function services_get_csrf_token(options) {
     // Do we already have a token? If we do, return it the success callback.
     if (Drupal.sessid) {
       token = Drupal.sessid;
-      if (options.debug) { dpm('Loaded token from Drupal JSON object!'); }
     }
     if (token) {
       if (options.success) { options.success(token); }
@@ -208,7 +239,6 @@ function services_get_csrf_token(options) {
           else { // OK
             // Set Drupal.sessid with the token, then return the token to the
             // success function.
-            if (options.debug) { dpm('Grabbed token from Drupal site!'); }
             token = token_request.responseText;
             Drupal.sessid = token;
             if (options.success) { options.success(token); }
