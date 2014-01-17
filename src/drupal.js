@@ -141,6 +141,9 @@ function function_exists(name) {
  */
 function http_status_code_title(status) {
   try {
+    // @todo - this can be replaced by using the statusText propery on the XHR
+    // object.
+    //https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest#Properties
     var title = '';
     switch (status) {
       case 200: title = 'OK'; break;
