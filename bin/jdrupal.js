@@ -141,6 +141,9 @@ function function_exists(name) {
  */
 function http_status_code_title(status) {
   try {
+    // @todo - this can be replaced by using the statusText propery on the XHR
+    // object.
+    //https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest#Properties
     var title = '';
     switch (status) {
       case 200: title = 'OK'; break;
@@ -903,7 +906,21 @@ Drupal.services.call = function(options) {
           // 200 OK
           if (request.status == 200) {
             if (Drupal.settings.debug) { console.log('200 - OK'); }
-            var result = JSON.parse(request.responseText);
+            // Extract the JSON result, or throw an error if the response wasn't
+            // JSON.
+            var result = null;
+            var response_header = request.getResponseHeader('Content-Type');
+            if (response_header.indexOf('application/json') == -1) {
+              console.log(
+                'Drupal.services.call - ERROR - response header was ' +
+                response_header + ' instead of application/json'
+              );
+              console.log(request.responseText);
+            }
+            else { result = JSON.parse(request.responseText); }
+            // Give modules a chance to pre post process the results, send the
+            // results to the success callback, then give modules a chance to
+            // post process the results.
             module_invoke_all(
               'services_request_pre_postprocess_alter',
               options,
@@ -921,6 +938,7 @@ Drupal.services.call = function(options) {
             // Not OK...
             if (Drupal.settings.debug) {
               console.log(method + ': ' + url + ' - ' + title);
+              console.log(request.responseText);
               console.log(request.getAllResponseHeaders());
             }
             if (request.responseText) { console.log(request.responseText); }
@@ -940,6 +958,12 @@ Drupal.services.call = function(options) {
         }
       }
       catch (error) {
+        // Not OK...
+        if (Drupal.settings.debug) {
+          console.log(method + ' (ERROR): ' + url + ' - ' + title);
+          console.log(request.responseText);
+          console.log(request.getAllResponseHeaders());
+        }
         console.log('Drupal.services.call - onload - ' + error);
       }
     };
