@@ -72,7 +72,6 @@ function user_index(query, options) {
  */
 function user_register(account, options) {
   try {
-    // TODO - it seems the user register resource only likes data strings... ?
     Drupal.services.call({
         service: 'user',
         resource: 'register',
@@ -81,62 +80,7 @@ function user_register(account, options) {
         data: JSON.stringify(account),
         success: function(data) {
           try {
-            // Now that we are registered, we need to get a new CSRF token, and
-            // then make a system connect call.
-            Drupal.sessid = null;
-            services_get_csrf_token({
-                success: function(token) {
-                  try {
-                    if (options.success) {
-                      system_connect({
-                          success: function(result) {
-                            try {
-                              // @todo - The user comes back as anonymous even
-                              // when e-mail verification is disabled and they
-                              // should be auto logged in.
-                              Drupal.sessid = result.sessid;
-                              Drupal.user = result.user;
-                              if (options.success) { options.success(data); }
-                            }
-                            catch (error) {
-                              console.log(
-                                'user_register - system_connect - success - ' +
-                                error
-                              );
-                            }
-                          },
-                          error: function(xhr, status, message) {
-                            try {
-                              if (options.error) {
-                                options.error(xhr, status, message);
-                              }
-                            }
-                            catch (error) {
-                              console.log(
-                                'user_register - system_connect - error - ' +
-                                error
-                              );
-                            }
-                          }
-                      });
-                    }
-                  }
-                  catch (error) {
-                    console.log(
-                      'user_register - services_get_csrf_token - success - ' +
-                      error
-                    );
-                  }
-                },
-                error: function(xhr, status, message) {
-                  console.log(
-                    'user_register - services_get_csrf_token - error - ' +
-                    message
-                  );
-                  if (options.error) { options.error(xhr, status, message); }
-                }
-            });
-            //if (options.success) { options.success(data); }
+            if (options.success) { options.success(data); }
           }
           catch (error) { console.log('user_register - success - ' + error); }
         },
