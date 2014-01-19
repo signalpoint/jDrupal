@@ -14,11 +14,13 @@ function test_services_user_template() {
 }
 
 function test_services_user_new_template() {
-  return {
+  var account = {
     name: user_password(),
     mail: user_password() + '@example.com',
     pass: user_password()
   };
+  account.pass2 = account.pass;
+  return account;
 }
 
 var test_user_crud = function(name, pass, callback) {
