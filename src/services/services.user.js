@@ -87,11 +87,6 @@ function user_register(account, options) {
         },
         error: function(xhr, status, message) {
           try {
-            if (status == 406) {
-              console.log(
-                'user_register - Already logged in, cannot register user!'
-              );
-            }
             if (options.error) { options.error(xhr, status, message); }
           }
           catch (error) { console.log('user_register - error - ' + error); }
