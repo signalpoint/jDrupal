@@ -83,7 +83,6 @@ function user_register(account, options) {
           try {
             // Now that we are registered, we need to get a new CSRF token, and
             // then make a system connect call.
-            Drupal.user = data.user;
             Drupal.sessid = null;
             services_get_csrf_token({
                 success: function(token) {
@@ -92,6 +91,11 @@ function user_register(account, options) {
                       system_connect({
                           success: function(result) {
                             try {
+                              // @todo - The user comes back as anonymous even
+                              // when e-mail verification is disabled and they
+                              // should be auto logged in.
+                              Drupal.sessid = result.sessid;
+                              Drupal.user = result.user;
                               if (options.success) { options.success(data); }
                             }
                             catch (error) {
