@@ -9,7 +9,6 @@ function drupal_init() {
     if (!Drupal) { Drupal = {}; }
 
     // General properties.
-    Drupal.bootstrapped = false;
     Drupal.csrf_token = false;
     Drupal.sessid = null;
     Drupal.user = drupal_user_defaults();
@@ -47,35 +46,8 @@ function drupal_init() {
       contrib: {},
       custom: {}
     };
-    drupal_bootstrap();
   }
   catch (error) { console.log('drupal_init - ' + error); }
-}
-
-/**
- * Loads up all necessary assets to make jDrupal ready.
- */
-function drupal_bootstrap() {
-  try {
-    //drupal_load_settings();
-    Drupal.bootstrapped = true;
-  }
-  catch (error) { console.log('drupal_bootstrap - ' + error); }
-}
-
-/**
- * Loads the settings specified in [app]/settings.js into the document scope.
- */
-function drupal_load_settings() {
-  try {
-    var settings_file_path = Drupal.settings.app_directory + '/settings.js';
-    var head = document.getElementsByTagName('head')[0];
-    var script = document.createElement('script');
-    script.type = 'text/javascript';
-    script.src = settings_file_path;
-    head.appendChild(script);
-  }
-  catch (error) { console.log('drupal_load_settings - ' + error); }
 }
 
 /**
