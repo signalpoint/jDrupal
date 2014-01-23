@@ -318,7 +318,7 @@ function module_invoke_all(hook) {
  * Given a module name, this will return the module inside Drupal.modules, or
  * false if it fails to find it.
  * @param {String} name
- * @return {Object,Boolean}
+ * @return {Object|Boolean}
  */
 function module_load(name) {
   try {
