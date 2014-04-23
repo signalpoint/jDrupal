@@ -953,21 +953,24 @@ Drupal.services.call = function(options) {
             // Open the request.
             request.open(method, url, async);
 
-            // Set any headers.
+            // Determine content type header, if necessary.
+            var contentType = null;
             if (method == 'POST') {
-              var content_type = 'application/json';
+              contentType = 'application/json';
               // The user login resource needs a url encoded data string.
               if (options.service == 'user' &&
                 options.resource == 'login') {
-                content_type = 'application/x-www-form-urlencoded';
+                contentType = 'application/x-www-form-urlencoded';
               }
-              request.setRequestHeader('Content-type', content_type);
             }
-            else if (method == 'PUT') {
-              request.setRequestHeader(
-                'Content-type',
-                'application/json'
-              );
+            else if (method == 'PUT') { contentType = 'application/json'; }
+
+            // Anyone overriding the content type?
+            if (options.contentType) { contentType = options.contentType; }
+
+            // Set the content type on the header, if we have one.
+            if (contentType) {
+              request.setRequestHeader('Content-type', contentType);
             }
 
             // Add the token to the header if we have one.
