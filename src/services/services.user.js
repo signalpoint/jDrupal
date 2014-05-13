@@ -18,7 +18,7 @@ function user_create(account, options) {
  */
 function user_retrieve(ids, options) {
   try {
-    services_resource_defaults(options, 'user', 'create');
+    services_resource_defaults(options, 'user', 'retrieve');
     entity_retrieve('user', ids, options);
   }
   catch (error) { console.log('user_retrieve - ' + error); }
