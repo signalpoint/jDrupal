@@ -51,15 +51,127 @@ function drupal_init() {
 }
 
 /**
- * Given a JSON object or string, this will print it to the console.
+ * Equivalent to PHP's date function. You may optionally pass in a second int
+ * timestamp argument (number of milliseconds since epoch, not the number of
+ * seconds since the epoch) to format that particular time, otherwise it'll
+ * default to the current time.
+ * @param {String} format The format of the outputted date string.
+ * @return {String}
+ * @see http://php.net/manual/en/function.date.php
+ */
+function date(format) {
+  try {
+    // @TODO - move this function to jDrupal and create a github gist for it.
+    // Let's figure out the timestamp and date.
+    var d = null;
+    var timestamp = null;
+    if (arguments[1]) {
+      timestamp = arguments[1];
+      d = new Date(timestamp);
+    }
+    else {
+      d = new Date();
+      timestamp = d.getTime();
+    }
+    var result = '';
+    for (var i = 0; i < format.length; i++) {
+      var character = format.charAt(i);
+      switch (character) {
+
+        /* DAY */
+
+        // Day of the month, 2 digits with leading zeros: 01 to 31
+        case 'd':
+          var day = '' + d.getDate();
+          if (day.length == 1) { day = '0' + day; }
+          result += day;
+          break;
+
+        // A textual representation of a day, three letters: Mon through Sun
+        case 'D':
+          var day = d.getDay();
+          switch (day) {
+            case 0: result += 'Sun'; break;
+            case 1: result += 'Mon'; break;
+            case 2: result += 'Tue'; break;
+            case 3: result += 'Wed'; break;
+            case 4: result += 'Thu'; break;
+            case 5: result += 'Fri'; break;
+            case 6: result += 'Sat'; break;
+          }
+          break;
+
+        /* WEEK */
+
+        /* MONTH */
+
+        // Numeric representation of a month, with leading zeros: 01 through 12
+        case 'm':
+          var month = '' + (d.getMonth() + 1);
+          if (month.length == 1) { month = '0' + month; }
+          result += month;
+          break;
+
+        /* YEAR */
+
+        // A full numeric representation of a year, 4 digits.
+        // Examples: 1999 or 2003
+        case 'Y':
+          result += d.getFullYear();
+          break;
+
+        /* TIME */
+
+        // 24-hour format of an hour with leading zeros: 00 through 23
+        case 'H':
+          var hours = '' + d.getHours();
+          if (hours.length == 1) { hours = '0' + hours; }
+          result += hours;
+          break;
+
+        // Minutes with leading zeros: 00 to 59
+        case 'i':
+          var minutes = '' + d.getMinutes();
+          if (minutes.length == 1) { minutes = '0' + minutes; }
+          result += minutes;
+          break;
+
+        default:
+          // Any characters that we don't know how to process, just place them
+          // onto the result.
+          result += character;
+          break;
+      }
+    }
+    return result;
+  }
+  catch (error) { console.log('date - ' + error); }
+}
+
+/**
+ * Given a JSON object or string, this will print it to the console. It accepts
+ * an optional boolean as second argument, if it is false the output sent to the
+ * console will not use pretty printing in a Chrome/Ripple environment.
  * @param {Object} data
  */
 function dpm(data) {
   try {
+    // Show the caller name.
+    //var caller = arguments.callee.caller.name + '()';
+    //console.log(caller);
     if (data) {
-      if (typeof data === 'object') { console.log(JSON.stringify(data)); }
+      if (typeof parent.window.ripple === 'function') {
+        if (typeof arguments[1] !== 'undefined' && arguments[1] == false) {
+          console.log(JSON.stringify(data));
+        }
+        else {
+          console.log(data);
+        }
+      }
+      else if (typeof data === 'object') { console.log(JSON.stringify(data)); }
       else { console.log(data); }
     }
+    else { console.log('<null>'); }
   }
   catch (error) { console.log('dpm - ' + error); }
 }
