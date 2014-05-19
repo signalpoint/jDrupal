@@ -227,11 +227,11 @@ function entity_index_build_query_string(query) {
  */
 function _entity_wrap(entity_type, entity) {
   try {
-    // We don't wrap taxonomy or users.
+    // We don't wrap taxonomy, users or commerce entities.
     var entity_wrapper = {};
     if (entity_type == 'taxonomy_term' ||
       entity_type == 'taxonomy_vocabulary' ||
-      entity_type == 'user') {
+      entity_type == 'user' || entity_type.indexOf('commerce') != -1) {
       entity_wrapper = entity;
     }
     else { entity_wrapper[entity_type] = entity; }
