@@ -231,9 +231,18 @@ function entity_primary_key(entity_type) {
       case 'taxonomy_vocabulary': key = 'vid'; break;
       case 'user': key = 'uid'; break;
       default:
-        console.log(
-          'entity_primary_key - unsupported entity type (' + entity_type + ')'
-        );
+        // Is anyone declaring the primary key for this entity type?
+        var function_name = entity_type + '_primary_key';
+        if (drupalgap_function_exists(function_name)) {
+          var fn = window[function_name];
+          key = fn(entity_type);
+        }
+        else {
+          var msg = 'entity_primary_key - unsupported entity type (' +
+            entity_type + ') - to add support, declare ' + function_name +
+            '() and have it return the primary key column name as a string';
+          console.log(msg);
+        }
         break;
     }
     return key;
