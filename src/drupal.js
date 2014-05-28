@@ -122,7 +122,7 @@ function date(format) {
         /* WEEK */
 
         /* MONTH */
-        
+
         // A full textual representation of a month, such as January or March:
         // January through December
         case 'F':
