@@ -208,7 +208,10 @@ function dpm(data) {
       else if (typeof data === 'object') { console.log(JSON.stringify(data)); }
       else { console.log(data); }
     }
-    else { console.log('<null>'); }
+    else {
+      if (data == '') { console.log('<empty-string>'); }
+      else { console.log('<null>'); }
+    }
   }
   catch (error) { console.log('dpm - ' + error); }
 }
