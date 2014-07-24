@@ -95,8 +95,15 @@ function entity_load(entity_type, ids, options) {
       return;
     }
 
-    // This entity has not been queued for retrieval, queue it.
+    // This entity has not been queued for retrieval, queue it and its callback.
     _services_queue_add_to_queue(entity_type, 'retrieve', entity_id);
+    _services_queue_callback_add(
+      entity_type,
+      'retrieve',
+      entity_id,
+      'success',
+      options.success
+    );
 
     // If entity caching is enabled, try to load the entity from local storage.
     // If a copy is available in local storage, send it to the success callback.
@@ -140,12 +147,17 @@ function entity_load(entity_type, ids, options) {
             // Save the entity to local storage.
             _entity_local_storage_save(entity_type, entity_id, entity);
           }
-          // Send the entity back to the queued callback(s).
+          // Send the entity back to the queued callback(s) and remove each
+          // callback from the queue after calling them.
           var _success_callbacks =
             Drupal.services_queue[entity_type]['retrieve'][entity_id].success;
           for (var i = 0; i < _success_callbacks.length; i++) {
             _success_callbacks[i](entity);
+            _success_callbacks.splice(i, 1);
+            i = 0;
           }
+          Drupal.services_queue[entity_type]['retrieve'][entity_id].success =
+            _success_callbacks;
         }
         catch (error) {
           console.log('entity_load - success - ' + error);
