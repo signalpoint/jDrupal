@@ -19,6 +19,20 @@ function entity_delete(entity_type, ids, options) {
 }
 
 /**
+ * Parses an entity id and returns it as an integer (not a string).
+ * @param {*} entity_id
+ * @return {Number}
+ */
+function entity_id_parse(entity_id) {
+  try {
+    var id = entity_id;
+    if (typeof id === 'string') { id = parseInt(entity_id); }
+    return id;
+  }
+  catch (error) { console.log('entity_id_parse - ' + error); }
+}
+
+/**
  * Given an entity type and the entity id, this will return the local storage
  * key to be used when saving/loading the entity from local storage.
  * @param {String} entity_type
@@ -46,10 +60,48 @@ function entity_load(entity_type, ids, options) {
       return;
     }
     var entity_id = ids;
+    // Convert the id to an int, if it's a string.
+    entity_id = entity_id_parse(entity_id);
+    // If this entity is already queued for retrieval, set the success and
+    // error callbacks aside, and return. Unless entity caching is enabled and
+    // we have a copy of the entity in local storage, then send it to the
+    // provided success callback.
+    if (_services_queue_already_queued(entity_type, 'retrieve', entity_id)) {
+      if (Drupal.settings.cache.entity.enabled) {
+        entity = _entity_local_storage_load(entity_type, entity_id, options);
+        if (entity) {
+          if (options.success) { options.success(entity); }
+          return;
+        }
+      }
+      if (typeof options.success !== 'undefined') {
+        _services_queue_callback_add(
+          entity_type,
+          'retrieve',
+          entity_id,
+          'success',
+          options.success
+        );
+      }
+      if (typeof options.error !== 'undefined') {
+        _services_queue_callback_add(
+          entity_type,
+          'retrieve',
+          entity_id,
+          'error',
+          options.error
+        );
+      }
+      return;
+    }
+
+    // This entity has not been queued for retrieval, queue it.
+    _services_queue_add_to_queue(entity_type, 'retrieve', entity_id);
+
     // If entity caching is enabled, try to load the entity from local storage.
     // If a copy is available in local storage, send it to the success callback.
     var entity = false;
-    if (Drupal.settings.cache.entity && Drupal.settings.cache.entity.enabled) {
+    if (Drupal.settings.cache.entity.enabled) {
       entity = _entity_local_storage_load(entity_type, entity_id, options);
       if (entity) {
         if (options.success) { options.success(entity); }
@@ -88,8 +140,12 @@ function entity_load(entity_type, ids, options) {
             // Save the entity to local storage.
             _entity_local_storage_save(entity_type, entity_id, entity);
           }
-          // Send the entity back to the caller's success callback function.
-          if (options.success) { options.success(entity); }
+          // Send the entity back to the queued callback(s).
+          var _success_callbacks =
+            Drupal.services_queue[entity_type]['retrieve'][entity_id].success;
+          for (var i = 0; i < _success_callbacks.length; i++) {
+            _success_callbacks[i](entity);
+          }
         }
         catch (error) {
           console.log('entity_load - success - ' + error);
