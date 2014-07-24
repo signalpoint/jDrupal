@@ -55,7 +55,7 @@ function entity_local_storage_key(entity_type, id) {
 function entity_load(entity_type, ids, options) {
   try {
     if (!is_int(ids)) {
-      // @todo - if an array of ints is sent in, call entity_index() instead.
+      // @TODO - if an array of ints is sent in, call entity_index() instead.
       alert('entity_load(' + entity_type + ') - only single ids supported!');
       return;
     }
@@ -66,7 +66,12 @@ function entity_load(entity_type, ids, options) {
     // error callbacks aside, and return. Unless entity caching is enabled and
     // we have a copy of the entity in local storage, then send it to the
     // provided success callback.
-    if (_services_queue_already_queued(entity_type, 'retrieve', entity_id)) {
+    if (_services_queue_already_queued(
+      entity_type,
+      'retrieve',
+      entity_id,
+      'success'
+    )) {
       if (Drupal.settings.cache.entity.enabled) {
         entity = _entity_local_storage_load(entity_type, entity_id, options);
         if (entity) {
@@ -147,17 +152,15 @@ function entity_load(entity_type, ids, options) {
             // Save the entity to local storage.
             _entity_local_storage_save(entity_type, entity_id, entity);
           }
-          // Send the entity back to the queued callback(s) and remove each
-          // callback from the queue after calling them.
+          // Send the entity back to the queued callback(s).
           var _success_callbacks =
             Drupal.services_queue[entity_type]['retrieve'][entity_id].success;
           for (var i = 0; i < _success_callbacks.length; i++) {
             _success_callbacks[i](entity);
-            _success_callbacks.splice(i, 1);
-            i = 0;
           }
+          // Clear out the success callbacks.
           Drupal.services_queue[entity_type]['retrieve'][entity_id].success =
-            _success_callbacks;
+            [];
         }
         catch (error) {
           console.log('entity_load - success - ' + error);
