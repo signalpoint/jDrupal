@@ -299,3 +299,90 @@ function services_resource_defaults(options, service, resource) {
   catch (error) { console.log('services_resource_defaults - ' + error); }
 }
 
+/**
+ * Returns true if the entity_id is already queued for the service resource,
+ * false otherwise.
+ * @param {String} service
+ * @param {String} resource
+ * @param {Number} entity_id
+ * @return {Boolean}
+ */
+function _services_queue_already_queued(service, resource, entity_id) {
+  try {
+    var queued = false;
+    if (
+      typeof Drupal.services_queue[service][resource][entity_id] !== 'undefined'
+    ) { queued = true; }
+    return queued;
+  }
+  catch (error) { console.log('_services_queue_already_queued - ' + error); }
+}
+
+/**
+ * Adds an entity id to the service resource queue.
+ * @param {String} service
+ * @param {String} resource
+ * @param {Number} entity_id
+ */
+function _services_queue_add_to_queue(service, resource, entity_id) {
+  try {
+    Drupal.services_queue[service][resource][entity_id] = {
+      entity_id: entity_id,
+      success: [],
+      error: []
+    };
+  }
+  catch (error) { console.log('_services_queue_add_to_queue - ' + error); }
+}
+
+/**
+ * Removes an entity id from the service resource queue.
+ * @param {String} service
+ * @param {String} resource
+ * @param {Number} entity_id
+ */
+function _services_queue_remove_from_queue(service, resource, entity_id) {
+  try {
+    console.log('WARNING: services_queue_remove_from_queue() not done yet!');
+  }
+  catch (error) {
+    console.log('_services_queue_remove_from_queue - ' + error);
+  }
+}
+
+/**
+ * Adds a callback function to the service resource queue.
+ * @param {String} service
+ * @param {String} resource
+ * @param {Number} entity_id
+ * @param {String} callback_type
+ * @param {Function} callback
+ */
+function _services_queue_callback_add(service, resource, entity_id,
+  callback_type, callback) {
+  try {
+    Drupal.services_queue[service][resource][entity_id][callback_type].push(
+      callback
+    );
+  }
+  catch (error) { console.log('_services_queue_callback_add - ' + error); }
+}
+
+/**
+ * Returns the number of callback functions for the service resource queue.
+ * @param {String} service
+ * @param {String} resource
+ * @param {Number} entity_id
+ * @param {String} callback_type
+ * @return {Number}
+ */
+function _services_queue_callback_count(service, resource, entity_id,
+  callback_type) {
+  try {
+    var length =
+      Drupal.services_queue[service][resource][entity_id][callback_type].length;
+    return length;
+  }
+  catch (error) { console.log('_services_queue_callback_count - ' + error); }
+}
+
