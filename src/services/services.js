@@ -305,18 +305,19 @@ function services_resource_defaults(options, service, resource) {
  * @param {String} service
  * @param {String} resource
  * @param {Number} entity_id
+ * @param {String} callback_type
  * @return {Boolean}
  */
-function _services_queue_already_queued(service, resource, entity_id) {
+function _services_queue_already_queued(service, resource, entity_id,
+  callback_type) {
   try {
     var queued = false;
     if (
       typeof Drupal.services_queue[service][resource][entity_id] !== 'undefined'
     ) {
+      //queued = true;
       var queue = Drupal.services_queue[service][resource][entity_id];
-      if (queue.success.length != 0 && queue.error.length != 0) {
-        queued = true;
-      }
+      if (queue[callback_type].length != 0) { queued = true; }
     }
     return queued;
   }
