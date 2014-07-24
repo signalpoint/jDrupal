@@ -46,6 +46,30 @@ function drupal_init() {
       contrib: {},
       custom: {}
     };
+    // Build a JSON object to house the entity service request queues. This is
+    // used to prevent async calls to the same resource from piling up and
+    // making duplicate requests.
+    // @TODO - this needs to be dynamic, what about custom entity types?
+    Drupal.services_queue = {
+      comment: {
+        retrieve: {}
+      },
+      file: {
+        retrieve: {}
+      },
+      node: {
+        retrieve: {}
+      },
+      taxonomy_term: {
+        retrieve: {}
+      },
+      taxonomy_vocabulary: {
+        retrieve: {}
+      },
+      user: {
+        retrieve: {}
+      }
+    };
   }
   catch (error) { console.log('drupal_init - ' + error); }
 }
@@ -286,13 +310,24 @@ function http_status_code_title(status) {
 /**
  * Checks if the needle string, is in the haystack array. Returns true if it is
  * found, false otherwise. Credit: http://stackoverflow.com/a/15276975/763010
- * @param {String} needle
+ * @param {String,Number} needle
  * @param {Array} haystack
  * @return {Boolean}
  */
 function in_array(needle, haystack) {
   try {
-    return (haystack.indexOf(needle) > -1);
+    if (typeof haystack === 'undefined') { return false; }
+    if (typeof needle === 'string') { return (haystack.indexOf(needle) > -1); }
+    else {
+      var found = false;
+      for (var i = 0; i < haystack.length; i++) {
+        if (haystack[i] == needle) {
+          found = true;
+          break;
+        }
+      }
+      return found;
+    }
   }
   catch (error) { console.log('in_array - ' + error); }
 }
@@ -304,9 +339,7 @@ function in_array(needle, haystack) {
  */
 function is_int(n) {
   // Credit: http://stackoverflow.com/a/3886106/763010
-  if (typeof n === 'string') {
-    n = parseInt(n);
-  }
+  if (typeof n === 'string') { n = parseInt(n); }
   return typeof n === 'number' && n % 1 == 0;
 }
 
@@ -323,6 +356,29 @@ function language_default() {
     return 'und';
   }
   catch (error) { console.log('language_default - ' + error); }
+}
+
+/**
+ * Given a module name, this returns true if the module is enabled, false
+ * otherwise.
+ * @param {String} name The name of the module
+ * @return {Boolean}
+ */
+function module_exists(name) {
+  try {
+    var exists = false;
+    if (typeof Drupal.modules.core[name] !== 'undefined') {
+      exists = true;
+    }
+    else if (typeof Drupal.modules.contrib[name] !== 'undefined') {
+      exists = true;
+    }
+    else if (typeof Drupal.modules.custom[name] !== 'undefined') {
+      exists = true;
+    }
+    return exists;
+  }
+  catch (error) { console.log('module_exists - ' + error); }
 }
 
 /**
@@ -555,6 +611,20 @@ function entity_delete(entity_type, ids, options) {
 }
 
 /**
+ * Parses an entity id and returns it as an integer (not a string).
+ * @param {*} entity_id
+ * @return {Number}
+ */
+function entity_id_parse(entity_id) {
+  try {
+    var id = entity_id;
+    if (typeof id === 'string') { id = parseInt(entity_id); }
+    return id;
+  }
+  catch (error) { console.log('entity_id_parse - ' + error); }
+}
+
+/**
  * Given an entity type and the entity id, this will return the local storage
  * key to be used when saving/loading the entity from local storage.
  * @param {String} entity_type
@@ -577,15 +647,65 @@ function entity_local_storage_key(entity_type, id) {
 function entity_load(entity_type, ids, options) {
   try {
     if (!is_int(ids)) {
-      // @todo - if an array of ints is sent in, call entity_index() instead.
+      // @TODO - if an array of ints is sent in, call entity_index() instead.
       alert('entity_load(' + entity_type + ') - only single ids supported!');
       return;
     }
     var entity_id = ids;
+    // Convert the id to an int, if it's a string.
+    entity_id = entity_id_parse(entity_id);
+    // If this entity is already queued for retrieval, set the success and
+    // error callbacks aside, and return. Unless entity caching is enabled and
+    // we have a copy of the entity in local storage, then send it to the
+    // provided success callback.
+    if (_services_queue_already_queued(
+      entity_type,
+      'retrieve',
+      entity_id,
+      'success'
+    )) {
+      if (Drupal.settings.cache.entity.enabled) {
+        entity = _entity_local_storage_load(entity_type, entity_id, options);
+        if (entity) {
+          if (options.success) { options.success(entity); }
+          return;
+        }
+      }
+      if (typeof options.success !== 'undefined') {
+        _services_queue_callback_add(
+          entity_type,
+          'retrieve',
+          entity_id,
+          'success',
+          options.success
+        );
+      }
+      if (typeof options.error !== 'undefined') {
+        _services_queue_callback_add(
+          entity_type,
+          'retrieve',
+          entity_id,
+          'error',
+          options.error
+        );
+      }
+      return;
+    }
+
+    // This entity has not been queued for retrieval, queue it and its callback.
+    _services_queue_add_to_queue(entity_type, 'retrieve', entity_id);
+    _services_queue_callback_add(
+      entity_type,
+      'retrieve',
+      entity_id,
+      'success',
+      options.success
+    );
+
     // If entity caching is enabled, try to load the entity from local storage.
     // If a copy is available in local storage, send it to the success callback.
     var entity = false;
-    if (Drupal.settings.cache.entity && Drupal.settings.cache.entity.enabled) {
+    if (Drupal.settings.cache.entity.enabled) {
       entity = _entity_local_storage_load(entity_type, entity_id, options);
       if (entity) {
         if (options.success) { options.success(entity); }
@@ -624,8 +744,15 @@ function entity_load(entity_type, ids, options) {
             // Save the entity to local storage.
             _entity_local_storage_save(entity_type, entity_id, entity);
           }
-          // Send the entity back to the caller's success callback function.
-          if (options.success) { options.success(entity); }
+          // Send the entity back to the queued callback(s).
+          var _success_callbacks =
+            Drupal.services_queue[entity_type]['retrieve'][entity_id].success;
+          for (var i = 0; i < _success_callbacks.length; i++) {
+            _success_callbacks[i](entity);
+          }
+          // Clear out the success callbacks.
+          Drupal.services_queue[entity_type]['retrieve'][entity_id].success =
+            [];
         }
         catch (error) {
           console.log('entity_load - success - ' + error);
@@ -1290,6 +1417,99 @@ function services_resource_defaults(options, service, resource) {
     if (!options.resource) { options.resource = resource; }
   }
   catch (error) { console.log('services_resource_defaults - ' + error); }
+}
+
+/**
+ * Returns true if the entity_id is already queued for the service resource,
+ * false otherwise.
+ * @param {String} service
+ * @param {String} resource
+ * @param {Number} entity_id
+ * @param {String} callback_type
+ * @return {Boolean}
+ */
+function _services_queue_already_queued(service, resource, entity_id,
+  callback_type) {
+  try {
+    var queued = false;
+    if (
+      typeof Drupal.services_queue[service][resource][entity_id] !== 'undefined'
+    ) {
+      //queued = true;
+      var queue = Drupal.services_queue[service][resource][entity_id];
+      if (queue[callback_type].length != 0) { queued = true; }
+    }
+    return queued;
+  }
+  catch (error) { console.log('_services_queue_already_queued - ' + error); }
+}
+
+/**
+ * Adds an entity id to the service resource queue.
+ * @param {String} service
+ * @param {String} resource
+ * @param {Number} entity_id
+ */
+function _services_queue_add_to_queue(service, resource, entity_id) {
+  try {
+    Drupal.services_queue[service][resource][entity_id] = {
+      entity_id: entity_id,
+      success: [],
+      error: []
+    };
+  }
+  catch (error) { console.log('_services_queue_add_to_queue - ' + error); }
+}
+
+/**
+ * Removes an entity id from the service resource queue.
+ * @param {String} service
+ * @param {String} resource
+ * @param {Number} entity_id
+ */
+function _services_queue_remove_from_queue(service, resource, entity_id) {
+  try {
+    console.log('WARNING: services_queue_remove_from_queue() not done yet!');
+  }
+  catch (error) {
+    console.log('_services_queue_remove_from_queue - ' + error);
+  }
+}
+
+/**
+ * Adds a callback function to the service resource queue.
+ * @param {String} service
+ * @param {String} resource
+ * @param {Number} entity_id
+ * @param {String} callback_type
+ * @param {Function} callback
+ */
+function _services_queue_callback_add(service, resource, entity_id,
+  callback_type, callback) {
+  try {
+    Drupal.services_queue[service][resource][entity_id][callback_type].push(
+      callback
+    );
+  }
+  catch (error) { console.log('_services_queue_callback_add - ' + error); }
+}
+
+/**
+ * Returns the number of callback functions for the service resource queue.
+ * @param {String} service
+ * @param {String} resource
+ * @param {Number} entity_id
+ * @param {String} callback_type
+ * @return {Number}
+ */
+function _services_queue_callback_count(service, resource, entity_id,
+  callback_type) {
+  try {
+    var length =
+      Drupal.services_queue[service][resource][entity_id][callback_type].length;
+    return length;
+  }
+  catch (error) { console.log('_services_queue_callback_count - ' + error); }
 }
 
 /**
