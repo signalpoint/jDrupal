@@ -312,7 +312,12 @@ function _services_queue_already_queued(service, resource, entity_id) {
     var queued = false;
     if (
       typeof Drupal.services_queue[service][resource][entity_id] !== 'undefined'
-    ) { queued = true; }
+    ) {
+      var queue = Drupal.services_queue[service][resource][entity_id];
+      if (queue.success.length != 0 && queue.error.length != 0) {
+        queued = true;
+      }
+    }
     return queued;
   }
   catch (error) { console.log('_services_queue_already_queued - ' + error); }
