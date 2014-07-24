@@ -46,6 +46,30 @@ function drupal_init() {
       contrib: {},
       custom: {}
     };
+    // Build a JSON object to house the entity service request queues. This is
+    // used to prevent async calls to the same resource from piling up and
+    // making duplicate requests.
+    // @TODO - this needs to be dynamic, what about custom entity types?
+    Drupal.services_queue = {
+      comment: {
+        retrieve: {}
+      },
+      file: {
+        retrieve: {}
+      },
+      node: {
+        retrieve: {}
+      },
+      taxonomy_term: {
+        retrieve: {}
+      },
+      taxonomy_vocabulary: {
+        retrieve: {}
+      },
+      user: {
+        retrieve: {}
+      }
+    };
   }
   catch (error) { console.log('drupal_init - ' + error); }
 }
@@ -286,13 +310,24 @@ function http_status_code_title(status) {
 /**
  * Checks if the needle string, is in the haystack array. Returns true if it is
  * found, false otherwise. Credit: http://stackoverflow.com/a/15276975/763010
- * @param {String} needle
+ * @param {String,Number} needle
  * @param {Array} haystack
  * @return {Boolean}
  */
 function in_array(needle, haystack) {
   try {
-    return (haystack.indexOf(needle) > -1);
+    if (typeof haystack === 'undefined') { return false; }
+    if (typeof needle === 'string') { return (haystack.indexOf(needle) > -1); }
+    else {
+      var found = false;
+      for (var i = 0; i < haystack.length; i++) {
+        if (haystack[i] == needle) {
+          found = true;
+          break;
+        }
+      }
+      return found;
+    }
   }
   catch (error) { console.log('in_array - ' + error); }
 }
@@ -304,9 +339,7 @@ function in_array(needle, haystack) {
  */
 function is_int(n) {
   // Credit: http://stackoverflow.com/a/3886106/763010
-  if (typeof n === 'string') {
-    n = parseInt(n);
-  }
+  if (typeof n === 'string') { n = parseInt(n); }
   return typeof n === 'number' && n % 1 == 0;
 }
 
@@ -323,6 +356,29 @@ function language_default() {
     return 'und';
   }
   catch (error) { console.log('language_default - ' + error); }
+}
+
+/**
+ * Given a module name, this returns true if the module is enabled, false
+ * otherwise.
+ * @param {String} name The name of the module
+ * @return {Boolean}
+ */
+function module_exists(name) {
+  try {
+    var exists = false;
+    if (typeof Drupal.modules.core[name] !== 'undefined') {
+      exists = true;
+    }
+    else if (typeof Drupal.modules.contrib[name] !== 'undefined') {
+      exists = true;
+    }
+    else if (typeof Drupal.modules.custom[name] !== 'undefined') {
+      exists = true;
+    }
+    return exists;
+  }
+  catch (error) { console.log('module_exists - ' + error); }
 }
 
 /**
