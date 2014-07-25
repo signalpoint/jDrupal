@@ -91,6 +91,7 @@ function date(format) {
     var timestamp = null;
     if (arguments[1]) {
       timestamp = arguments[1];
+      if (typeof timestamp === 'string') { timestamp = parseInt(timestamp); }
       d = new Date(timestamp);
     }
     else {
