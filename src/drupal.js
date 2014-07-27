@@ -263,6 +263,7 @@ function drupal_user_defaults() {
  */
 function empty(value) {
   try {
+    if (typeof value === 'object') { return Object.keys(value).length === 0; }
     return (typeof value === 'undefined' || value === null || value == '');
   }
   catch (error) { console.log('empty - ' + error); }
