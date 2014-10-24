@@ -56,7 +56,8 @@ function entity_load(entity_type, ids, options) {
   try {
     if (!is_int(ids)) {
       // @TODO - if an array of ints is sent in, call entity_index() instead.
-      alert('entity_load(' + entity_type + ') - only single ids supported!');
+      var msg = 'entity_load(' + entity_type + ') - only single ids supported!';
+      console.log(msg);
       return;
     }
     var entity_id = ids;
