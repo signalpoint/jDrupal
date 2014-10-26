@@ -22,7 +22,11 @@ var test_taxonomy_term_crud = function(callback) {
           success:function(taxonomy_vocabulary_create_result){
             start();
             expect(1);
-            ok(taxonomy_vocabulary_create_result[0] === 1, "SAVED_NEW");
+            // In D6, the vocabulary comes back as a JSON object, not the value
+            // of "SAVED_NEW" like in D7. It also comes back with the machine
+            // name, which sadly doesn't appear present when retrieving a
+            // vocabulary.
+            ok(taxonomy_vocabulary_create_result.vid, "vid");
             
             // Retrieve new vocabulary
             // Index

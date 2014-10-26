@@ -22,7 +22,11 @@ var test_taxonomy_vocabulary_crud = function(callback) {
           success:function(taxonomy_vocabulary_create_result){
             start();
             expect(1);
-            ok(taxonomy_vocabulary_create_result[0] === 1, "SAVED_NEW");
+            // In D6, the vocabulary comes back as a JSON object, not the value
+            // of "SAVED_NEW" like in D7. It also comes back with the machine
+            // name, which sadly doesn't appear present when retrieving a
+            // vocabulary.
+            ok(taxonomy_vocabulary_create_result.vid, "vid");
             
             // Index
             asyncTest("taxonomy_vocabulary_index", function() {
@@ -51,16 +55,23 @@ var test_taxonomy_vocabulary_crud = function(callback) {
                                 
                                 // Update
                                 asyncTest("taxonomy_vocabulary_save - update existing", function() {
+                                    // The `machine_name` doesn't come back from the load call in D6,
+                                    // so we need to use the values that came back from the create call.
                                     var taxonomy_vocabulary_changes = {
                                       vid: taxonomy_vocabulary_retrieve_result.vid,
                                       name: user_password(),
-                                      machine_name: taxonomy_vocabulary.machine_name
+                                      machine_name: taxonomy_vocabulary_create_result.machine_name
                                     };
                                     taxonomy_vocabulary_save(taxonomy_vocabulary_changes, {
                                         success:function(taxonomy_vocabulary_update_result) {
                                           start();
                                           expect(1);
-                                          ok(taxonomy_vocabulary_update_result[0] == 2, "SAVED_UPDATED");
+                                          expect(1);
+                                          // In D6, the vocabulary comes back as a JSON object, not the value
+                                          // of "SAVED_UPDATED" like in D7. It also comes back with the machine
+                                          // name, which sadly doesn't appear present when retrieving a
+                                          // vocabulary.
+                                          ok(taxonomy_vocabulary_update_result.vid, "vid");
                                           
                                           // Retrieve updated entity.
                                           asyncTest("taxonomy_vocabulary_load - after update", function() {

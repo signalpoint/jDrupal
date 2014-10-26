@@ -8,13 +8,11 @@ var test_services_comment = function(callback) {
 
 // Pass in an optional node id.
 function test_services_comment_template() {
+  // In D6 there is no language code, and its called 'comment' not
+  // 'comment_body', and it's just a flat string.
   var comment = {
-    subject:user_password(),
-    comment_body:{
-      und:[
-        {value:user_password()}
-      ]
-    }
+    subject: user_password(),
+    comment: user_password()
   };
   if (arguments[0]) { comment.nid = arguments[0]; }
   return comment;
@@ -50,7 +48,9 @@ var test_comment_crud = function(callback) {
                                 expect(3);
                                 ok(comment_retrieve_result.cid == comment_create_result.cid, "cid");
                                 ok(comment_retrieve_result.subject == comment.subject, "subject");
-                                ok(comment_retrieve_result.comment_body[lng][0].value == comment_retrieve_result.comment_body[lng][0].value, "comment_body");
+                                // In D6, `comment` is used instead of `comment_body`, and there are no language codes,
+                                // and it is just a flat string.
+                                ok(comment_retrieve_result.comment == comment_retrieve_result.comment, "comment");
                                 
                                 // Update
                                 asyncTest("comment_save - update existing", function() {

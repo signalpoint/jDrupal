@@ -87,10 +87,11 @@ var test_user_crud = function(name, pass, callback) {
                                                                         ok(user_retrieve_result.uid == user_create_result.uid, "uid");
                                                                         ok(user_retrieve_result.title == user.title, "title");
                                                                         
-                                                                        // Update
+                                                                        // Update - we need to pass along the name in D6.
                                                                         asyncTest("user_save - update existing", function() {
                                                                             var user_changes = {
                                                                               uid:user_retrieve_result.uid,
+                                                                              name:user_retrieve_result.name,
                                                                               mail:user_password() + '@example.com',
                                                                               current_pass: user.pass
                                                                             };

@@ -8,7 +8,7 @@ var test_services_node = function(callback) {
 
 function test_services_node_template() {
   return {
-    type:"article",
+    type:"page",
     title:user_password()
   };
 }
@@ -34,10 +34,11 @@ var test_node_crud = function(callback) {
                       ok(node_retrieve_result.nid == node_create_result.nid, "nid");
                       ok(node_retrieve_result.title == node.title, "title");
                       
-                      // Update
+                      // Update - we need to pass along the node type in D6.
                       asyncTest("node_save - update existing", function() {
                           var node_changes = {
                             nid:node_retrieve_result.nid,
+                            type:node_retrieve_result.type,
                             title:user_password()
                           };
                           node_save(node_changes, {
@@ -67,7 +68,7 @@ var test_node_crud = function(callback) {
                                                     // Index
                                                     asyncTest("node_index", function() {
                                                         var query = {
-                                                          type: 'article'
+                                                          type: 'page'
                                                         };
                                                         node_index(query, {
                                                             success:function(node_index_results){
