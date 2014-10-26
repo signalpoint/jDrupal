@@ -33,6 +33,15 @@ function user_update(account, options) {
   try {
     var mode = 'create';
     if (account.uid) { mode = 'update'; }
+    // In D6, you must provide the name on the user account's JSON object.
+    if (mode == 'update' && typeof account.name === 'undefined') {
+      var msg = "user_update - missing 'name' value on the account's JSON obj";
+      console.log(msg);
+      if (options.error) {
+        options.error(null, 406, msg);
+      }
+      return;
+    }
     services_resource_defaults(options, 'user', mode);
     entity_update('user', null, account, options);
   }
@@ -125,55 +134,35 @@ function user_login(name, pass, options) {
              '&password=' + encodeURIComponent(pass),
         success: function(data) {
           try {
-            // Now that we are logged in, we need to get a new CSRF token, and
-            // then make a system connect call.
+            // Now that we are logged in, we would normally need to get a new
+            // CSRF token, but it is not available in D6 services, so we'll
+            // skip ahead to the system connect call.
             Drupal.user = data.user;
             Drupal.sessid = null;
-            services_get_csrf_token({
-                success: function(token) {
+            system_connect({
+                success: function(result) {
                   try {
-                    if (options.success) {
-                      system_connect({
-                          success: function(result) {
-                            try {
-                              if (options.success) { options.success(data); }
-                            }
-                            catch (error) {
-                              console.log(
-                                'user_login - system_connect - success - ' +
-                                error
-                              );
-                            }
-                          },
-                          error: function(xhr, status, message) {
-                            try {
-                              if (options.error) {
-                                options.error(xhr, status, message);
-                              }
-                            }
-                            catch (error) {
-                              console.log(
-                                'user_login - system_connect - error - ' +
-                                error
-                              );
-                            }
-                          }
-                      });
-                    }
+                    if (options.success) { options.success(data); }
                   }
                   catch (error) {
                     console.log(
-                      'user_login - services_get_csrf_token - success - ' +
+                      'user_login - system_connect - success - ' +
                       error
                     );
                   }
                 },
                 error: function(xhr, status, message) {
-                  console.log(
-                    'user_login - services_get_csrf_token - error - ' +
-                    message
-                  );
-                  if (options.error) { options.error(xhr, status, message); }
+                  try {
+                    if (options.error) {
+                      options.error(xhr, status, message);
+                    }
+                  }
+                  catch (error) {
+                    console.log(
+                      'user_login - system_connect - error - ' +
+                      error
+                    );
+                  }
                 }
             });
           }

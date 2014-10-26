@@ -31,6 +31,15 @@ function node_retrieve(ids, options) {
  */
 function node_update(node, options) {
   try {
+    // In D6, you must provide the name on the user account's JSON object.
+    if (typeof node.type === 'undefined') {
+      var msg = "node_update - missing 'type' value on the node's JSON object";
+      console.log(msg);
+      if (options.error) {
+        options.error(null, 406, msg);
+      }
+      return;
+    }
     services_resource_defaults(options, 'node', 'update');
     entity_update('node', node.type, node, options);
   }

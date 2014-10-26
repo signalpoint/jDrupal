@@ -108,161 +108,65 @@ Drupal.services.call = function(options) {
       }
     };
 
-    // Get the CSRF Token and Make the Request.
-    services_get_csrf_token({
-        debug: options.debug,
-        success: function(token) {
-          try {
-            // Async, or sync? By default we'll use async if none is provided.
-            var async = true;
-            if (typeof options.async !== 'undefined' &&
-              options.async === false) { async = false; }
+    // Normally we would grab the CSRF token here, but currently in D6 services
+    // the token is not available, so we'll continue with the call as normal...
+    // Async, or sync? By default we'll use async if none is provided.
+    var async = true;
+    if (typeof options.async !== 'undefined' &&
+      options.async === false) { async = false; }
 
-            // Open the request.
-            request.open(method, url, async);
+    // Open the request.
+    request.open(method, url, async);
 
-            // Determine content type header, if necessary.
-            var contentType = null;
-            if (method == 'POST') {
-              contentType = 'application/json';
-              // The user login resource needs a url encoded data string.
-              if (options.service == 'user' &&
-                options.resource == 'login') {
-                contentType = 'application/x-www-form-urlencoded';
-              }
-            }
-            else if (method == 'PUT') { contentType = 'application/json'; }
+    // Determine content type header, if necessary.
+    var contentType = null;
+    if (method == 'POST') {
+      contentType = 'application/json';
+      // The user login resource needs a url encoded data string.
+      if (options.service == 'user' &&
+        options.resource == 'login') {
+        contentType = 'application/x-www-form-urlencoded';
+      }
+    }
+    else if (method == 'PUT') { contentType = 'application/json'; }
 
-            // Anyone overriding the content type?
-            if (options.contentType) { contentType = options.contentType; }
+    // Anyone overriding the content type?
+    if (options.contentType) { contentType = options.contentType; }
 
-            // Set the content type on the header, if we have one.
-            if (contentType) {
-              request.setRequestHeader('Content-type', contentType);
-            }
+    // Set the content type on the header, if we have one.
+    if (contentType) {
+      request.setRequestHeader('Content-type', contentType);
+    }
 
-            // Add the token to the header if we have one.
-            if (token) {
-              request.setRequestHeader('X-CSRF-Token', token);
-            }
+    // Normally we would add the CSRF token to the header here, but it isn't
+    // available in D6 services...
 
-            // Send the request with or without data.
-            if (typeof options.data !== 'undefined') {
-              // Print out debug information if debug is enabled. Don't print
-              // out any sensitive debug data containing passwords.
-              if (Drupal.settings.debug) {
-                var show = true;
-                if (options.service == 'user' &&
-                  in_array(options.resource, ['login', 'create', 'update'])) {
-                  show = false;
-                }
-                if (show) {
-                  if (typeof options.data === 'object') {
-                    console.log(JSON.stringify(options.data));
-                  }
-                  else { console.log(options.data); }
-                }
-              }
-              request.send(options.data);
-            }
-            else { request.send(null); }
-
-          }
-          catch (error) {
-            console.log(
-              'Drupal.services.call - services_get_csrf_token - success - ' +
-              error
-            );
-          }
-        },
-        error: function(xhr, status, message) {
-          try {
-            console.log(
-              'Drupal.services.call - services_get_csrf_token - ' + message
-            );
-            if (options.error) { options.error(xhr, status, message); }
-          }
-          catch (error) {
-            console.log(
-              'Drupal.services.call - services_get_csrf_token - error - ' +
-              error
-            );
-          }
+    // Send the request with or without data.
+    if (typeof options.data !== 'undefined') {
+      // Print out debug information if debug is enabled. Don't print
+      // out any sensitive debug data containing passwords.
+      if (Drupal.settings.debug) {
+        var show = true;
+        if (options.service == 'user' &&
+          in_array(options.resource, ['login', 'create', 'update'])) {
+          show = false;
         }
-    });
+        if (show) {
+          if (typeof options.data === 'object') {
+            console.log(JSON.stringify(options.data));
+          }
+          else { console.log(options.data); }
+        }
+      }
+      request.send(options.data);
+    }
+    else { request.send(null); }
 
   }
   catch (error) {
     console.log('Drupal.services.call - error - ' + error);
   }
 };
-
-/**
- * Gets the CSRF token from Services.
- * @param {Object} options
- */
-function services_get_csrf_token(options) {
-  try {
-
-    var token;
-
-    // Are we resetting the token?
-    if (options.reset) { Drupal.sessid = null; }
-
-    // Do we already have a token? If we do, return it the success callback.
-    if (Drupal.sessid) { token = Drupal.sessid; }
-    if (token) {
-      if (options.success) { options.success(token); }
-      return;
-    }
-
-    // We don't have a token, let's get it from Drupal...
-
-    // Build the Request and URL.
-    var token_request = new XMLHttpRequest();
-    var token_url = Drupal.settings.site_path +
-              Drupal.settings.base_path +
-              '?q=services/session/token';
-
-    // Token Request Success Handler
-    token_request.onload = function(e) {
-      try {
-        if (token_request.readyState == 4) {
-          var title = token_request.status + ' - ' +
-            http_status_code_title(token_request.status);
-          if (token_request.status != 200) { // Not OK
-            console.log(token_url + ' - ' + title);
-            console.log(token_request.responseText);
-          }
-          else { // OK
-            // Set Drupal.sessid with the token, then return the token to the
-            // success function.
-            token = token_request.responseText;
-            Drupal.sessid = token;
-            if (options.success) { options.success(token); }
-          }
-        }
-        else {
-          console.log(
-            'services_get_csrf_token - readyState - ' + token_request.readyState
-          );
-        }
-      }
-      catch (error) {
-        console.log(
-          'services_get_csrf_token - token_request. onload - ' + error
-        );
-      }
-    };
-
-    // Open the token request.
-    token_request.open('GET', token_url, true);
-
-    // Send the token request.
-    token_request.send(null);
-  }
-  catch (error) { console.log('services_get_csrf_token - ' + error); }
-}
 
 /**
  * Checks if we're ready to make a Services call.

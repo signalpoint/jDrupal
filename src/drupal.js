@@ -9,7 +9,6 @@ function drupal_init() {
     if (!Drupal) { Drupal = {}; }
 
     // General properties.
-    Drupal.csrf_token = false;
     Drupal.sessid = null;
     Drupal.user = drupal_user_defaults();
 
