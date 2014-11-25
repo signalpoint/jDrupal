@@ -312,7 +312,7 @@ function http_status_code_title(status) {
 /**
  * Checks if the needle string, is in the haystack array. Returns true if it is
  * found, false otherwise. Credit: http://stackoverflow.com/a/15276975/763010
- * @param {String,Number} needle
+ * @param {String|Number} needle
  * @param {Array} haystack
  * @return {Boolean}
  */
