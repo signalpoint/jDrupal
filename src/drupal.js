@@ -249,7 +249,7 @@ function drupal_user_defaults() {
   try {
     return {
       uid: '0',
-      roles: {'1': 'anonymous user'},
+      roles: {'1': 'anonymous'},
       permissions: []
     };
   }
