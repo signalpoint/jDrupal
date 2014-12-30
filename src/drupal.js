@@ -183,6 +183,12 @@ function date(format) {
           break;
 
         /* TIME */
+        
+        // 24-hour format of an hour without leading zeros: 0 through 23
+        case 'G':
+          var hours = '' + d.getHours();
+          result += hours;
+          break;
 
         // 24-hour format of an hour with leading zeros: 00 through 23
         case 'H':
