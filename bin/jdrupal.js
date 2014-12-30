@@ -1,20 +1,20 @@
-// Initialize the Drupal JSON object and run the bootstrap, if necessary.
-var Drupal = {}; drupal_init();
+// Initialize the jDrupal JSON object and run the bootstrap, if necessary.
+var jDrupal = {}; jdrupal_init();
 
 /**
- * Initializes the Drupal JSON object.
+ * Initializes the jDrupal JSON object.
  */
-function drupal_init() {
+function jdrupal_init() {
   try {
-    if (!Drupal) { Drupal = {}; }
+    if (!jDrupal) { jDrupal = {}; }
 
     // General properties.
-    Drupal.csrf_token = false;
-    Drupal.sessid = null;
-    Drupal.user = drupal_user_defaults();
+    jDrupal.csrf_token = false;
+    jDrupal.sessid = null;
+    jDrupal.user = jdrupal_user_defaults();
 
     // Settings.
-    Drupal.settings = {
+    jDrupal.settings = {
       app_directory: 'app',
       base_path: '/',
       cache: {
@@ -36,12 +36,12 @@ function drupal_init() {
     // Includes. Although we no longer dynamically load the includes, we want
     // to place them each in their own JSON object, so we have an easy way to
     // access them.
-    Drupal.includes = {};
-    Drupal.includes['module'] = {};
+    jDrupal.includes = {};
+    jDrupal.includes['module'] = {};
     // Modules. Although we no longer dynamically load the core modules, we want
     // to place them each in their own JSON object, so we have an easy way to
     // access them.
-    Drupal.modules = {
+    jDrupal.modules = {
       core: {},
       contrib: {},
       custom: {}
@@ -50,7 +50,7 @@ function drupal_init() {
     // used to prevent async calls to the same resource from piling up and
     // making duplicate requests.
     // @TODO - this needs to be dynamic, what about custom entity types?
-    Drupal.services_queue = {
+    jDrupal.services_queue = {
       comment: {
         retrieve: {}
       },
@@ -71,7 +71,7 @@ function drupal_init() {
       }
     };
   }
-  catch (error) { console.log('drupal_init - ' + error); }
+  catch (error) { console.log('jdrupal_init - ' + error); }
 }
 
 /**
@@ -242,10 +242,10 @@ function dpm(data) {
 }
 
 /**
- * Returns a default JSON object representing an anonymous Drupal user account.
+ * Returns a default JSON object representing an anonymous jDrupal user account.
  * @return {Object}
  */
-function drupal_user_defaults() {
+function jdrupal_user_defaults() {
   try {
     return {
       uid: '0',
@@ -253,7 +253,7 @@ function drupal_user_defaults() {
       permissions: []
     };
   }
-  catch (error) { console.log('drupal_user_defaults - ' + error); }
+  catch (error) { console.log('jdrupal_user_defaults - ' + error); }
 }
 
 /**
@@ -346,14 +346,14 @@ function is_int(n) {
 }
 
 /**
- * Get the default language from Drupal.settings.
+ * Get the default language from jDrupal.settings.
  * @return {String}
  */
 function language_default() {
   try {
-    if (Drupal.settings.language_default &&
-      Drupal.settings.language_default != '') {
-      return Drupal.settings.language_default;
+    if (jDrupal.settings.language_default &&
+      jDrupal.settings.language_default != '') {
+      return jDrupal.settings.language_default;
     }
     return 'und';
   }
@@ -369,13 +369,13 @@ function language_default() {
 function module_exists(name) {
   try {
     var exists = false;
-    if (typeof Drupal.modules.core[name] !== 'undefined') {
+    if (typeof jDrupal.modules.core[name] !== 'undefined') {
       exists = true;
     }
-    else if (typeof Drupal.modules.contrib[name] !== 'undefined') {
+    else if (typeof jDrupal.modules.contrib[name] !== 'undefined') {
       exists = true;
     }
-    else if (typeof Drupal.modules.custom[name] !== 'undefined') {
+    else if (typeof jDrupal.modules.custom[name] !== 'undefined') {
       exists = true;
     }
     return exists;
@@ -443,8 +443,8 @@ function module_implements(hook) {
       var bundles = module_types();
       for (var i = 0; i < bundles.length; i++) {
         var bundle = bundles[i];
-        for (var module in Drupal.modules[bundle]) {
-          if (Drupal.modules[bundle].hasOwnProperty(module)) {
+        for (var module in jDrupal.modules[bundle]) {
+          if (jDrupal.modules[bundle].hasOwnProperty(module)) {
             if (function_exists(module + '_' + hook)) {
               modules_that_implement.push(module);
             }
@@ -467,7 +467,7 @@ function module_implements(hook) {
 function module_invoke(module, hook) {
   try {
     var module_invocation_results = null;
-    if (drupalgap_module_load(module)) {
+    if (jdrupalgap_module_load(module)) {
       var module_arguments = Array.prototype.slice.call(arguments);
       var function_name = module + '_' + hook;
       if (function_exists(function_name)) {
@@ -513,8 +513,8 @@ function module_invoke_all(hook) {
     var bundles = module_types();
     for (var i = 0; i < bundles.length; i++) {
       var bundle = bundles[i];
-      for (var module in Drupal.modules[bundle]) {
-        if (Drupal.modules[bundle].hasOwnProperty(module)) {
+      for (var module in jDrupal.modules[bundle]) {
+        if (jDrupal.modules[bundle].hasOwnProperty(module)) {
           var function_name = module + '_' + hook;
           if (function_exists(function_name)) {
             // If there are no arguments, just call the hook directly,
@@ -544,7 +544,7 @@ function module_invoke_all(hook) {
 }
 
 /**
- * Given a module name, this will return the module inside Drupal.modules, or
+ * Given a module name, this will return the module inside jDrupal.modules, or
  * false if it fails to find it.
  * @param {String} name
  * @return {Object|Boolean}
@@ -554,8 +554,8 @@ function module_load(name) {
     var bundles = module_types();
     for (var i = 0; i < bundles.length; i++) {
       var bundle = bundles[i];
-      if (Drupal.modules[bundle][name]) {
-        return Drupal.modules[bundle][name];
+      if (jDrupal.modules[bundle][name]) {
+        return jDrupal.modules[bundle][name];
       }
     }
     return false;
@@ -656,7 +656,7 @@ function entity_local_storage_key(entity_type, id) {
   try {
     return entity_type + '_' + id;
   }
-  catch (error) { drupalgap_error(error); }
+  catch (error) { jdrupalgap_error(error); }
 }
 
 /**
@@ -686,7 +686,7 @@ function entity_load(entity_type, ids, options) {
       entity_id,
       'success'
     )) {
-      if (Drupal.settings.cache.entity.enabled) {
+      if (jDrupal.settings.cache.entity.enabled) {
         entity = _entity_local_storage_load(entity_type, entity_id, options);
         if (entity) {
           if (options.success) { options.success(entity); }
@@ -727,7 +727,7 @@ function entity_load(entity_type, ids, options) {
     // If entity caching is enabled, try to load the entity from local storage.
     // If a copy is available in local storage, send it to the success callback.
     var entity = false;
-    if (Drupal.settings.cache.entity.enabled) {
+    if (jDrupal.settings.cache.entity.enabled) {
       entity = _entity_local_storage_load(entity_type, entity_id, options);
       if (entity) {
         if (options.success) { options.success(entity); }
@@ -744,7 +744,7 @@ function entity_load(entity_type, ids, options) {
     }
 
     // We didn't load the entity from local storage. Let's grab it from the
-    // Drupal server instead. First, let's build the call options.
+    // jDrupal server instead. First, let's build the call options.
     var primary_key = entity_primary_key(entity_type);
     var call_options = {
       success: function(data) {
@@ -752,13 +752,13 @@ function entity_load(entity_type, ids, options) {
           // Set the entity equal to the returned data.
           entity = data;
           // Is entity caching enabled?
-          if (Drupal.settings.cache.entity &&
-              Drupal.settings.cache.entity.enabled) {
+          if (jDrupal.settings.cache.entity &&
+              jDrupal.settings.cache.entity.enabled) {
             // Set the expiration time as a property on the entity that can be
             // used later.
-            if (Drupal.settings.cache.entity.expiration !== 'undefined') {
-              var expiration = time() + Drupal.settings.cache.entity.expiration;
-              if (Drupal.settings.cache.entity.expiration == 0) {
+            if (jDrupal.settings.cache.entity.expiration !== 'undefined') {
+              var expiration = time() + jDrupal.settings.cache.entity.expiration;
+              if (jDrupal.settings.cache.entity.expiration == 0) {
                 expiration = 0;
               }
               entity.expiration = expiration;
@@ -768,12 +768,12 @@ function entity_load(entity_type, ids, options) {
           }
           // Send the entity back to the queued callback(s).
           var _success_callbacks =
-            Drupal.services_queue[entity_type]['retrieve'][entity_id].success;
+            jDrupal.services_queue[entity_type]['retrieve'][entity_id].success;
           for (var i = 0; i < _success_callbacks.length; i++) {
             _success_callbacks[i](entity);
           }
           // Clear out the success callbacks.
-          Drupal.services_queue[entity_type]['retrieve'][entity_id].success =
+          jDrupal.services_queue[entity_type]['retrieve'][entity_id].success =
             [];
         }
         catch (error) {
@@ -829,7 +829,7 @@ function _entity_local_storage_load(entity_type, entity_id, options) {
       entity = JSON.parse(entity);
       // We successfully loaded the entity from local storage. If it expired
       // remove it from local storage then continue onward with the entity
-      // retrieval from Drupal. Otherwise return the local storage entity copy.
+      // retrieval from jDrupal. Otherwise return the local storage entity copy.
       if (typeof entity.expiration !== 'undefined' &&
           entity.expiration != 0 &&
           time() > entity.expiration) {
@@ -838,20 +838,20 @@ function _entity_local_storage_load(entity_type, entity_id, options) {
       }
       else {
 
-        // @todo - this code belongs to DrupalGap! Figure out how to bring the
-        // idea of DrupalGap modules into jDrupal that way jDrupal can provide
-        // a hook for DrupalGap to take care of this code!
+        // @todo - this code belongs to jDrupalGap! Figure out how to bring the
+        // idea of jDrupalGap modules into jjDrupal that way jjDrupal can provide
+        // a hook for jDrupalGap to take care of this code!
 
         // The entity has not yet expired. If the current page options
         // indicate reloadingPage is true (and the reset option wasn't set to
-        // false) then we'll grab a fresh copy of the entity from Drupal.
+        // false) then we'll grab a fresh copy of the entity from jDrupal.
         // If the page is reloading and the developer didn't call for a reset,
         // then just return the cached copy.
-        if (drupalgap && drupalgap.page.options &&
-          drupalgap.page.options.reloadingPage) {
+        if (jdrupalgap && jdrupalgap.page.options &&
+          jdrupalgap.page.options.reloadingPage) {
           // Reloading page... cached entity is still valid.
-          if (typeof drupalgap.page.options.reset !== 'undefined' &&
-            drupalgap.page.options.reset == false) {
+          if (typeof jdrupalgap.page.options.reset !== 'undefined' &&
+            jdrupalgap.page.options.reset == false) {
             // We were told to not reset it, so we'll use the cached copy.
             return entity;
           }
@@ -918,7 +918,7 @@ function entity_primary_key(entity_type) {
       default:
         // Is anyone declaring the primary key for this entity type?
         var function_name = entity_type + '_primary_key';
-        if (drupalgap_function_exists(function_name)) {
+        if (jdrupalgap_function_exists(function_name)) {
           var fn = window[function_name];
           key = fn(entity_type);
         }
@@ -1141,22 +1141,22 @@ function user_password() {
 }
 
 /**
- * The Drupal services JSON object.
+ * The jDrupal services JSON object.
  */
-Drupal.services = {};
+jDrupal.services = {};
 
 /**
- * Drupal Services XMLHttpRequest Object.
+ * jDrupal Services XMLHttpRequest Object.
  * @param {Object} options
  */
-Drupal.services.call = function(options) {
+jDrupal.services.call = function(options) {
   try {
 
     options.debug = false;
 
     // Make sure the settings have been provided for Services.
     if (!services_ready()) {
-      var error = 'Set the site_path and endpoint on Drupal.settings!';
+      var error = 'Set the site_path and endpoint on jDrupal.settings!';
       options.error(null, null, error);
       return;
     }
@@ -1165,18 +1165,18 @@ Drupal.services.call = function(options) {
 
     // Build the Request, URL and extract the HTTP method.
     var request = new XMLHttpRequest();
-    var url = Drupal.settings.site_path +
-              Drupal.settings.base_path + '?q=';
+    var url = jDrupal.settings.site_path +
+              jDrupal.settings.base_path + '?q=';
     // Use an endpoint, unless someone passed in an empty string.
     if (typeof options.endpoint === 'undefined') {
-      url += Drupal.settings.endpoint + '/';
+      url += jDrupal.settings.endpoint + '/';
     }
     else if (options.endpoint != '') {
       url += options.endpoint + '/';
     }
     url += options.path;
     var method = options.method.toUpperCase();
-    if (Drupal.settings.debug) { console.log(method + ': ' + url); }
+    if (jDrupal.settings.debug) { console.log(method + ': ' + url); }
 
     // Request Success Handler
     request.onload = function(e) {
@@ -1187,14 +1187,14 @@ Drupal.services.call = function(options) {
             http_status_code_title(request.status);
           // 200 OK
           if (request.status == 200) {
-            if (Drupal.settings.debug) { console.log('200 - OK'); }
+            if (jDrupal.settings.debug) { console.log('200 - OK'); }
             // Extract the JSON result, or throw an error if the response wasn't
             // JSON.
             var result = null;
             var response_header = request.getResponseHeader('Content-Type');
             if (response_header.indexOf('application/json') == -1) {
               console.log(
-                'Drupal.services.call - ERROR - response header was ' +
+                'jDrupal.services.call - ERROR - response header was ' +
                 response_header + ' instead of application/json'
               );
               console.log(request.responseText);
@@ -1218,12 +1218,12 @@ Drupal.services.call = function(options) {
           }
           else {
             // Not OK...
-            if (Drupal.settings.debug) {
+            if (jDrupal.settings.debug) {
               console.log(method + ': ' + url + ' - ' + title);
               console.log(request.responseText);
               console.log(request.getAllResponseHeaders());
             }
-            if (request.responseText) { console.log(request.responseText); }
+            if (request.responseText) { console.log(request); 				}
             else { dpm(request); }
             if (typeof options.error !== 'undefined') {
               var message = request.responseText || '';
@@ -1235,18 +1235,18 @@ Drupal.services.call = function(options) {
         }
         else {
           console.log(
-            'Drupal.services.call - request.readyState = ' + request.readyState
+            'jDrupal.services.call - request.readyState = ' + request.readyState
           );
         }
       }
       catch (error) {
         // Not OK...
-        if (Drupal.settings.debug) {
+        if (jDrupal.settings.debug) {
           console.log(method + ' (ERROR): ' + url + ' - ' + title);
           console.log(request.responseText);
           console.log(request.getAllResponseHeaders());
         }
-        console.log('Drupal.services.call - onload - ' + error);
+        console.log('jDrupal.services.call - onload - ' + error);
       }
     };
 
@@ -1292,7 +1292,7 @@ Drupal.services.call = function(options) {
             if (typeof options.data !== 'undefined') {
               // Print out debug information if debug is enabled. Don't print
               // out any sensitive debug data containing passwords.
-              if (Drupal.settings.debug) {
+              if (jDrupal.settings.debug) {
                 var show = true;
                 if (options.service == 'user' &&
                   in_array(options.resource, ['login', 'create', 'update'])) {
@@ -1312,7 +1312,7 @@ Drupal.services.call = function(options) {
           }
           catch (error) {
             console.log(
-              'Drupal.services.call - services_get_csrf_token - success - ' +
+              'jDrupal.services.call - services_get_csrf_token - success - ' +
               error
             );
           }
@@ -1320,13 +1320,13 @@ Drupal.services.call = function(options) {
         error: function(xhr, status, message) {
           try {
             console.log(
-              'Drupal.services.call - services_get_csrf_token - ' + message
+              'jDrupal.services.call - services_get_csrf_token - ' + message
             );
             if (options.error) { options.error(xhr, status, message); }
           }
           catch (error) {
             console.log(
-              'Drupal.services.call - services_get_csrf_token - error - ' +
+              'jDrupal.services.call - services_get_csrf_token - error - ' +
               error
             );
           }
@@ -1335,7 +1335,7 @@ Drupal.services.call = function(options) {
 
   }
   catch (error) {
-    console.log('Drupal.services.call - error - ' + error);
+    console.log('jDrupal.services.call - error - ' + error);
   }
 };
 
@@ -1349,21 +1349,21 @@ function services_get_csrf_token(options) {
     var token;
 
     // Are we resetting the token?
-    if (options.reset) { Drupal.sessid = null; }
+    if (options.reset) { jDrupal.sessid = null; }
 
     // Do we already have a token? If we do, return it the success callback.
-    if (Drupal.sessid) { token = Drupal.sessid; }
+    if (jDrupal.sessid) { token = jDrupal.sessid; }
     if (token) {
       if (options.success) { options.success(token); }
       return;
     }
 
-    // We don't have a token, let's get it from Drupal...
+    // We don't have a token, let's get it from jDrupal...
 
     // Build the Request and URL.
     var token_request = new XMLHttpRequest();
-    var token_url = Drupal.settings.site_path +
-              Drupal.settings.base_path +
+    var token_url = jDrupal.settings.site_path +
+              jDrupal.settings.base_path +
               '?q=services/session/token';
 
     // Token Request Success Handler
@@ -1377,10 +1377,10 @@ function services_get_csrf_token(options) {
             console.log(token_request.responseText);
           }
           else { // OK
-            // Set Drupal.sessid with the token, then return the token to the
+            // Set jDrupal.sessid with the token, then return the token to the
             // success function.
             token = token_request.responseText;
-            Drupal.sessid = token;
+            jDrupal.sessid = token;
             if (options.success) { options.success(token); }
           }
         }
@@ -1413,13 +1413,13 @@ function services_get_csrf_token(options) {
 function services_ready() {
   try {
     var result = true;
-    if (Drupal.settings.site_path == '') {
+    if (jDrupal.settings.site_path == '') {
       result = false;
-      console.log('jDrupal\'s Drupal.settings.site_path is not set!');
+      console.log('jjDrupal\'s jDrupal.settings.site_path is not set!');
     }
-    if (Drupal.settings.endpoint == '') {
+    if (jDrupal.settings.endpoint == '') {
       result = false;
-      console.log('jDrupal\'s Drupal.settings.endpoint is not set!');
+      console.log('jjDrupal\'s jDrupal.settings.endpoint is not set!');
     }
     return result;
   }
@@ -1455,10 +1455,10 @@ function _services_queue_already_queued(service, resource, entity_id,
   try {
     var queued = false;
     if (
-      typeof Drupal.services_queue[service][resource][entity_id] !== 'undefined'
+      typeof jDrupal.services_queue[service][resource][entity_id] !== 'undefined'
     ) {
       //queued = true;
-      var queue = Drupal.services_queue[service][resource][entity_id];
+      var queue = jDrupal.services_queue[service][resource][entity_id];
       if (queue[callback_type].length != 0) { queued = true; }
     }
     return queued;
@@ -1474,7 +1474,7 @@ function _services_queue_already_queued(service, resource, entity_id,
  */
 function _services_queue_add_to_queue(service, resource, entity_id) {
   try {
-    Drupal.services_queue[service][resource][entity_id] = {
+    jDrupal.services_queue[service][resource][entity_id] = {
       entity_id: entity_id,
       success: [],
       error: []
@@ -1509,7 +1509,7 @@ function _services_queue_remove_from_queue(service, resource, entity_id) {
 function _services_queue_callback_add(service, resource, entity_id,
   callback_type, callback) {
   try {
-    Drupal.services_queue[service][resource][entity_id][callback_type].push(
+    jDrupal.services_queue[service][resource][entity_id][callback_type].push(
       callback
     );
   }
@@ -1528,7 +1528,7 @@ function _services_queue_callback_count(service, resource, entity_id,
   callback_type) {
   try {
     var length =
-      Drupal.services_queue[service][resource][entity_id][callback_type].length;
+      jDrupal.services_queue[service][resource][entity_id][callback_type].length;
     return length;
   }
   catch (error) { console.log('_services_queue_callback_count - ' + error); }
@@ -1608,7 +1608,7 @@ function comment_index(query, options) {
  */
 function entity_create(entity_type, bundle, entity, options) {
   try {
-    Drupal.services.call({
+    jDrupal.services.call({
         method: 'POST',
         async: options.async,
         path: entity_type + '.json',
@@ -1642,7 +1642,7 @@ function entity_create(entity_type, bundle, entity, options) {
  */
 function entity_retrieve(entity_type, ids, options) {
   try {
-    Drupal.services.call({
+    jDrupal.services.call({
         method: 'GET',
         path: entity_type + '/' + ids + '.json',
         service: options.service,
@@ -1677,7 +1677,7 @@ function entity_update(entity_type, bundle, entity, options) {
   try {
     var entity_wrapper = _entity_wrap(entity_type, entity);
     var primary_key = entity_primary_key(entity_type);
-    Drupal.services.call({
+    jDrupal.services.call({
         method: 'PUT',
         path: entity_type + '/' + entity[primary_key] + '.json',
         service: options.service,
@@ -1712,7 +1712,7 @@ function entity_update(entity_type, bundle, entity, options) {
  */
 function entity_delete(entity_type, entity_id, options) {
   try {
-    Drupal.services.call({
+    jDrupal.services.call({
         method: 'DELETE',
         path: entity_type + '/' + entity_id + '.json',
         service: options.service,
@@ -1754,7 +1754,7 @@ function entity_index(entity_type, query, options) {
     }
     if (query_string) { query_string = '&' + query_string; }
     else { query_string = ''; }
-    Drupal.services.call({
+    jDrupal.services.call({
         method: 'GET',
         path: entity_type + '.json' + query_string,
         service: options.service,
@@ -1947,7 +1947,7 @@ function system_connect(options) {
       path: 'system/connect.json',
       success: function(data) {
         try {
-          Drupal.user = data.user;
+          jDrupal.user = data.user;
           if (options.success) { options.success(data); }
         }
         catch (error) { console.log('system_connect - success - ' + error); }
@@ -1961,14 +1961,14 @@ function system_connect(options) {
     };
 
     // If we don't have a token, grab one first.
-    if (!Drupal.csrf_token) {
+    if (!jDrupal.csrf_token) {
       services_get_csrf_token({
           success: function(token) {
             try {
               if (options.debug) { console.log('Grabbed new token.'); }
               // Now that we have a token, make the system connect call.
-              Drupal.csrf_token = true;
-              Drupal.services.call(system_connect);
+              jDrupal.csrf_token = true;
+              jDrupal.services.call(system_connect);
             }
             catch (error) {
               console.log(
@@ -1991,7 +1991,7 @@ function system_connect(options) {
     else {
       // We already have a token, make the system connect call.
       if (options.debug) { console.log('Token already available.'); }
-      Drupal.services.call(system_connect);
+      jDrupal.services.call(system_connect);
     }
   }
   catch (error) {
@@ -2088,7 +2088,7 @@ function taxonomy_vocabulary_create(taxonomy_vocabulary, options) {
  * @param {Object} options
  */
 function taxonomy_vocabulary_retrieve(ids, options) {
-  try {
+	try {
     services_resource_defaults(options, 'taxonomy_vocabulary', 'retrieve');
     entity_retrieve('taxonomy_vocabulary', ids, options);
   }
@@ -2220,7 +2220,7 @@ function user_index(query, options) {
  */
 function user_register(account, options) {
   try {
-    Drupal.services.call({
+    jDrupal.services.call({
         service: 'user',
         resource: 'register',
         method: 'POST',
@@ -2264,7 +2264,7 @@ function user_login(name, pass, options) {
       if (options.error) { options.error(null, 406, 'user_login - bad input'); }
       return;
     }
-    Drupal.services.call({
+    jDrupal.services.call({
         service: 'user',
         resource: 'login',
         method: 'POST',
@@ -2275,8 +2275,8 @@ function user_login(name, pass, options) {
           try {
             // Now that we are logged in, we need to get a new CSRF token, and
             // then make a system connect call.
-            Drupal.user = data.user;
-            Drupal.sessid = null;
+            jDrupal.user = data.user;
+            jDrupal.sessid = null;
             services_get_csrf_token({
                 success: function(token) {
                   try {
@@ -2346,7 +2346,7 @@ function user_login(name, pass, options) {
  */
 function user_logout(options) {
   try {
-    Drupal.services.call({
+    jDrupal.services.call({
         service: 'user',
         resource: 'logout',
         method: 'POST',
@@ -2354,8 +2354,8 @@ function user_logout(options) {
         success: function(data) {
           try {
             // Now that we logged out, clear the sessid and call system connect.
-            Drupal.user = drupal_user_defaults();
-            Drupal.sessid = null;
+            jDrupal.user = jdrupal_user_defaults();
+            jDrupal.sessid = null;
             system_connect({
                 success: function(result) {
                   try {
