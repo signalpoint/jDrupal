@@ -14,7 +14,7 @@ Drupal.services.call = function(options) {
 
     // Make sure the settings have been provided for Services.
     if (!services_ready()) {
-      var error = 'Set the site_path and endpoint on Drupal.settings!';
+      var error = 'Set the site_path property on the Drupal.settings object!';
       options.error(null, null, error);
       return;
     }
@@ -24,14 +24,7 @@ Drupal.services.call = function(options) {
     // Build the Request, URL and extract the HTTP method.
     var request = new XMLHttpRequest();
     var url = Drupal.settings.site_path +
-              Drupal.settings.base_path + '?q=';
-    // Use an endpoint, unless someone passed in an empty string.
-    if (typeof options.endpoint === 'undefined') {
-      url += Drupal.settings.endpoint + '/';
-    }
-    else if (options.endpoint != '') {
-      url += options.endpoint + '/';
-    }
+              Drupal.settings.base_path;
     url += options.path;
     var method = options.method.toUpperCase();
     if (Drupal.settings.debug) { console.log(method + ': ' + url); }
@@ -110,6 +103,8 @@ Drupal.services.call = function(options) {
 
     // Get the CSRF Token and Make the Request.
     services_get_csrf_token({
+        service: options.service,
+        resource: options.resource,
         debug: options.debug,
         success: function(token) {
           try {
@@ -126,8 +121,10 @@ Drupal.services.call = function(options) {
             if (method == 'POST') {
               contentType = 'application/json';
               // The user login resource needs a url encoded data string.
-              if (options.service == 'user' &&
-                options.resource == 'login') {
+              if (
+                options.service == 'user' &&
+                options.resource == 'login'
+              ) {
                 contentType = 'application/x-www-form-urlencoded';
               }
             }
@@ -141,9 +138,14 @@ Drupal.services.call = function(options) {
               request.setRequestHeader('Content-type', contentType);
             }
 
-            // Add the token to the header if we have one.
+            // Add the token to the header if we have one, except on user login.
             if (token) {
               request.setRequestHeader('X-CSRF-Token', token);
+            }
+            
+            // The user login resource needs an Accept header set.
+            if (options.service == 'user' && options.resource == 'login') {
+              request.setRequestHeader('Accept', 'application/json');
             }
 
             // Send the request with or without data.
@@ -204,10 +206,17 @@ Drupal.services.call = function(options) {
 function services_get_csrf_token(options) {
   try {
 
-    var token;
+    var token = null;
 
     // Are we resetting the token?
     if (options.reset) { Drupal.sessid = null; }
+    
+    // We don't need a token for user login.
+    if (options.service == 'user' && options.resource == 'login') {
+      console.log('skipping token retrieval for user login');
+      if (options.success) { options.success(token); }
+      return;
+    }
 
     // Do we already have a token? If we do, return it the success callback.
     if (Drupal.sessid) { token = Drupal.sessid; }
@@ -273,10 +282,6 @@ function services_ready() {
     if (Drupal.settings.site_path == '') {
       result = false;
       console.log('jDrupal\'s Drupal.settings.site_path is not set!');
-    }
-    if (Drupal.settings.endpoint == '') {
-      result = false;
-      console.log('jDrupal\'s Drupal.settings.endpoint is not set!');
     }
     return result;
   }
