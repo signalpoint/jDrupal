@@ -120,9 +120,8 @@ function user_login(name, pass, options) {
         service: 'user',
         resource: 'login',
         method: 'POST',
-        path: 'user/login.json',
-        data: 'username=' + encodeURIComponent(name) +
-             '&password=' + encodeURIComponent(pass),
+        path: '/user/login',
+        data: 'name=' + name + '&pass=' + pass + '&form_id=user_login_form&op=Log+in',
         success: function(data) {
           try {
             // Now that we are logged in, we need to get a new CSRF token, and
