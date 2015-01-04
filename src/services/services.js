@@ -75,11 +75,11 @@ Drupal.services.call = function(options) {
               console.log(request.getAllResponseHeaders());
             }
             if (request.responseText) { console.log(request.responseText); }
-            else { dpm(request); }
+            else { console.log(request); }
             if (typeof options.error !== 'undefined') {
               var message = request.responseText || '';
               if (!message || message == '') { message = title; }
-              options.error(request, request.status, message);
+              options.error(request, request.status, JSON.parse(message));
             }
             module_invoke_all('services_postprocess', options, request);
           }
@@ -213,7 +213,6 @@ function services_get_csrf_token(options) {
     
     // We don't need a token for user login.
     if (options.service == 'user' && options.resource == 'login') {
-      console.log('skipping token retrieval for user login');
       if (options.success) { options.success(token); }
       return;
     }

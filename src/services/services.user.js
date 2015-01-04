@@ -124,43 +124,15 @@ function user_login(name, pass, options) {
         data: 'name=' + encodeURIComponent(name) +
           '&pass=' + encodeURIComponent(pass) +
           '&form_id=user_login_form',
-        success: function(data) {
+        success: function(account) {
           try {
-            // Now that we are logged in, we need to get a new CSRF token, and
-            // then make a system connect call.
-            Drupal.user = data.user;
+            // Now that we are logged in, we need to get a new CSRF token.
+            Drupal.user = account;
             Drupal.sessid = null;
             services_get_csrf_token({
                 success: function(token) {
                   try {
-                    if (options.success) {
-                      system_connect({
-                          success: function(result) {
-                            try {
-                              if (options.success) { options.success(data); }
-                            }
-                            catch (error) {
-                              console.log(
-                                'user_login - system_connect - success - ' +
-                                error
-                              );
-                            }
-                          },
-                          error: function(xhr, status, message) {
-                            try {
-                              if (options.error) {
-                                options.error(xhr, status, message);
-                              }
-                            }
-                            catch (error) {
-                              console.log(
-                                'user_login - system_connect - error - ' +
-                                error
-                              );
-                            }
-                          }
-                      });
-                    }
+                    if (options.success) { options.success(account); }
                   }
                   catch (error) {
                     console.log(
