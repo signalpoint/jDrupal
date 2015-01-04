@@ -28,27 +28,40 @@
   <body onload="hello_world()">
   
     <h1>jDrupal</h1>
-    
-    <p id="message">Loading...</p>
+    <p id="site_path"></p>
+    <form>
+      <label for="name">Username</label>
+      <input name="name" id="edit-name" type="text" value="" />
+      <label for="name">Password</label>
+      <input name="pass" id="edit-pass" type="password" value=""  />
+      <input type="button" value="Login" onclick="user_login_click()"/>
+    </form>
     
     <script type="text/javascript">
     
       // Set the site path (without the trailing slash).
       Drupal.settings.site_path = ""; // http://www.example.com
       
-      // Set the Service Resource endpoint path.
-      Drupal.settings.endpoint = "";
+      // Turn on debugging.
+      Drupal.settings.debug = true;
     
       function hello_world() {
-        
-        system_connect({
-            success:function(result){
-              if (Drupal.user.uid != 0) {
-                
-              }
+        document.getElementById('site_path').innerHTML = Drupal.settings.site_path;
+      }
+      
+      function user_login_click() {
+        var name = document.getElementById('edit-name').value;
+        var pass = document.getElementById('edit-pass').value;
+        if (empty(name)) { alert('Enter a user name!'); return; }
+        if (empty(pass)) { alert('Enter a password!'); return; }
+        user_login(name, pass, {
+            success: function(account) {
+              alert('Hello ' + Drupal.user.name[0]['value']);
+            },
+            error: function(xhr, status, result) {
+              alert(result.message);
             }
         });
-        
       }
     
     </script>
