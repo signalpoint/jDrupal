@@ -221,8 +221,7 @@ function services_get_csrf_token(options) {
     // Build the Request and URL.
     var token_request = new XMLHttpRequest();
     var token_url = Drupal.settings.site_path +
-              Drupal.settings.base_path +
-              '?q=services/session/token';
+              '/rest/session/token';
 
     // Token Request Success Handler
     token_request.onload = function(e) {
