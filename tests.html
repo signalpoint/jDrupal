@@ -12,11 +12,11 @@
     <script type='text/javascript' src='http://code.jquery.com/qunit/qunit-1.12.0.js'></script>
     
     <!-- include to test binary -->
-    <script src="bin/jdrupal.js"></script>
+    <!--<script src="bin/jdrupal.js"></script> -->
     <!--<script src="bin/jdrupal.min.js"></script>-->
     
     <!-- includes to test source code -->
-    <!--<script src="src/includes/module.inc.js"></script>
+    <script src="src/includes/module.inc.js"></script>
     <script src="src/comment.js"></script>
     <script src="src/drupal.js"></script>
     <script src="src/entity.js"></script>
@@ -31,7 +31,7 @@
     <script src="src/services/services.user.js"></script>
     <script src="src/taxonomy_term.js"></script>
     <script src="src/taxonomy_vocabulary.js"></script>
-    <script src="src/user.js"></script>-->
+    <script src="src/user.js"></script>
     
     <!-- include tests -->
     <script src="tests/services.comment.test.js"></script>
@@ -53,10 +53,6 @@
         <div data-role="fieldcontain">
           <label for="site_path">Drupal Path</label>
           <input type="text" id="site_path" value="" />
-        </div>
-        <div data-role="fieldcontain">
-          <label for="endpoint">Services Endpoint Path</label>
-          <input type="text" id="endpoint" value="" />
         </div>
         <div data-role="fieldcontain" id="login_name_wrapper" style="display: none;">
           <label for="login_name">Username</label>
@@ -85,7 +81,7 @@
           
           // Set the site path.
           Drupal.settings.site_path = window.location.href.replace(
-            '/sites/all/libraries/jDrupal/',
+            '/libraries/jDrupal/',
             ''
           ).replace('tests.html', '');
           $('#site_path').val(Drupal.settings.site_path);
@@ -96,22 +92,20 @@
                 alert('Enter a site path!');
                 return false;
               }
-              if (Drupal.settings.endpoint == '') {
-                alert('Enter an endpoint path!');
-                return false;
-              }
-              system_connect({
+              jdrupal_connect({
                   success:function(result){
+                  var uid = Drupal.user.uid[0]['value'];
                     $('#login_name_wrapper').show('slow');
                     $('#login_pass_wrapper').show('slow');
-                    if (result.user.uid != 0) {
+                    if (uid != '0') {
+                      $('#login_name').val(Drupal.user.name[0]['value']);
                       $('#logout').show();
                       $('#go').hide();
-                      if (Drupal.user.uid == 1) {
+                      if (uid == '1') {
                         $('#run_tests').show('slow');
                       }
                       else {
-                        alert('Only user #1 can perform tests, your are user # ' + Drupal.user.uid + '!');
+                        alert('Only user #1 can perform tests, your are user # ' + uid + '!');
                       }
                     }
                     else {
@@ -119,8 +113,8 @@
                       $('#go').hide();
                     }
                   },
-                  error:function(xhr, status, message){
-                    alert(message);
+                  error:function(xhr, status, response){
+                    console.log(response);
                   }
               });
               return false;
@@ -130,7 +124,6 @@
               set_drupal_settings();
               user_login($('#login_name').val(), $('#login_pass').val(), {
                   success:function(result){
-                    alert('Hi, ' + result.user.name + '!');
                     $('#login').hide();
                     $('#logout').show('slow');
                     $('#run_tests').show('slow');
@@ -145,11 +138,11 @@
           $('#logout').on('click', function(){
               user_logout({
                   success:function(result){
-                    if (result[0]) {
-                       alert("Logged out!");
+                    if (result) {
                        $('#login').show('slow');
                        $('#run_tests').hide();
                        $('#logout').hide();
+                       $('#login_pass').val('');
                     }
                   }
               });
@@ -158,17 +151,12 @@
           
           function set_drupal_settings() {
             Drupal.settings.site_path = $('#site_path').val();
-            Drupal.settings.endpoint = $('#endpoint').val();
           }
           
           $('#run_tests').on('click', function(){
-              if ($('#login_name').val() == '') {
-                alert('Enter your user name to run tests!');
-                return false;
-              }
-              if ($('#login_pass').val() == '') {
-                alert('Enter your password to run tests!');
-                return false;
+              if (Drupal.user.uid[0]['value'] != '1') {
+                alert('Only user #1 can run tests!');
+                return;
               }
               set_drupal_settings();
               test_services_system();
