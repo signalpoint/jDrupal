@@ -254,9 +254,8 @@ function dpm(data) {
 function drupal_user_defaults() {
   try {
     return {
-      uid: '0',
-      roles: {'1': 'anonymous'},
-      permissions: []
+      uid: [ { value: '0' } ],
+      roles: [ { target_id: 'anonymous' } ]
     };
   }
   catch (error) { console.log('drupal_user_defaults - ' + error); }
