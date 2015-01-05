@@ -25,11 +25,10 @@
     
   </head>
 
-  <body onload="hello_world()">
+  <body onload="start_my_app()">
   
     <h1>jDrupal</h1>
-    <p id="site_path"></p>
-    <form>
+    <form id="user_login_form" style="display: none;">
       <label for="name">Username</label>
       <input name="name" id="edit-name" type="text" value="" />
       <label for="name">Password</label>
@@ -45,17 +44,34 @@
       // Turn on debugging.
       Drupal.settings.debug = true;
     
-      function hello_world() {
-        document.getElementById('site_path').innerHTML = Drupal.settings.site_path;
+      function start_my_app() {
+        try {
+        
+          // Connect to Drupal... if the user is anonymous show them the login
+          // form, otherwise say hello to them.
+          jdrupal_connect({
+            success: function(result) {
+                if (Drupal.user.uid[0]['value'] != '0') {
+                  alert('Hello ' + Drupal.user.name[0]['value']);
+                }
+                else {
+                  document.getElementById('user_login_form').style.display = 'inline';
+                }
+            }
+          });
+        
+        }
+        catch (error) { console.log('start_my_app - ' + error); }
       }
       
+      // Handle the login button click.
       function user_login_click() {
         var name = document.getElementById('edit-name').value;
         var pass = document.getElementById('edit-pass').value;
         if (empty(name)) { alert('Enter a user name!'); return; }
         if (empty(pass)) { alert('Enter a password!'); return; }
         user_login(name, pass, {
-            success: function(account) {
+            success: function(result) {
               alert('Hello ' + Drupal.user.name[0]['value']);
             },
             error: function(xhr, status, result) {
