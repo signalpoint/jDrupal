@@ -174,21 +174,23 @@ function user_logout(options) {
     Drupal.services.call({
         service: 'user',
         resource: 'logout',
-        method: 'POST',
-        path: 'user/logout.json',
+        method: 'GET',
+        path: 'user/logout',
+        Accept: 'text/html',
         success: function(data) {
           try {
-            // Now that we logged out, clear the sessid and call system connect.
+            // Now that we logged out, clear the user and sessid, then make a
+            // fresh connection.
             Drupal.user = drupal_user_defaults();
             Drupal.sessid = null;
-            system_connect({
+            jdrupal_connect({
                 success: function(result) {
                   try {
                     if (options.success) { options.success(data); }
                   }
                   catch (error) {
                     console.log(
-                      'user_logout - system_connect - success - ' +
+                      'user_logout - jdrupal_connect - success - ' +
                       error
                     );
                   }
@@ -199,7 +201,7 @@ function user_logout(options) {
                   }
                   catch (error) {
                     console.log(
-                      'user_logout - system_connect - error - ' +
+                      'user_logout - jdrupal_connect - error - ' +
                       error
                     );
                   }
@@ -217,7 +219,7 @@ function user_logout(options) {
     });
   }
   catch (error) {
-    console.log('user_login - ' + error);
+    console.log('user_logout - ' + error);
   }
 }
 
