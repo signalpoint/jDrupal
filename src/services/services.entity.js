@@ -43,7 +43,7 @@ function entity_retrieve(entity_type, ids, options) {
   try {
     Drupal.services.call({
         method: 'GET',
-        path: entity_type + '/' + ids + '.json',
+        path: entity_type + '/' + ids,
         service: options.service,
         resource: options.resource,
         entity_type: entity_type,
