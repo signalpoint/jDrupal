@@ -1,19 +1,20 @@
 var test_services_system = function(callback) {
-  test_system_connect(function() {
+  test_connect(function() {
       if (callback) {
         callback();
       }
   });
 };
 
-var test_system_connect = function(callback) {
-  asyncTest("system_connect", function() {
-      system_connect({
+var test_connect = function(callback) {
+  asyncTest("jdrupal_connect", function() {
+      jdrupal_connect({
           success:function(result){
+            console.log(result);
             start();
             expect(2);
-            ok(!!result.sessid, "sessid");
-            ok(!!result.user, "user");
+            ok(!!result.account, "account");
+            ok(!!result.account.uid, "uid");
             if (callback) {
               callback();
             }
