@@ -2,29 +2,43 @@
  * System connect call.
  * @param {Object} options
  */
-function system_connect(options) {
+function jdrupal_connect(options) {
   try {
 
-    // Build a system connect object.
-    var system_connect = {
-      service: 'system',
+    
+    var jdrupal_connect = {
+      service: 'jdrupal',
       resource: 'connect',
-      method: 'POST',
-      path: 'system/connect.json',
-      success: function(data) {
+      method: 'GET',
+      path: 'jdrupal/connect',
+      success: function(result) {
         try {
-          Drupal.user = data.user;
-          if (options.success) { options.success(data); }
+          // If the user is authenticated load their user account, otherwise
+          // just proceed as an anonymous user.
+          if (result.account.uid) {
+            user_load(result.account.uid, {
+                success: function(account) {
+                  Drupal.user = account;
+                  if (options.success) { options.success(result); }
+                }
+            });
+            Drupal.user.name = [{ value: result.account.name }]
+          }
+          else if (options.success) { options.success(result); }
+
         }
-        catch (error) { console.log('system_connect - success - ' + error); }
+        catch (error) { console.log('jdrupal_connect - success - ' + error); }
       },
       error: function(xhr, status, message) {
         try {
           if (options.error) { options.error(xhr, status, message); }
         }
-        catch (error) { console.log('system_connect - error - ' + error); }
+        catch (error) { console.log('jdrupal_connect - error - ' + error); }
       }
     };
+    
+    Drupal.services.call(jdrupal_connect);
+    return;
 
     // If we don't have a token, grab one first.
     if (!Drupal.csrf_token) {
@@ -38,7 +52,7 @@ function system_connect(options) {
             }
             catch (error) {
               console.log(
-                'system_connect - services_csrf_token - success - ' + message
+                'jdrupal_connect - services_csrf_token - success - ' + message
               );
             }
           },
@@ -48,7 +62,7 @@ function system_connect(options) {
             }
             catch (error) {
               console.log(
-                'system_connect - services_csrf_token - error - ' + message
+                'jdrupal_connect - services_csrf_token - error - ' + message
               );
             }
           }
@@ -61,7 +75,7 @@ function system_connect(options) {
     }
   }
   catch (error) {
-    console.log('system_connect - ' + error);
+    console.log('jdrupal_connect - ' + error);
   }
 }
 
