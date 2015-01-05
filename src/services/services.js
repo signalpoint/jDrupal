@@ -43,14 +43,10 @@ Drupal.services.call = function(options) {
             // JSON.
             var result = null;
             var response_header = request.getResponseHeader('Content-Type');
-            if (response_header.indexOf('application/json') == -1) {
-              console.log(
-                'Drupal.services.call - ERROR - response header was ' +
-                response_header + ' instead of application/json'
-              );
-              console.log(request.responseText);
+            if (response_header.indexOf('application/json') != -1) {
+              result = JSON.parse(request.responseText);
             }
-            else { result = JSON.parse(request.responseText); }
+            else { result = request.responseText; }
             // Give modules a chance to pre post process the results, send the
             // results to the success callback, then give modules a chance to
             // post process the results.
@@ -106,6 +102,7 @@ Drupal.services.call = function(options) {
         service: options.service,
         resource: options.resource,
         debug: options.debug,
+        method: method,
         success: function(token) {
           try {
             // Async, or sync? By default we'll use async if none is provided.
@@ -143,10 +140,13 @@ Drupal.services.call = function(options) {
               request.setRequestHeader('X-CSRF-Token', token);
             }
             
-            // The user login resource needs an Accept header set.
-            if (options.service == 'user' && options.resource == 'login') {
-              request.setRequestHeader('Accept', 'application/json');
+            // Unless someone specifically set the Accept header, we'll default
+            // to application/json.
+            var accept = 'application/json';
+            if (typeof options.Accept !== 'undefined') {
+              accept = options.Accept;
             }
+            request.setRequestHeader('Accept', accept);
 
             // Send the request with or without data.
             if (typeof options.data !== 'undefined') {
@@ -207,12 +207,24 @@ function services_get_csrf_token(options) {
   try {
 
     var token = null;
+    
+    // It's OK to skip GET requests token retrieval, since we don't need one.
+    if (
+      typeof options.method !== 'undefined' &&
+      options.method == 'GET' &&
+      options.success)
+    { options.success(token); return; }
 
     // Are we resetting the token?
     if (options.reset) { Drupal.sessid = null; }
     
-    // We don't need a token for user login.
-    if (options.service == 'user' && options.resource == 'login') {
+    // On some calls we don't need a token, so skip it.
+    // @TODO turn this into bool that the caller can specify to skip the token
+    // retrieval.
+    if (
+      (options.service == 'user' && options.resource == 'login') ||
+      (options.service == 'jdrupal' && options.resource == 'connect')
+    ) {
       if (options.success) { options.success(token); }
       return;
     }
@@ -246,6 +258,7 @@ function services_get_csrf_token(options) {
             // success function.
             token = token_request.responseText;
             Drupal.sessid = token;
+            console.log('Grabbed a token from the server: ' + token);
             if (options.success) { options.success(token); }
           }
         }
