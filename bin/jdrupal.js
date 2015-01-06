@@ -184,6 +184,12 @@ function date(format) {
 
         /* TIME */
 
+        // 24-hour format of an hour without leading zeros: 0 through 23
+        case 'G':
+          var hours = '' + d.getHours();
+          result += hours;
+          break;
+
         // 24-hour format of an hour with leading zeros: 00 through 23
         case 'H':
           var hours = '' + d.getHours();
@@ -312,7 +318,7 @@ function http_status_code_title(status) {
 /**
  * Checks if the needle string, is in the haystack array. Returns true if it is
  * found, false otherwise. Credit: http://stackoverflow.com/a/15276975/763010
- * @param {String,Number} needle
+ * @param {String|Number} needle
  * @param {Array} haystack
  * @return {Boolean}
  */
@@ -1190,16 +1196,16 @@ Drupal.services.call = function(options) {
             if (Drupal.settings.debug) { console.log('200 - OK'); }
             // Extract the JSON result, or throw an error if the response wasn't
             // JSON.
+
+            // Extract the JSON result if the server sent back JSON, otherwise
+            // hand back the response as is.
             var result = null;
             var response_header = request.getResponseHeader('Content-Type');
-            if (response_header.indexOf('application/json') == -1) {
-              console.log(
-                'Drupal.services.call - ERROR - response header was ' +
-                response_header + ' instead of application/json'
-              );
-              console.log(request.responseText);
+            if (response_header.indexOf('application/json') != -1) {
+              result = JSON.parse(request.responseText);
             }
-            else { result = JSON.parse(request.responseText); }
+            else { result = request.responseText; }
+
             // Give modules a chance to pre post process the results, send the
             // results to the success callback, then give modules a chance to
             // post process the results.
