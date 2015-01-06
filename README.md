@@ -1,9 +1,7 @@
 jDrupal
 =======
 
-An HTML5 JavaScript library for Drupal.
-
-The library utilizes the Services module (3.5 or later) to provide an asynchronous RESTful API to Drupal websites for JavaScript applications.
+An pure JavaScript library for a RESTful Drupal website.
 
 ```
 node_load(123, {
