@@ -1815,6 +1815,20 @@ function entity_index_build_query_string(query) {
         result += parameters + '&';
       }
     }
+    if (query.parameters_op) { // object
+      var parameters_op = '';
+      for (var parameter_op in query.parameters_op) {
+          if (query.parameters_op.hasOwnProperty(parameter_op)) {
+            var key = encodeURIComponent(parameter_op);
+            var value = encodeURIComponent(query.parameters_op[parameter_op]);
+            parameters_op += 'parameters_op[' + key + ']=' + value + '&';
+          }
+      }
+      if (parameters_op != '') {
+        parameters_op = parameters_op.substring(0, parameters.length - 1);
+        result += parameters_op + '&';
+      }
+    }
     if (typeof query.page !== 'undefined') { // int
       result += 'page=' + encodeURIComponent(query.page) + '&';
     }
