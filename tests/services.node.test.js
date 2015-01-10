@@ -8,8 +8,8 @@ var test_services_node = function(callback) {
 
 function test_services_node_template() {
   return {
-    type:"article",
-    title:user_password()
+    type: [ { target_id: 'page' } ],
+    title: [ { value: user_password() } ]
   };
 }
 
@@ -21,18 +21,18 @@ var test_node_crud = function(callback) {
       node_save(node, {
           success:function(node_create_result){
             start();
-            expect(2);
-            ok(!!node_create_result.nid, "nid");
-            ok(!!node_create_result.uri, "uri");
+            expect(1);
+            ok(!!node_create_result.indexOf(Drupal.settings.site_path) != -1, "Location");
             
             // Retrieve
+            var node_create_result_nid = entity_id_from_location(node_create_result);
             asyncTest("node_load", function() {
-                node_load(node_create_result.nid, {
+                node_load(node_create_result_nid, {
                     success:function(node_retrieve_result) {
                       start();
                       expect(2);
-                      ok(node_retrieve_result.nid == node_create_result.nid, "nid");
-                      ok(node_retrieve_result.title == node.title, "title");
+                      ok(node_retrieve_result.nid[0].value == node_create_result_nid, "nid");
+                      ok(node_retrieve_result.title[0].value == node.title[0].value, "title");
                       
                       // Update
                       asyncTest("node_save - update existing", function() {
