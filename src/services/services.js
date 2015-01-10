@@ -36,14 +36,17 @@ Drupal.services.call = function(options) {
           // Build a human readable response title.
           var title = request.status + ' - ' +
             http_status_code_title(request.status);
-          // 200 OK
-          if (request.status == 200) {
-            if (Drupal.settings.debug) { console.log('200 - OK'); }
+          // 200 OK or 201 Created
+          if (request.status == 200 || request.status == 201) {
+            if (Drupal.settings.debug) { console.log(title); }
             // Extract the JSON result, or throw an error if the response wasn't
             // JSON.
             var result = null;
             var response_header = request.getResponseHeader('Content-Type');
-            if (response_header.indexOf('application/json') != -1) {
+            if (request.status == 201) {
+              result = request.getResponseHeader("Location");
+            }
+            else if (response_header.indexOf('application/json') != -1) {
               result = JSON.parse(request.responseText);
             }
             else { result = request.responseText; }
@@ -135,10 +138,8 @@ Drupal.services.call = function(options) {
               request.setRequestHeader('Content-type', contentType);
             }
 
-            // Add the token to the header if we have one, except on user login.
-            if (token) {
-              request.setRequestHeader('X-CSRF-Token', token);
-            }
+            // Add the token to the header if we have one.
+            if (token) { request.setRequestHeader('X-CSRF-Token', token); }
             
             // Unless someone specifically set the Accept header, we'll default
             // to application/json.
