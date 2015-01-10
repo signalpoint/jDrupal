@@ -183,7 +183,7 @@ function date(format) {
           break;
 
         /* TIME */
-        
+
         // 24-hour format of an hour without leading zeros: 0 through 23
         case 'G':
           var hours = '' + d.getHours();
@@ -254,8 +254,8 @@ function dpm(data) {
 function drupal_user_defaults() {
   try {
     return {
-      uid: [ { value: '0' } ],
-      roles: [ { target_id: 'anonymous' } ]
+      uid: [{ value: '0' }],
+      roles: [{ target_id: 'anonymous' }]
     };
   }
   catch (error) { console.log('drupal_user_defaults - ' + error); }

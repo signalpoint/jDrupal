@@ -5,7 +5,7 @@
 function jdrupal_connect(options) {
   try {
 
-    
+
     var jdrupal_connect = {
       service: 'jdrupal',
       resource: 'connect',
@@ -22,7 +22,7 @@ function jdrupal_connect(options) {
                   if (options.success) { options.success(result); }
                 }
             });
-            Drupal.user.name = [{ value: result.account.name }]
+            Drupal.user.name = [{ value: result.account.name }];
           }
           else if (options.success) { options.success(result); }
 
@@ -36,7 +36,7 @@ function jdrupal_connect(options) {
         catch (error) { console.log('jdrupal_connect - error - ' + error); }
       }
     };
-    
+
     Drupal.services.call(jdrupal_connect);
     return;
 
