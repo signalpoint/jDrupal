@@ -6,7 +6,7 @@
 function node_create(node, options) {
   try {
     services_resource_defaults(options, 'node', 'create');
-    entity_create('node', node.type, node, options);
+    entity_create('node', node.type[0].target_id, node, options);
   }
   catch (error) { console.log('node_create - ' + error); }
 }
@@ -32,7 +32,7 @@ function node_retrieve(ids, options) {
 function node_update(node, options) {
   try {
     services_resource_defaults(options, 'node', 'update');
-    entity_update('node', node.type, node, options);
+    entity_update('node', node.type[0].target_id, node, options);
   }
   catch (error) { console.log('node_update - ' + error); }
 }
