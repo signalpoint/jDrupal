@@ -184,6 +184,12 @@ function date(format) {
 
         /* TIME */
 
+        // 24-hour format of an hour without leading zeros: 0 through 23
+        case 'G':
+          var hours = '' + d.getHours();
+          result += hours;
+          break;
+
         // 24-hour format of an hour with leading zeros: 00 through 23
         case 'H':
           var hours = '' + d.getHours();
@@ -248,9 +254,8 @@ function dpm(data) {
 function drupal_user_defaults() {
   try {
     return {
-      uid: '0',
-      roles: {'1': 'anonymous user'},
-      permissions: []
+      uid: [{ value: '0' }],
+      roles: [{ target_id: 'anonymous' }]
     };
   }
   catch (error) { console.log('drupal_user_defaults - ' + error); }
@@ -297,6 +302,7 @@ function http_status_code_title(status) {
     var title = '';
     switch (status) {
       case 200: title = 'OK'; break;
+      case 201: title = 'Created'; break;
       case 401: title = 'Unauthorized'; break;
       case 404: title = 'Not Found'; break;
       case 406: title = 'Not Acceptable'; break;
@@ -312,7 +318,7 @@ function http_status_code_title(status) {
 /**
  * Checks if the needle string, is in the haystack array. Returns true if it is
  * found, false otherwise. Credit: http://stackoverflow.com/a/15276975/763010
- * @param {String,Number} needle
+ * @param {String|Number} needle
  * @param {Array} haystack
  * @return {Boolean}
  */
@@ -355,7 +361,7 @@ function language_default() {
       Drupal.settings.language_default != '') {
       return Drupal.settings.language_default;
     }
-    return 'und';
+    return 'en';
   }
   catch (error) { console.log('language_default - ' + error); }
 }
@@ -954,7 +960,9 @@ function entity_save(entity_type, bundle, entity, options) {
         function_name = 'file_create';
         break;
       case 'node':
-        if (!entity.language) { entity.language = language_default(); }
+        if (!entity.langcode) {
+          entity.langcode = [{ value: language_default() }];
+        }
         if (!entity.nid) { function_name = 'node_create'; }
         else { function_name = 'node_update'; }
         break;
@@ -998,6 +1006,19 @@ function entity_types() {
     ];
   }
   catch (error) { console.log('entity_types - ' + error); }
+}
+
+/**
+ * Given a Location header for an entity from a 201 response, this will return
+ * the entity id.
+ * @param {String} location
+ * @return {Number}
+ */
+function entity_id_from_location(location) {
+  try {
+    return location.split('/').pop();
+  }
+  catch (error) { console.log('entity_id_from_location - ' + error); }
 }
 
 /**
@@ -1156,7 +1177,7 @@ Drupal.services.call = function(options) {
 
     // Make sure the settings have been provided for Services.
     if (!services_ready()) {
-      var error = 'Set the site_path and endpoint on Drupal.settings!';
+      var error = 'Set the site_path property on the Drupal.settings object!';
       options.error(null, null, error);
       return;
     }
@@ -1166,14 +1187,7 @@ Drupal.services.call = function(options) {
     // Build the Request, URL and extract the HTTP method.
     var request = new XMLHttpRequest();
     var url = Drupal.settings.site_path +
-              Drupal.settings.base_path + '?q=';
-    // Use an endpoint, unless someone passed in an empty string.
-    if (typeof options.endpoint === 'undefined') {
-      url += Drupal.settings.endpoint + '/';
-    }
-    else if (options.endpoint != '') {
-      url += options.endpoint + '/';
-    }
+              Drupal.settings.base_path;
     url += options.path;
     var method = options.method.toUpperCase();
     if (Drupal.settings.debug) { console.log(method + ': ' + url); }
@@ -1185,21 +1199,20 @@ Drupal.services.call = function(options) {
           // Build a human readable response title.
           var title = request.status + ' - ' +
             http_status_code_title(request.status);
-          // 200 OK
-          if (request.status == 200) {
-            if (Drupal.settings.debug) { console.log('200 - OK'); }
+          // 200 OK or 201 Created
+          if (request.status == 200 || request.status == 201) {
+            if (Drupal.settings.debug) { console.log(title); }
             // Extract the JSON result, or throw an error if the response wasn't
             // JSON.
             var result = null;
             var response_header = request.getResponseHeader('Content-Type');
-            if (response_header.indexOf('application/json') == -1) {
-              console.log(
-                'Drupal.services.call - ERROR - response header was ' +
-                response_header + ' instead of application/json'
-              );
-              console.log(request.responseText);
+            if (request.status == 201) {
+              result = request.getResponseHeader('Location');
             }
-            else { result = JSON.parse(request.responseText); }
+            else if (response_header.indexOf('application/json') != -1) {
+              result = JSON.parse(request.responseText);
+            }
+            else { result = request.responseText; }
             // Give modules a chance to pre post process the results, send the
             // results to the success callback, then give modules a chance to
             // post process the results.
@@ -1224,11 +1237,11 @@ Drupal.services.call = function(options) {
               console.log(request.getAllResponseHeaders());
             }
             if (request.responseText) { console.log(request.responseText); }
-            else { dpm(request); }
+            else { console.log(request); }
             if (typeof options.error !== 'undefined') {
               var message = request.responseText || '';
               if (!message || message == '') { message = title; }
-              options.error(request, request.status, message);
+              options.error(request, request.status, JSON.parse(message));
             }
             module_invoke_all('services_postprocess', options, request);
           }
@@ -1252,7 +1265,10 @@ Drupal.services.call = function(options) {
 
     // Get the CSRF Token and Make the Request.
     services_get_csrf_token({
+        service: options.service,
+        resource: options.resource,
         debug: options.debug,
+        method: method,
         success: function(token) {
           try {
             // Async, or sync? By default we'll use async if none is provided.
@@ -1268,8 +1284,10 @@ Drupal.services.call = function(options) {
             if (method == 'POST') {
               contentType = 'application/json';
               // The user login resource needs a url encoded data string.
-              if (options.service == 'user' &&
-                options.resource == 'login') {
+              if (
+                options.service == 'user' &&
+                options.resource == 'login'
+              ) {
                 contentType = 'application/x-www-form-urlencoded';
               }
             }
@@ -1284,9 +1302,15 @@ Drupal.services.call = function(options) {
             }
 
             // Add the token to the header if we have one.
-            if (token) {
-              request.setRequestHeader('X-CSRF-Token', token);
+            if (token) { request.setRequestHeader('X-CSRF-Token', token); }
+
+            // Unless someone specifically set the Accept header, we'll default
+            // to application/json.
+            var accept = 'application/json';
+            if (typeof options.Accept !== 'undefined') {
+              accept = options.Accept;
             }
+            request.setRequestHeader('Accept', accept);
 
             // Send the request with or without data.
             if (typeof options.data !== 'undefined') {
@@ -1346,10 +1370,28 @@ Drupal.services.call = function(options) {
 function services_get_csrf_token(options) {
   try {
 
-    var token;
+    var token = null;
+
+    // It's OK to skip GET requests token retrieval, since we don't need one.
+    if (
+      typeof options.method !== 'undefined' &&
+      options.method == 'GET' &&
+      options.success)
+    { options.success(token); return; }
 
     // Are we resetting the token?
     if (options.reset) { Drupal.sessid = null; }
+
+    // On some calls we don't need a token, so skip it.
+    // @TODO turn this into bool that the caller can specify to skip the token
+    // retrieval.
+    if (
+      (options.service == 'user' && options.resource == 'login') ||
+      (options.service == 'jdrupal' && options.resource == 'connect')
+    ) {
+      if (options.success) { options.success(token); }
+      return;
+    }
 
     // Do we already have a token? If we do, return it the success callback.
     if (Drupal.sessid) { token = Drupal.sessid; }
@@ -1363,8 +1405,7 @@ function services_get_csrf_token(options) {
     // Build the Request and URL.
     var token_request = new XMLHttpRequest();
     var token_url = Drupal.settings.site_path +
-              Drupal.settings.base_path +
-              '?q=services/session/token';
+              '/rest/session/token';
 
     // Token Request Success Handler
     token_request.onload = function(e) {
@@ -1381,6 +1422,7 @@ function services_get_csrf_token(options) {
             // success function.
             token = token_request.responseText;
             Drupal.sessid = token;
+            console.log('Grabbed a token from the server: ' + token);
             if (options.success) { options.success(token); }
           }
         }
@@ -1416,10 +1458,6 @@ function services_ready() {
     if (Drupal.settings.site_path == '') {
       result = false;
       console.log('jDrupal\'s Drupal.settings.site_path is not set!');
-    }
-    if (Drupal.settings.endpoint == '') {
-      result = false;
-      console.log('jDrupal\'s Drupal.settings.endpoint is not set!');
     }
     return result;
   }
@@ -1608,10 +1646,21 @@ function comment_index(query, options) {
  */
 function entity_create(entity_type, bundle, entity, options) {
   try {
+    // D8 currently supports only hal json for POST calls, so let's build the
+    // _links object if someone hasn't already.
+    if (typeof entity['_links'] === 'undefined') {
+      entity['_links'] = {
+        type: {
+          href: Drupal.settings.site_path +
+            '/rest/type/' + entity_type + '/' + bundle
+        }
+      };
+    }
     Drupal.services.call({
         method: 'POST',
+        contentType: 'application/hal+json',
         async: options.async,
-        path: entity_type + '.json',
+        path: 'entity/' + entity_type,
         service: options.service,
         resource: options.resource,
         entity_type: entity_type,
@@ -1644,7 +1693,7 @@ function entity_retrieve(entity_type, ids, options) {
   try {
     Drupal.services.call({
         method: 'GET',
-        path: entity_type + '/' + ids + '.json',
+        path: entity_type + '/' + ids,
         service: options.service,
         resource: options.resource,
         entity_type: entity_type,
@@ -1875,7 +1924,7 @@ function file_retrieve(ids, options) {
 function node_create(node, options) {
   try {
     services_resource_defaults(options, 'node', 'create');
-    entity_create('node', node.type, node, options);
+    entity_create('node', node.type[0].target_id, node, options);
   }
   catch (error) { console.log('node_create - ' + error); }
 }
@@ -1901,7 +1950,7 @@ function node_retrieve(ids, options) {
 function node_update(node, options) {
   try {
     services_resource_defaults(options, 'node', 'update');
-    entity_update('node', node.type, node, options);
+    entity_update('node', node.type[0].target_id, node, options);
   }
   catch (error) { console.log('node_update - ' + error); }
 }
@@ -1936,29 +1985,43 @@ function node_index(query, options) {
  * System connect call.
  * @param {Object} options
  */
-function system_connect(options) {
+function jdrupal_connect(options) {
   try {
 
-    // Build a system connect object.
-    var system_connect = {
-      service: 'system',
+
+    var jdrupal_connect = {
+      service: 'jdrupal',
       resource: 'connect',
-      method: 'POST',
-      path: 'system/connect.json',
-      success: function(data) {
+      method: 'GET',
+      path: 'jdrupal/connect',
+      success: function(result) {
         try {
-          Drupal.user = data.user;
-          if (options.success) { options.success(data); }
+          // If the user is authenticated load their user account, otherwise
+          // just proceed as an anonymous user.
+          if (result.account.uid) {
+            user_load(result.account.uid, {
+                success: function(account) {
+                  Drupal.user = account;
+                  if (options.success) { options.success(result); }
+                }
+            });
+            Drupal.user.name = [{ value: result.account.name }];
+          }
+          else if (options.success) { options.success(result); }
+
         }
-        catch (error) { console.log('system_connect - success - ' + error); }
+        catch (error) { console.log('jdrupal_connect - success - ' + error); }
       },
       error: function(xhr, status, message) {
         try {
           if (options.error) { options.error(xhr, status, message); }
         }
-        catch (error) { console.log('system_connect - error - ' + error); }
+        catch (error) { console.log('jdrupal_connect - error - ' + error); }
       }
     };
+
+    Drupal.services.call(jdrupal_connect);
+    return;
 
     // If we don't have a token, grab one first.
     if (!Drupal.csrf_token) {
@@ -1972,7 +2035,7 @@ function system_connect(options) {
             }
             catch (error) {
               console.log(
-                'system_connect - services_csrf_token - success - ' + message
+                'jdrupal_connect - services_csrf_token - success - ' + message
               );
             }
           },
@@ -1982,7 +2045,7 @@ function system_connect(options) {
             }
             catch (error) {
               console.log(
-                'system_connect - services_csrf_token - error - ' + message
+                'jdrupal_connect - services_csrf_token - error - ' + message
               );
             }
           }
@@ -1995,7 +2058,7 @@ function system_connect(options) {
     }
   }
   catch (error) {
-    console.log('system_connect - ' + error);
+    console.log('jdrupal_connect - ' + error);
   }
 }
 
@@ -2268,46 +2331,19 @@ function user_login(name, pass, options) {
         service: 'user',
         resource: 'login',
         method: 'POST',
-        path: 'user/login.json',
-        data: 'username=' + encodeURIComponent(name) +
-             '&password=' + encodeURIComponent(pass),
-        success: function(data) {
+        path: 'user/login',
+        data: 'name=' + encodeURIComponent(name) +
+          '&pass=' + encodeURIComponent(pass) +
+          '&form_id=user_login_form',
+        success: function(account) {
           try {
-            // Now that we are logged in, we need to get a new CSRF token, and
-            // then make a system connect call.
-            Drupal.user = data.user;
+            // Now that we are logged in, we need to get a new CSRF token.
+            Drupal.user = account;
             Drupal.sessid = null;
             services_get_csrf_token({
                 success: function(token) {
                   try {
-                    if (options.success) {
-                      system_connect({
-                          success: function(result) {
-                            try {
-                              if (options.success) { options.success(data); }
-                            }
-                            catch (error) {
-                              console.log(
-                                'user_login - system_connect - success - ' +
-                                error
-                              );
-                            }
-                          },
-                          error: function(xhr, status, message) {
-                            try {
-                              if (options.error) {
-                                options.error(xhr, status, message);
-                              }
-                            }
-                            catch (error) {
-                              console.log(
-                                'user_login - system_connect - error - ' +
-                                error
-                              );
-                            }
-                          }
-                      });
-                    }
+                    if (options.success) { options.success(account); }
                   }
                   catch (error) {
                     console.log(
@@ -2349,21 +2385,23 @@ function user_logout(options) {
     Drupal.services.call({
         service: 'user',
         resource: 'logout',
-        method: 'POST',
-        path: 'user/logout.json',
+        method: 'GET',
+        path: 'user/logout',
+        Accept: 'text/html',
         success: function(data) {
           try {
-            // Now that we logged out, clear the sessid and call system connect.
+            // Now that we logged out, clear the user and sessid, then make a
+            // fresh connection.
             Drupal.user = drupal_user_defaults();
             Drupal.sessid = null;
-            system_connect({
+            jdrupal_connect({
                 success: function(result) {
                   try {
                     if (options.success) { options.success(data); }
                   }
                   catch (error) {
                     console.log(
-                      'user_logout - system_connect - success - ' +
+                      'user_logout - jdrupal_connect - success - ' +
                       error
                     );
                   }
@@ -2374,7 +2412,7 @@ function user_logout(options) {
                   }
                   catch (error) {
                     console.log(
-                      'user_logout - system_connect - error - ' +
+                      'user_logout - jdrupal_connect - error - ' +
                       error
                     );
                   }
@@ -2392,7 +2430,7 @@ function user_logout(options) {
     });
   }
   catch (error) {
-    console.log('user_login - ' + error);
+    console.log('user_logout - ' + error);
   }
 }
 
