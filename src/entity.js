@@ -341,7 +341,9 @@ function entity_save(entity_type, bundle, entity, options) {
         function_name = 'file_create';
         break;
       case 'node':
-        if (!entity.language) { entity.language = language_default(); }
+        if (!entity.langcode) {
+          entity.langcode = [{ value: language_default() }];
+        }
         if (!entity.nid) { function_name = 'node_create'; }
         else { function_name = 'node_update'; }
         break;
@@ -385,5 +387,18 @@ function entity_types() {
     ];
   }
   catch (error) { console.log('entity_types - ' + error); }
+}
+
+/**
+ * Given a Location header for an entity from a 201 response, this will return
+ * the entity id.
+ * @param {String} location
+ * @return {Number}
+ */
+function entity_id_from_location(location) {
+  try {
+    return location.split("/").pop();
+  }
+  catch (error) { console.log('entity_id_from_location - ' + error); }
 }
 
