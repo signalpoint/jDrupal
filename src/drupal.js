@@ -302,6 +302,7 @@ function http_status_code_title(status) {
     var title = '';
     switch (status) {
       case 200: title = 'OK'; break;
+      case 201: title = 'Created'; break;
       case 401: title = 'Unauthorized'; break;
       case 404: title = 'Not Found'; break;
       case 406: title = 'Not Acceptable'; break;
@@ -360,7 +361,7 @@ function language_default() {
       Drupal.settings.language_default != '') {
       return Drupal.settings.language_default;
     }
-    return 'und';
+    return 'en';
   }
   catch (error) { console.log('language_default - ' + error); }
 }
