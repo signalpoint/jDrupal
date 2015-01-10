@@ -7,10 +7,21 @@
  */
 function entity_create(entity_type, bundle, entity, options) {
   try {
+    // D8 currently supports only hal json for POST calls, so let's build the
+    // _links object if someone hasn't already.
+    if (typeof entity['_links'] === 'undefined') {
+      entity['_links'] = {
+        type: {
+          href: Drupal.settings.site_path +
+            '/rest/type/' + entity_type + '/' + bundle
+        }
+      };
+    }
     Drupal.services.call({
         method: 'POST',
+        contentType: 'application/hal+json',
         async: options.async,
-        path: entity_type + '.json',
+        path: 'entity/' + entity_type,
         service: options.service,
         resource: options.resource,
         entity_type: entity_type,
