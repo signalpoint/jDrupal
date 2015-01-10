@@ -1,7 +1,7 @@
 jDrupal
 =======
 
-An pure JavaScript library for a RESTful Drupal website.
+A pure JavaScript library for a RESTful Drupal website.
 
 ```
 node_load(123, {
@@ -14,6 +14,8 @@ node_load(123, {
 });
 ```
 
-Above is an example of how easy it is to load a Drupal node with jDrupal in JavaScript. Use jDrupal to easily build JavaScript based mobile applications and web applications for your Drupal site.
+Above is an example of how easy it is to load a Drupal node with jDrupal
+in JavaScript. Use jDrupal to easily build JavaScript based mobile applications
+and web applications for your Drupal site.
 
 For more information and "Hello World", please visit: http://www.easystreet3.com/jDrupal
