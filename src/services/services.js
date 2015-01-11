@@ -36,8 +36,8 @@ Drupal.services.call = function(options) {
           // Build a human readable response title.
           var title = request.status + ' - ' +
             http_status_code_title(request.status);
-          // 200 OK or 201 Created
-          if (request.status == 200 || request.status == 201) {
+          // 200 OK, 201 Created, 204 No Content
+          if (in_array(request.status, [200, 201, 204])) {
             if (Drupal.settings.debug) { console.log(title); }
             // Extract the JSON result, or throw an error if the response wasn't
             // JSON.
