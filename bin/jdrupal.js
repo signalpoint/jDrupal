@@ -11,7 +11,6 @@ function drupal_init() {
     // General properties.
     Drupal.csrf_token = false;
     Drupal.sessid = null;
-    Drupal.user = drupal_user_defaults();
 
     // Settings.
     Drupal.settings = {
@@ -69,6 +68,64 @@ function drupal_init() {
       user: {
         retrieve: {}
       }
+    };
+
+    Drupal.Entity = {};
+
+    // @see https://api.drupal.org/api/drupal/core!modules!user!src!Entity!User.php/class/User/8
+    Drupal.Entity.User = function(account) {
+      try {
+        this.entity = account;
+        this.getUsername = function() {
+          return this.entity.name[0].value;
+        };
+        this.id = function() {
+          return this.entity.uid[0].value;
+        };
+      }
+      catch (error) {
+        console.log('Drupal.Entity.User - ' + error);
+      }
+    };
+
+    // Init anonymous user (we'll connect to retrieve the actual user later).
+    Drupal.user = new Drupal.Entity.User(drupal_user_defaults());
+
+    /**
+     * Gets the current active user.
+     * @return {Object}
+     */
+    Drupal.currentUser = function() {
+      return Drupal.user;
+    };
+
+    // @see https://api.drupal.org/api/drupal/core!modules!node!src!Entity!Node.php/class/Node/8
+    Drupal.Entity.Node = function(node) {
+      try {
+        this.entity = node;
+        this.id = function() {
+          return this.entity.nid ? this.entity.nid[0].value : null;
+        };
+        this.isPromoted = function() {
+          return this.entity.promote[0].value;
+        };
+        this.isPublished = function() {
+          return this.entity.status[0].value;
+        };
+        this.isSticky = function() {
+          return this.entity.sticky[0].value;
+        };
+        this.getTitle = function() {
+          return this.entity.title[0].value;
+        };
+        this.getType = function() {
+          return this.entity.type[0].target_id;
+        };
+        this.setTitle = function(title) {
+          this.entity.title[0].value = title;
+        };
+      }
+      catch (error) { console.log('Drupal.Entity.Node - ' + error); }
     };
   }
   catch (error) { console.log('drupal_init - ' + error); }
@@ -303,6 +360,7 @@ function http_status_code_title(status) {
     switch (status) {
       case 200: title = 'OK'; break;
       case 201: title = 'Created'; break;
+      case 204: title = 'No Content'; break;
       case 401: title = 'Unauthorized'; break;
       case 404: title = 'Not Found'; break;
       case 406: title = 'Not Acceptable'; break;
@@ -963,11 +1021,11 @@ function entity_save(entity_type, bundle, entity, options) {
         if (!entity.langcode) {
           entity.langcode = [{ value: language_default() }];
         }
-        if (!entity.nid) { function_name = 'node_create'; }
+        if (!entity.id()) { function_name = 'node_create'; }
         else { function_name = 'node_update'; }
         break;
       case 'user':
-        if (!entity.uid) { function_name = 'user_create'; }
+        if (!entity.id()) { function_name = 'user_create'; }
         else { function_name = 'user_update'; }
         break;
       case 'taxonomy_term':
@@ -1064,7 +1122,7 @@ function node_load(nid, options) {
  */
 function node_save(node, options) {
   try {
-    entity_save('node', node.type, node, options);
+    entity_save('node', node.getType(), node, options);
   }
   catch (error) { console.log('node_save - ' + error); }
 }
@@ -1199,8 +1257,8 @@ Drupal.services.call = function(options) {
           // Build a human readable response title.
           var title = request.status + ' - ' +
             http_status_code_title(request.status);
-          // 200 OK or 201 Created
-          if (request.status == 200 || request.status == 201) {
+          // 200 OK, 201 Created, 204 No Content
+          if (in_array(request.status, [200, 201, 204])) {
             if (Drupal.settings.debug) { console.log(title); }
             // Extract the JSON result, or throw an error if the response wasn't
             // JSON.
@@ -1638,6 +1696,29 @@ function comment_index(query, options) {
 }
 
 /**
+ * Adds hal json "_links" to the entity.
+ * @param {String} entity_type
+ * @param {String} bundle
+ * @param {Object} entity
+ * @param {Object} options
+ */
+function entity_hal_links(entity_type, bundle, entity, options) {
+  try {
+    // D8 currently supports only hal json for POST calls, so let's build the
+    // _links object if someone hasn't already.
+    if (typeof entity.entity['_links'] === 'undefined') {
+      entity.entity['_links'] = {
+        type: {
+          href: Drupal.settings.site_path +
+            '/rest/type/' + entity_type + '/' + bundle
+        }
+      };
+    }
+  }
+  catch (error) { console.log('entity_hal_links - ' + error); }
+}
+
+/**
  * Creates an entity.
  * @param {String} entity_type
  * @param {String} bundle
@@ -1646,16 +1727,11 @@ function comment_index(query, options) {
  */
 function entity_create(entity_type, bundle, entity, options) {
   try {
-    // D8 currently supports only hal json for POST calls, so let's build the
-    // _links object if someone hasn't already.
-    if (typeof entity['_links'] === 'undefined') {
-      entity['_links'] = {
-        type: {
-          href: Drupal.settings.site_path +
-            '/rest/type/' + entity_type + '/' + bundle
-        }
-      };
-    }
+
+    // @TODO this function's name collides with D8.
+    // @see https://api.drupal.org/api/drupal/core!includes!entity.inc/function/entity_create/8
+
+    entity_hal_links(entity_type, bundle, entity, options);
     Drupal.services.call({
         method: 'POST',
         contentType: 'application/hal+json',
@@ -1665,7 +1741,7 @@ function entity_create(entity_type, bundle, entity, options) {
         resource: options.resource,
         entity_type: entity_type,
         bundle: bundle,
-        data: JSON.stringify(entity),
+        data: JSON.stringify(entity.entity),
         success: function(data) {
           try {
             if (options.success) { options.success(data); }
@@ -1700,7 +1776,18 @@ function entity_retrieve(entity_type, ids, options) {
         entity_id: ids,
         success: function(data) {
           try {
-            if (options.success) { options.success(data); }
+            if (options.success) {
+              var class_name = ucfirst(entity_type);
+              if (typeof Drupal.Entity[class_name] !== 'undefined') {
+                data = new Drupal.Entity[class_name](data);
+              }
+              else {
+                console.log('entity_retrieve - missing prototype - (' +
+                  entity_type + ')'
+                );
+              }
+              options.success(data);
+            }
           }
           catch (error) { console.log('entity_retrieve - success - ' + error); }
         },
@@ -1724,21 +1811,23 @@ function entity_retrieve(entity_type, ids, options) {
  */
 function entity_update(entity_type, bundle, entity, options) {
   try {
-    var entity_wrapper = _entity_wrap(entity_type, entity);
-    var primary_key = entity_primary_key(entity_type);
+    entity_hal_links(entity_type, bundle, entity, options);
     Drupal.services.call({
-        method: 'PUT',
-        path: entity_type + '/' + entity[primary_key] + '.json',
+        method: 'PATCH',
+        contentType: 'application/hal+json',
+        path: entity_type + '/' + entity.id(),
         service: options.service,
         resource: options.resource,
         entity_type: entity_type,
-        entity_id: entity[entity_primary_key(entity_type)],
+        entity_id: entity.id(),
         bundle: bundle,
-        data: JSON.stringify(entity_wrapper),
-        success: function(data) {
+        data: JSON.stringify(entity.entity),
+        success: function() {
           try {
-            _entity_local_storage_delete(entity_type, entity[primary_key]);
-            if (options.success) { options.success(data); }
+            // Since we get a 204 response (No Content), there is nothing to
+            // send the success callback.
+            _entity_local_storage_delete(entity_type, entity.id());
+            if (options.success) { options.success(); }
           }
           catch (error) { console.log('entity_update - success - ' + error); }
         },
@@ -1763,7 +1852,7 @@ function entity_delete(entity_type, entity_id, options) {
   try {
     Drupal.services.call({
         method: 'DELETE',
-        path: entity_type + '/' + entity_id + '.json',
+        path: entity_type + '/' + entity_id,
         service: options.service,
         resource: options.resource,
         entity_type: entity_type,
@@ -1771,7 +1860,7 @@ function entity_delete(entity_type, entity_id, options) {
         success: function(data) {
           try {
             _entity_local_storage_delete(entity_type, entity_id);
-            if (options.success) { options.success(data); }
+            if (options.success) { options.success(); }
           }
           catch (error) { console.log('entity_delete - success - ' + error); }
         },
@@ -1924,7 +2013,7 @@ function file_retrieve(ids, options) {
 function node_create(node, options) {
   try {
     services_resource_defaults(options, 'node', 'create');
-    entity_create('node', node.type[0].target_id, node, options);
+    entity_create('node', node.getType(), node, options);
   }
   catch (error) { console.log('node_create - ' + error); }
 }
@@ -1950,7 +2039,7 @@ function node_retrieve(ids, options) {
 function node_update(node, options) {
   try {
     services_resource_defaults(options, 'node', 'update');
-    entity_update('node', node.type[0].target_id, node, options);
+    entity_update('node', node.getType(), node, options);
   }
   catch (error) { console.log('node_update - ' + error); }
 }
@@ -1988,7 +2077,6 @@ function node_index(query, options) {
 function jdrupal_connect(options) {
   try {
 
-
     var jdrupal_connect = {
       service: 'jdrupal',
       resource: 'connect',
@@ -2005,10 +2093,8 @@ function jdrupal_connect(options) {
                   if (options.success) { options.success(result); }
                 }
             });
-            Drupal.user.name = [{ value: result.account.name }];
           }
           else if (options.success) { options.success(result); }
-
         }
         catch (error) { console.log('jdrupal_connect - success - ' + error); }
       },
@@ -2287,7 +2373,7 @@ function user_register(account, options) {
         service: 'user',
         resource: 'register',
         method: 'POST',
-        path: 'user/register.json',
+        path: 'user/register',
         data: JSON.stringify(account),
         success: function(data) {
           try {
@@ -2338,7 +2424,7 @@ function user_login(name, pass, options) {
         success: function(account) {
           try {
             // Now that we are logged in, we need to get a new CSRF token.
-            Drupal.user = account;
+            Drupal.user = new Drupal.Entity.User(account);
             Drupal.sessid = null;
             services_get_csrf_token({
                 success: function(token) {
@@ -2392,7 +2478,7 @@ function user_logout(options) {
           try {
             // Now that we logged out, clear the user and sessid, then make a
             // fresh connection.
-            Drupal.user = drupal_user_defaults();
+            Drupal.user = new Drupal.Entity.User(drupal_user_defaults());
             Drupal.sessid = null;
             jdrupal_connect({
                 success: function(result) {
