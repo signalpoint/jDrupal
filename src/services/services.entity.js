@@ -61,7 +61,19 @@ function entity_retrieve(entity_type, ids, options) {
         entity_id: ids,
         success: function(data) {
           try {
-            if (options.success) { options.success(data); }
+            if (options.success) {
+              switch (entity_type) {
+                case 'user':
+                  data = new Drupal.Entity.User(data);
+                  break;
+                default:
+                  console.log('entity_retrieve - missing prototype - (' +
+                    entity_type + ')'
+                  );
+                  break;
+              }
+              options.success(data);
+            }
           }
           catch (error) { console.log('entity_retrieve - success - ' + error); }
         },
