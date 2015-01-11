@@ -1,5 +1,9 @@
 /**
- *
+ * Adds hal json "_links" to the entity.
+ * @param {String} entity_type
+ * @param {String} bundle
+ * @param {Object} entity
+ * @param {Object} options
  */
 function entity_hal_links(entity_type, bundle, entity, options) {
   try {

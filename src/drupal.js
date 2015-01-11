@@ -93,6 +93,7 @@ function drupal_init() {
 
     /**
      * Gets the current active user.
+     * @return {Object}
      */
     Drupal.currentUser = function() {
       return Drupal.user;
