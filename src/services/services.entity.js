@@ -1,4 +1,23 @@
 /**
+ *
+ */
+function entity_hal_links(entity_type, bundle, entity, options) {
+  try {
+    // D8 currently supports only hal json for POST calls, so let's build the
+    // _links object if someone hasn't already.
+    if (typeof entity.entity['_links'] === 'undefined') {
+      entity.entity['_links'] = {
+        type: {
+          href: Drupal.settings.site_path +
+            '/rest/type/' + entity_type + '/' + bundle
+        }
+      };
+    }
+  }
+  catch (error) { console.log('entity_hal_links - ' + error); }
+}
+
+/**
  * Creates an entity.
  * @param {String} entity_type
  * @param {String} bundle
@@ -7,16 +26,11 @@
  */
 function entity_create(entity_type, bundle, entity, options) {
   try {
-    // D8 currently supports only hal json for POST calls, so let's build the
-    // _links object if someone hasn't already.
-    if (typeof entity['_links'] === 'undefined') {
-      entity['_links'] = {
-        type: {
-          href: Drupal.settings.site_path +
-            '/rest/type/' + entity_type + '/' + bundle
-        }
-      };
-    }
+    
+    // @TODO this function's name collides with D8.
+    // @see https://api.drupal.org/api/drupal/core!includes!entity.inc/function/entity_create/8
+    
+    entity_hal_links(entity_type, bundle, entity, options);
     Drupal.services.call({
         method: 'POST',
         contentType: 'application/hal+json',
@@ -26,7 +40,7 @@ function entity_create(entity_type, bundle, entity, options) {
         resource: options.resource,
         entity_type: entity_type,
         bundle: bundle,
-        data: JSON.stringify(entity),
+        data: JSON.stringify(entity.entity),
         success: function(data) {
           try {
             if (options.success) { options.success(data); }
@@ -62,15 +76,14 @@ function entity_retrieve(entity_type, ids, options) {
         success: function(data) {
           try {
             if (options.success) {
-              switch (entity_type) {
-                case 'user':
-                  data = new Drupal.Entity.User(data);
-                  break;
-                default:
-                  console.log('entity_retrieve - missing prototype - (' +
-                    entity_type + ')'
-                  );
-                  break;
+              var class_name = ucfirst(entity_type);
+              if (typeof Drupal.Entity[class_name] !== 'undefined') {
+                data = new Drupal.Entity[class_name](data);
+              }
+              else {
+                console.log('entity_retrieve - missing prototype - (' +
+                  entity_type + ')'
+                );
               }
               options.success(data);
             }
@@ -97,21 +110,23 @@ function entity_retrieve(entity_type, ids, options) {
  */
 function entity_update(entity_type, bundle, entity, options) {
   try {
-    var entity_wrapper = _entity_wrap(entity_type, entity);
-    var primary_key = entity_primary_key(entity_type);
+    entity_hal_links(entity_type, bundle, entity, options);
     Drupal.services.call({
-        method: 'PUT',
-        path: entity_type + '/' + entity[primary_key] + '.json',
+        method: 'PATCH',
+        contentType: 'application/hal+json',
+        path: entity_type + '/' + entity.id(),
         service: options.service,
         resource: options.resource,
         entity_type: entity_type,
-        entity_id: entity[entity_primary_key(entity_type)],
+        entity_id: entity.id(),
         bundle: bundle,
-        data: JSON.stringify(entity_wrapper),
-        success: function(data) {
+        data: JSON.stringify(entity.entity),
+        success: function() {
           try {
-            _entity_local_storage_delete(entity_type, entity[primary_key]);
-            if (options.success) { options.success(data); }
+            // Since we get a 204 response (No Content), there is nothing to
+            // send the success callback.
+            _entity_local_storage_delete(entity_type, entity.id());
+            if (options.success) { options.success(); }
           }
           catch (error) { console.log('entity_update - success - ' + error); }
         },
@@ -136,7 +151,7 @@ function entity_delete(entity_type, entity_id, options) {
   try {
     Drupal.services.call({
         method: 'DELETE',
-        path: entity_type + '/' + entity_id + '.json',
+        path: entity_type + '/' + entity_id,
         service: options.service,
         resource: options.resource,
         entity_type: entity_type,
@@ -144,7 +159,7 @@ function entity_delete(entity_type, entity_id, options) {
         success: function(data) {
           try {
             _entity_local_storage_delete(entity_type, entity_id);
-            if (options.success) { options.success(data); }
+            if (options.success) { options.success(); }
           }
           catch (error) { console.log('entity_delete - success - ' + error); }
         },
