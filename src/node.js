@@ -17,7 +17,7 @@ function node_load(nid, options) {
  */
 function node_save(node, options) {
   try {
-    entity_save('node', node.type, node, options);
+    entity_save('node', node.getType(), node, options);
   }
   catch (error) { console.log('node_save - ' + error); }
 }
