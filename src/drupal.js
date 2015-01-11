@@ -96,6 +96,35 @@ function drupal_init() {
      */
     Drupal.currentUser = function() {
       return Drupal.user;
+    };
+    
+    // @see https://api.drupal.org/api/drupal/core!modules!node!src!Entity!Node.php/class/Node/8
+    Drupal.Entity.Node = function(node) {
+      try {
+        this.entity = node;
+        this.id = function() {
+          return this.entity.nid ? this.entity.nid[0].value : null;
+        };
+        this.isPromoted = function() {
+          return this.entity.promote[0].value;
+        };
+        this.isPublished = function() {
+          return this.entity.status[0].value;
+        };
+        this.isSticky = function() {
+          return this.entity.sticky[0].value;
+        };
+        this.getTitle = function() {
+          return this.entity.title[0].value;
+        };
+        this.getType = function() {
+          return this.entity.type[0].target_id;
+        };
+        this.setTitle = function(title) {
+          this.entity.title[0].value = title;
+        };
+      }
+      catch (error) { console.log('Drupal.Entity.Node - ' + error); }
     }
   }
   catch (error) { console.log('drupal_init - ' + error); }
@@ -330,6 +359,7 @@ function http_status_code_title(status) {
     switch (status) {
       case 200: title = 'OK'; break;
       case 201: title = 'Created'; break;
+      case 204: title = 'No Content'; break;
       case 401: title = 'Unauthorized'; break;
       case 404: title = 'Not Found'; break;
       case 406: title = 'Not Acceptable'; break;
