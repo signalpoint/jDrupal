@@ -11,7 +11,6 @@ function drupal_init() {
     // General properties.
     Drupal.csrf_token = false;
     Drupal.sessid = null;
-    Drupal.user = drupal_user_defaults();
 
     // Settings.
     Drupal.settings = {
@@ -70,6 +69,34 @@ function drupal_init() {
         retrieve: {}
       }
     };
+    
+    Drupal.Entity = {};
+    
+    // @see https://api.drupal.org/api/drupal/core!modules!user!src!Entity!User.php/class/User/8
+    Drupal.Entity.User = function(account) {
+      try {
+        this.entity = account;
+        this.getUsername = function() {
+          return this.entity.name[0].value;
+        }
+        this.id = function() {
+          return this.entity.uid[0].value;
+        }
+      }
+      catch (error) {
+        console.log('Drupal.Entity.User - ' + error);
+      }
+    };
+    
+    // Init anonymous user (we'll connect to retrieve the actual user later).
+    Drupal.user = new Drupal.Entity.User(drupal_user_defaults());
+    
+    /**
+     * Gets the current active user.
+     */
+    Drupal.currentUser = function() {
+      return Drupal.user;
+    }
   }
   catch (error) { console.log('drupal_init - ' + error); }
 }
