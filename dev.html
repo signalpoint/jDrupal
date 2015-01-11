@@ -51,8 +51,9 @@
           // form, otherwise say hello to them.
           jdrupal_connect({
             success: function(result) {
-                if (Drupal.user.uid[0]['value'] != '0') {
-                  alert('Hello ' + Drupal.user.name[0]['value']);
+                var account = Drupal.currentUser();
+                if (account.id() != 0) {
+                  console.log('Hi, ' + account.getUsername() + '!');
                 }
                 else {
                   document.getElementById('user_login_form').style.display = 'inline';
@@ -72,7 +73,8 @@
         if (empty(pass)) { alert('Enter a password!'); return; }
         user_login(name, pass, {
             success: function(result) {
-              alert('Hello ' + Drupal.user.name[0]['value']);
+              var account = Drupal.currentUser();
+              alert('Hello ' + account.getUsername());
             },
             error: function(xhr, status, result) {
               alert(result.message);
