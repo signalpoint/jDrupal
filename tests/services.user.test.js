@@ -6,13 +6,6 @@ var test_services_user = function(name, pass, callback) {
   });
 };
 
-function test_services_user_template() {
-  return {
-    type:"article",
-    title:user_password()
-  };
-}
-
 function test_services_user_new_template() {
   var account = {
     name: user_password(),
@@ -56,10 +49,10 @@ var test_user_crud = function(name, pass, callback) {
                                 asyncTest("user_login - logging back in", function() {
                                     user_login(name, pass, {
                                         success:function(result){
-                                          console.log(result);
+                                          var account = Drupal.currentUser();
                                           start();
                                           expect(1);
-                                          ok(result.name[0].value == name, "name");
+                                          ok(account.getUsername() == name, "name");
                                           
                                           // Delete newly registered user...
                                           /*asyncTest("user_delete - deleting newly registered user", function() {
@@ -88,8 +81,8 @@ var test_user_crud = function(name, pass, callback) {
                                                                         expect(2);
                                                                         //ok(user_retrieve_result.uid == user_create_result.uid, "uid");
                                                                         //ok(user_retrieve_result.title == user.title, "title");
-                                                                        ok(user_retrieve_result.uid[0].value == result.uid[0].value, "uid");
-                                                                        ok(user_retrieve_result.name[0].value == result.name[0].value, "name");
+                                                                        ok(user_retrieve_result.id() == account.id(), "uid");
+                                                                        ok(user_retrieve_result.getUsername() == account.getUsername(), "name");
                                                                         
                                                                         // Update
                                                                         /*asyncTest("user_save - update existing", function() {

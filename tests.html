@@ -94,11 +94,12 @@
               }
               jdrupal_connect({
                   success:function(result){
-                  var uid = Drupal.user.uid[0]['value'];
+                  var account = Drupal.currentUser();
+                  var uid = account.id();
                     $('#login_name_wrapper').show('slow');
                     $('#login_pass_wrapper').show('slow');
                     if (uid != '0') {
-                      $('#login_name').val(Drupal.user.name[0]['value']);
+                      $('#login_name').val(account.getUsername());
                       $('#logout').show();
                       $('#go').hide();
                       if (uid == '1') {
@@ -154,8 +155,13 @@
           }
           
           $('#run_tests').on('click', function(){
-              if (Drupal.user.uid[0]['value'] != '1') {
+              var account = Drupal.currentUser();
+              if (account.id() != 1) {
                 alert('Only user #1 can run tests!');
+                return;
+              }
+              if (empty($('#login_pass').val())) {
+                alert('Enter password to run tests!');
                 return;
               }
               set_drupal_settings();
