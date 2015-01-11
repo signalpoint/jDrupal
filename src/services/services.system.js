@@ -33,7 +33,7 @@ function jdrupal_connect(options) {
         catch (error) { console.log('jdrupal_connect - error - ' + error); }
       }
     };
-    
+
     Drupal.services.call(jdrupal_connect);
     return;
 

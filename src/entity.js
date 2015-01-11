@@ -397,7 +397,7 @@ function entity_types() {
  */
 function entity_id_from_location(location) {
   try {
-    return location.split("/").pop();
+    return location.split('/').pop();
   }
   catch (error) { console.log('entity_id_from_location - ' + error); }
 }

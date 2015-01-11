@@ -44,7 +44,7 @@ Drupal.services.call = function(options) {
             var result = null;
             var response_header = request.getResponseHeader('Content-Type');
             if (request.status == 201) {
-              result = request.getResponseHeader("Location");
+              result = request.getResponseHeader('Location');
             }
             else if (response_header.indexOf('application/json') != -1) {
               result = JSON.parse(request.responseText);
@@ -140,7 +140,7 @@ Drupal.services.call = function(options) {
 
             // Add the token to the header if we have one.
             if (token) { request.setRequestHeader('X-CSRF-Token', token); }
-            
+
             // Unless someone specifically set the Accept header, we'll default
             // to application/json.
             var accept = 'application/json';
@@ -208,7 +208,7 @@ function services_get_csrf_token(options) {
   try {
 
     var token = null;
-    
+
     // It's OK to skip GET requests token retrieval, since we don't need one.
     if (
       typeof options.method !== 'undefined' &&
@@ -218,7 +218,7 @@ function services_get_csrf_token(options) {
 
     // Are we resetting the token?
     if (options.reset) { Drupal.sessid = null; }
-    
+
     // On some calls we don't need a token, so skip it.
     // @TODO turn this into bool that the caller can specify to skip the token
     // retrieval.
