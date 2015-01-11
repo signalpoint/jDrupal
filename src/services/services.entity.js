@@ -26,10 +26,10 @@ function entity_hal_links(entity_type, bundle, entity, options) {
  */
 function entity_create(entity_type, bundle, entity, options) {
   try {
-    
+
     // @TODO this function's name collides with D8.
     // @see https://api.drupal.org/api/drupal/core!includes!entity.inc/function/entity_create/8
-    
+
     entity_hal_links(entity_type, bundle, entity, options);
     Drupal.services.call({
         method: 'POST',
