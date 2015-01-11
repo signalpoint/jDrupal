@@ -344,11 +344,11 @@ function entity_save(entity_type, bundle, entity, options) {
         if (!entity.langcode) {
           entity.langcode = [{ value: language_default() }];
         }
-        if (!entity.nid) { function_name = 'node_create'; }
+        if (!entity.id()) { function_name = 'node_create'; }
         else { function_name = 'node_update'; }
         break;
       case 'user':
-        if (!entity.uid) { function_name = 'user_create'; }
+        if (!entity.id()) { function_name = 'user_create'; }
         else { function_name = 'user_update'; }
         break;
       case 'taxonomy_term':
