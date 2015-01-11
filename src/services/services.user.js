@@ -76,7 +76,7 @@ function user_register(account, options) {
         service: 'user',
         resource: 'register',
         method: 'POST',
-        path: 'user/register.json',
+        path: 'user/register',
         data: JSON.stringify(account),
         success: function(data) {
           try {
@@ -127,7 +127,7 @@ function user_login(name, pass, options) {
         success: function(account) {
           try {
             // Now that we are logged in, we need to get a new CSRF token.
-            Drupal.user = account;
+            Drupal.user = new Drupal.Entity.User(account);
             Drupal.sessid = null;
             services_get_csrf_token({
                 success: function(token) {
@@ -181,7 +181,7 @@ function user_logout(options) {
           try {
             // Now that we logged out, clear the user and sessid, then make a
             // fresh connection.
-            Drupal.user = drupal_user_defaults();
+            Drupal.user = new Drupal.Entity.User(drupal_user_defaults());
             Drupal.sessid = null;
             jdrupal_connect({
                 success: function(result) {
