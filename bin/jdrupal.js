@@ -144,6 +144,16 @@ function date(format) {
           }
           break;
 
+        // 1 (for Monday) through 7 (for Sunday)
+        case 'N':
+          result += d.getDay() + 1;
+          break;
+
+        // 0 (for Sunday) through 6 (for Saturday)
+        case 'w':
+          result += d.getDay();
+          break;
+
         /* WEEK */
 
         /* MONTH */
