@@ -76,6 +76,13 @@ function entity_update(entity_type, bundle, entity, options) {
   try {
     var entity_wrapper = _entity_wrap(entity_type, entity);
     var primary_key = entity_primary_key(entity_type);
+    var data = null;
+    // The comment update resource needs the data url encoded for some reason,
+    // all others get stringified.
+    if (entity_type == 'comment') {
+      data = entity_assemble_data(entity_type, bundle, entity, options);
+    }
+    else { data = JSON.stringify(entity_wrapper); }
     Drupal.services.call({
         method: 'PUT',
         path: entity_type + '/' + entity[primary_key] + '.json',
@@ -84,11 +91,11 @@ function entity_update(entity_type, bundle, entity, options) {
         entity_type: entity_type,
         entity_id: entity[entity_primary_key(entity_type)],
         bundle: bundle,
-        data: JSON.stringify(entity_wrapper),
-        success: function(data) {
+        data: data,
+        success: function(result) {
           try {
             _entity_local_storage_delete(entity_type, entity[primary_key]);
-            if (options.success) { options.success(data); }
+            if (options.success) { options.success(result); }
           }
           catch (error) { console.log('entity_update - success - ' + error); }
         },
