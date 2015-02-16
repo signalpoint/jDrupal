@@ -73,9 +73,10 @@ var test_comment_crud = function(callback) {
                                                   success:function(comments){
                                                     var updated_comment = comments[0];
                                                     start();
-                                                    expect(2);
+                                                    expect(3);
                                                     ok(comment_retrieve_result.cid == updated_comment.cid, "cid");
-                                                    ok(comment_changes.subject != updated_comment.subject, "subject");
+                                                    ok(comment.subject != updated_comment.subject, "new subject");
+                                                    ok(comment.comment_body['und'][0]['value'] != updated_comment.comment_body['und'][0]['value'], "new body");
                                                     
                                                     // Delete
                                                     
