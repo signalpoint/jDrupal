@@ -131,7 +131,14 @@ Drupal.services.call = function(options) {
                 contentType = 'application/x-www-form-urlencoded';
               }
             }
-            else if (method == 'PUT') { contentType = 'application/json'; }
+            else if (method == 'PUT') {
+              contentType = 'application/json';
+              // The comment update resource needs a url encoded data string.
+              if (options.service == 'comment' &&
+                options.resource == 'update') {
+                contentType = 'application/x-www-form-urlencoded';
+              }
+            }
 
             // Anyone overriding the content type?
             if (options.contentType) { contentType = options.contentType; }
