@@ -387,3 +387,54 @@ function entity_types() {
   catch (error) { console.log('entity_types - ' + error); }
 }
 
+/**
+ * Assembles the data string used in Service calls.
+ * @param {String} entity_type
+ * @param {String} bundle
+ * @param {Object} entity
+ * @param {Object} options
+ * @return {String} data
+ */
+function entity_assemble_data(entity_type, bundle, entity, options) {
+  try {
+    // @TODO - this is an old function that was once deprecated, however the
+    // Services module appears to require a application/x-www-form-urlencoded
+    // content type when using PUT via the Comment Update resource, so we need
+    // this function to generate the URL encoded string.
+    var data = '';
+    for (var property in entity) {
+      if (entity.hasOwnProperty(property)) {
+        var type = typeof entity[property];
+        // Assemble field items.
+        if (type === 'object') {
+          for (var language in entity[property]) {
+            if (entity[property].hasOwnProperty(language)) {
+              for (var delta in entity[property][language]) {
+                if (entity[property][language].hasOwnProperty(delta)) {
+                  for (var value in entity[property][language][delta]) {
+                    if (
+                      entity[property][language][delta].hasOwnProperty(value)) {
+                      data += property +
+                        '[' + language + '][' + delta + '][' + value + ']=' +
+                        encodeURIComponent(
+                          entity[property][language][delta][value]
+                        ) + '&';
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+        // Assemble flat properties.
+        else {
+          data += property + '=' + encodeURIComponent(entity[property]) + '&';
+        }
+      }
+    }
+    if (data != '') { data = data.substring(0, data.length - 1); }
+    return data;
+  }
+  catch (error) { console.log('entity_assemble_data - ' + error); }
+}
+
