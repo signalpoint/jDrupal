@@ -225,7 +225,7 @@ function entity_index_build_query_string(query) {
           }
       }
       if (parameters_op != '') {
-        parameters_op = parameters_op.substring(0, parameters.length - 1);
+        parameters_op = parameters_op.substring(0, parameters_op.length - 1);
         result += parameters_op + '&';
       }
     }
