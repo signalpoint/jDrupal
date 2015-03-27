@@ -233,7 +233,7 @@ function entity_index_build_query_string(query) {
       result += 'page=' + encodeURIComponent(query.page) + '&';
     }
     if (typeof query.page_size !== 'undefined') { // int
-      result += 'page_size=' + encodeURIComponent(query.page_size) + '&';
+      result += 'pagesize=' + encodeURIComponent(query.page_size) + '&';
     }
     return result.substring(0, result.length - 1);
   }
