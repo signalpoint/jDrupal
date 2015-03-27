@@ -279,8 +279,9 @@ function drupal_user_defaults() {
  */
 function empty(value) {
   try {
+    if (value === null) { return true; }
     if (typeof value === 'object') { return Object.keys(value).length === 0; }
-    return (typeof value === 'undefined' || value === null || value == '');
+    return (typeof value === 'undefined' || value == '');
   }
   catch (error) { console.log('empty - ' + error); }
 }
@@ -1908,7 +1909,7 @@ function entity_index_build_query_string(query) {
       result += 'page=' + encodeURIComponent(query.page) + '&';
     }
     if (typeof query.page_size !== 'undefined') { // int
-      result += 'page_size=' + encodeURIComponent(query.page_size) + '&';
+      result += 'pagesize=' + encodeURIComponent(query.page_size) + '&';
     }
     return result.substring(0, result.length - 1);
   }
