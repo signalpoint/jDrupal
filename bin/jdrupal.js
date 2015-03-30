@@ -2492,3 +2492,22 @@ function user_logout(options) {
   }
 }
 
+/**
+ * The "request_new_password" service resource.
+ * @param {String} name User name or e-mail address.
+ * @param {Object} options
+ */
+function user_request_new_password(name, options) {
+  try {
+    if (typeof options.data === 'undefined') { options.data = { }; }
+    options.data.name = name;
+    options.data = JSON.stringify(options.data);
+    options.method = 'POST';
+    options.path = 'user/request_new_password.json';
+    options.service = 'user';
+    options.resource = 'request_new_password';
+    Drupal.services.call(options);
+  }
+  catch (error) { console.log('user_request_new_password - ' + error); }
+}
+
