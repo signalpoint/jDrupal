@@ -26,8 +26,8 @@
         // Set the Service Resource endpoint path.
         Drupal.settings.endpoint = "";
         
-        // Perform a System Connect call.
-        system_connect({
+        // Perform a jDrupal Connect call.
+        jdrupal_connect({
             success:function(result){
               
               // Place custom code here...
@@ -38,7 +38,7 @@
               
             },
             error:function(xhr, status, message) {
-              alert(message);
+              console.log(message);
             }
         });
         
