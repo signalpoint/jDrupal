@@ -19,3 +19,24 @@ JavaScript. Use jDrupal to easily build JavaScript based mobile applications
 and web applications for your Drupal site.
 
 For more information and "Hello World", please visit: http://www.easystreet3.com/jDrupal
+
+# Installation
+
+First, install the jDrupal module on your Drupal 8 site:
+
+https://www.drupal.org/project/jdrupal
+
+Install the REST UI module:
+
+https://www.drupal.org/project/restui
+
+Go to `admin/config/services/rest` and enable the `User` resource, then enable
+the following methods, formats and authentication providers for the `User`
+resource:
+
+GET, POST, DELETE, PATCH
+json
+cookie
+
+To be continued...
+
