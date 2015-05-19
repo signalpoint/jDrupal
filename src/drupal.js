@@ -194,6 +194,24 @@ function date(format) {
 
         /* TIME */
 
+        // Lowercase Ante meridiem and Post meridiem: am or pm
+        case 'a':
+        // Uppercase Ante meridiem and Post meridiem: AM or PM
+        case 'A':
+          var hours = d.getHours();
+          if (hours < 12) { result += 'am'; }
+          else { result += 'pm'; }
+          if (character == 'A') { result = result.toUpperCase(); }
+          break;
+
+        // 12-hour format of an hour without leading zeros: 1 through 12
+        case 'g':
+          var hours = d.getHours();
+          if (hours == 0 || hours == 23) { hours = 12; }
+          else { hours = hours % 12; }
+          result += '' + hours;
+          break;
+
         // 24-hour format of an hour without leading zeros: 0 through 23
         case 'G':
           var hours = '' + d.getHours();
