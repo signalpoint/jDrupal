@@ -1,3 +1,23 @@
+/**
+ * The jdrupal-ng Angular module.
+ */
+angular.module('jdrupal-ng', []).
+  service('jdrupal', ['$http', 'jdrupalSettings', jdrupal]).
+  value('jdrupalSettings', null);
+
+/**
+ * The "jdrupal" Angular Service.
+ */
+function jdrupal($http, jdrupalSettings) {
+  this.restPath = jdrupalSettings.site_path + '/?q=' + jdrupalSettings.endpoint;
+  this.node_load = function(nid) {
+    return $http.get(this.restPath + '/node/' + nid + '.json');
+  }
+  this.user_load = function(uid) {
+    return $http.get(this.restPath + '/user/' + uid + '.json');
+  }
+}
+
 // Initialize the Drupal JSON object and run the bootstrap, if necessary.
 var Drupal = {}; drupal_init();
 
