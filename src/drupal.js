@@ -12,9 +12,28 @@ function jdrupal($http, jdrupalSettings) {
   this.restPath = jdrupalSettings.site_path + '/?q=' + jdrupalSettings.endpoint;
   this.node_load = function(nid) {
     return $http.get(this.restPath + '/node/' + nid + '.json');
-  }
+  };
+  this.node_save = function(node) {
+    if (!node.nid) {
+      $http.post(this.restPath + '/node.json');
+    }
+    else {
+      return $http.put(this.restPath + '/node/' + nid + '.json');
+    }
+  };
   this.user_load = function(uid) {
     return $http.get(this.restPath + '/user/' + uid + '.json');
+  };
+  this.user_login = function(username, password) {
+    return $http({
+        method: 'POST',
+        url: this.restPath + '/user/login.json',
+        data: $.param({
+            username: username,
+            password: password
+        }),
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+    });
   }
 }
 
