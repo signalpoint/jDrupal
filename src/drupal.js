@@ -9,7 +9,11 @@ angular.module('jdrupal-ng', []).
  * The "jdrupal" Angular Service.
  */
 function jdrupal($http, jdrupalSettings) {
-  this.restPath = jdrupalSettings.site_path + '/?q=' + jdrupalSettings.endpoint;
+  this.sitePath = jdrupalSettings.site_path
+  this.restPath = this.sitePath + '/?q=' + jdrupalSettings.endpoint;
+  this.x_csrf_token = function(result) {
+    return $http.get(this.sitePath + '/?q=services/session/token');
+  };
   this.node_load = function(nid) {
     return $http.get(this.restPath + '/node/' + nid + '.json');
   };
@@ -32,9 +36,84 @@ function jdrupal($http, jdrupalSettings) {
             username: username,
             password: password
         }),
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        }
+    }).success(function(result) {
+      dpm('jdrupal success');
+      // Now that we are logged in, we need to get a new CSRF token, and
+      // then make a system connect call.
+      Drupal.user = result.user;
+      Drupal.sessid = null;
+      /*services_get_csrf_token({
+          success: function(token) {
+            try {
+              if (options.success) {
+                system_connect({
+                    success: function(result) {
+                      try {
+                        if (options.success) { options.success(data); }
+                      }
+                      catch (error) {
+                        console.log(
+                          'user_login - system_connect - success - ' +
+                          error
+                        );
+                      }
+                    },
+                    error: function(xhr, status, message) {
+                      try {
+                        if (options.error) {
+                          options.error(xhr, status, message);
+                        }
+                      }
+                      catch (error) {
+                        console.log(
+                          'user_login - system_connect - error - ' +
+                          error
+                        );
+                      }
+                    }
+                });
+              }
+            }
+            catch (error) {
+              console.log(
+                'user_login - services_get_csrf_token - success - ' +
+                error
+              );
+            }
+          },
+          error: function(xhr, status, message) {
+            console.log(
+              'user_login - services_get_csrf_token - error - ' +
+              message
+            );
+            if (options.error) { options.error(xhr, status, message); }
+          }
+      });*/
     });
-  }
+  };
+
+  this.user_logout = function() {
+    
+    var restPath = this.restPath;
+    return this.x_csrf_token().success(function(token) {
+        $http({
+            method: 'POST',
+            url: restPath + '/user/logout.json',
+            headers: {
+              'X-CSRF-Token': token
+            }
+        }).success(function(result) {
+          // Now that we logged out, clear the sessid and call system connect.
+          Drupal.user = drupal_user_defaults();
+          Drupal.sessid = null;
+        });
+    });
+
+  };
+
 }
 
 // Initialize the Drupal JSON object and run the bootstrap, if necessary.
