@@ -11,8 +11,26 @@ angular.module('jdrupal-ng', []).
 function jdrupal($http, jdrupalSettings) {
   this.sitePath = jdrupalSettings.site_path
   this.restPath = this.sitePath + '/?q=' + jdrupalSettings.endpoint;
-  this.x_csrf_token = function(result) {
-    return $http.get(this.sitePath + '/?q=services/session/token');
+  this.token = function(result) {
+    return $http.get(this.sitePath + '/?q=services/session/token').success(function(token) {
+        Drupal.sessid = token;
+    });
+  };
+  this.system_connect = function() {
+    var options = {
+      method: 'POST',
+      url: this.restPath + '/system/connect.json', // @TODO this.restPath gets lost
+      headers: { }
+    };
+    console.log(options);
+    if (!Drupal.sessid) {
+      return this.token().success(function(token) {
+          options.headers['X-CSRF-Token'] = token;
+          return $http(options);
+      });
+    }
+    options.headers['X-CSRF-Token'] = Drupal.sessid;
+    return $http(options);
   };
   this.node_load = function(nid) {
     return $http.get(this.restPath + '/node/' + nid + '.json');
@@ -28,7 +46,11 @@ function jdrupal($http, jdrupalSettings) {
   this.user_load = function(uid) {
     return $http.get(this.restPath + '/user/' + uid + '.json');
   };
+  
+  // USER LOGIN
   this.user_login = function(username, password) {
+    var _token = this.token;
+    var _system_connect = this.system_connect;
     return $http({
         method: 'POST',
         url: this.restPath + '/user/login.json',
@@ -40,65 +62,22 @@ function jdrupal($http, jdrupalSettings) {
           'Content-Type': 'application/x-www-form-urlencoded'
         }
     }).success(function(result) {
-      dpm('jdrupal success');
-      // Now that we are logged in, we need to get a new CSRF token, and
-      // then make a system connect call.
+
+      // Now that we are logged in, set the user account, clear out the session
+      // id and grab a new CSRF token, and then make a system connect call.
       Drupal.user = result.user;
       Drupal.sessid = null;
-      /*services_get_csrf_token({
-          success: function(token) {
-            try {
-              if (options.success) {
-                system_connect({
-                    success: function(result) {
-                      try {
-                        if (options.success) { options.success(data); }
-                      }
-                      catch (error) {
-                        console.log(
-                          'user_login - system_connect - success - ' +
-                          error
-                        );
-                      }
-                    },
-                    error: function(xhr, status, message) {
-                      try {
-                        if (options.error) {
-                          options.error(xhr, status, message);
-                        }
-                      }
-                      catch (error) {
-                        console.log(
-                          'user_login - system_connect - error - ' +
-                          error
-                        );
-                      }
-                    }
-                });
-              }
-            }
-            catch (error) {
-              console.log(
-                'user_login - services_get_csrf_token - success - ' +
-                error
-              );
-            }
-          },
-          error: function(xhr, status, message) {
-            console.log(
-              'user_login - services_get_csrf_token - error - ' +
-              message
-            );
-            if (options.error) { options.error(xhr, status, message); }
-          }
-      });*/
+      return _token().success(function(token) {
+          dpm('logged in and got a new token! ' + token);
+          return _system_connect();
+      });
     });
   };
 
   this.user_logout = function() {
     
     var restPath = this.restPath;
-    return this.x_csrf_token().success(function(token) {
+    return this.token().success(function(token) {
         $http({
             method: 'POST',
             url: restPath + '/user/logout.json',
