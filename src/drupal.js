@@ -19,7 +19,7 @@ function jdrupal($http, jdrupalSettings) {
   this.system_connect = function() {
     var options = {
       method: 'POST',
-      url: this.restPath + '/system/connect.json', // @TODO this.restPath gets lost
+      url: this.restPath + '/system/connect.json',
       headers: { }
     };
     if (!Drupal.sessid) {
@@ -111,6 +111,30 @@ function jdrupal($http, jdrupalSettings) {
     });
 
   };
+  
+  // USER REGISTER
+  
+  this.user_register = function(account) {
+    
+    var options = {
+      method: 'POST',
+      url: this.restPath + '/user/register.json',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      data: { account: account }
+    };
+    if (!Drupal.sessid) {
+      return $http.get(this.sitePath + '/?q=services/session/token').success(function(token) {
+          Drupal.sessid = token;
+          options.headers['X-CSRF-Token'] = token;
+          return $http(options);
+      });
+    }
+    options.headers['X-CSRF-Token'] = Drupal.sessid;
+    return $http(options);
+    
+  }
 
 }
 
