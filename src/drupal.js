@@ -22,7 +22,6 @@ function jdrupal($http, jdrupalSettings) {
       url: this.restPath + '/system/connect.json', // @TODO this.restPath gets lost
       headers: { }
     };
-    console.log(options);
     if (!Drupal.sessid) {
       return this.token().success(function(token) {
           options.headers['X-CSRF-Token'] = token;
@@ -48,12 +47,21 @@ function jdrupal($http, jdrupalSettings) {
   };
   
   // USER LOGIN
+
   this.user_login = function(username, password) {
-    var _token = this.token;
-    var _system_connect = this.system_connect;
+    
+    // @TODO logging in takes 3 calls to the server (logging in, grabbing a new
+    // token, then system connecting), this should be a single service resource
+    // (like it used to be in the early DrupalGap days). Make it available in
+    // the jDrupal Drupal module.
+    
+    // Hang onto the rest path, so it will be available later in the scope.
+    var restPath = this.restPath;
+    
+    // Make the login attempt via POST without a token...
     return $http({
         method: 'POST',
-        url: this.restPath + '/user/login.json',
+        url: restPath + '/user/login.json',
         data: $.param({
             username: username,
             password: password
@@ -62,17 +70,28 @@ function jdrupal($http, jdrupalSettings) {
           'Content-Type': 'application/x-www-form-urlencoded'
         }
     }).success(function(result) {
-
-      // Now that we are logged in, set the user account, clear out the session
-      // id and grab a new CSRF token, and then make a system connect call.
+      
+      // We're logged in...
+      
+      // Set the user account, clear out the session id, retrieve a new CSRF
+      // token and then make a system connect call.
       Drupal.user = result.user;
       Drupal.sessid = null;
-      return _token().success(function(token) {
-          dpm('logged in and got a new token! ' + token);
-          return _system_connect();
+      return $http.get(this.sitePath + '/?q=services/session/token').success(function(token) {
+          Drupal.sessid = token;
+          var options = {
+            method: 'POST',
+            url: restPath + '/system/connect.json',
+            headers: {
+              'X-CSRF-Token': Drupal.sessid
+            }
+          };
+          return $http(options);
       });
     });
   };
+  
+  // USER LOGOUT
 
   this.user_logout = function() {
     
