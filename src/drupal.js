@@ -11,11 +11,17 @@ angular.module('jdrupal-ng', []).
 function jdrupal($http, jdrupalSettings) {
   this.sitePath = jdrupalSettings.site_path
   this.restPath = this.sitePath + '/?q=' + jdrupalSettings.endpoint;
+  
+  // TOKEN (X-CSRF-Token)
+  
   this.token = function(result) {
     return $http.get(this.sitePath + '/?q=services/session/token').success(function(token) {
         Drupal.sessid = token;
     });
   };
+  
+  // SYSTEM CONNECT
+  
   this.system_connect = function() {
     var options = {
       method: 'POST',
@@ -30,20 +36,6 @@ function jdrupal($http, jdrupalSettings) {
     }
     options.headers['X-CSRF-Token'] = Drupal.sessid;
     return $http(options);
-  };
-  this.node_load = function(nid) {
-    return $http.get(this.restPath + '/node/' + nid + '.json');
-  };
-  this.node_save = function(node) {
-    if (!node.nid) {
-      $http.post(this.restPath + '/node.json');
-    }
-    else {
-      return $http.put(this.restPath + '/node/' + nid + '.json');
-    }
-  };
-  this.user_load = function(uid) {
-    return $http.get(this.restPath + '/user/' + uid + '.json');
   };
   
   // USER LOGIN
@@ -125,6 +117,8 @@ function jdrupal($http, jdrupalSettings) {
       data: { account: account }
     };
     if (!Drupal.sessid) {
+      // @TODO this is returning the token instead of the user registration
+      // result, learn how to use promises...?
       return $http.get(this.sitePath + '/?q=services/session/token').success(function(token) {
           Drupal.sessid = token;
           options.headers['X-CSRF-Token'] = token;
@@ -134,7 +128,30 @@ function jdrupal($http, jdrupalSettings) {
     options.headers['X-CSRF-Token'] = Drupal.sessid;
     return $http(options);
     
-  }
+  };
+  
+  // USER LOAD
+  
+  this.user_load = function(uid) {
+    return $http.get(this.restPath + '/user/' + uid + '.json');
+  };
+  
+  // NODE LOAD
+  
+  this.node_load = function(nid) {
+    return $http.get(this.restPath + '/node/' + nid + '.json');
+  };
+  
+  // NODE SAVE
+  
+  this.node_save = function(node) {
+    if (!node.nid) {
+      $http.post(this.restPath + '/node.json');
+    }
+    else {
+      return $http.put(this.restPath + '/node/' + nid + '.json');
+    }
+  };
 
 }
 
