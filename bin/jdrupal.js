@@ -1036,57 +1036,6 @@ function entity_types() {
 }
 
 /**
- * Assembles the data string used in Service calls.
- * @param {String} entity_type
- * @param {String} bundle
- * @param {Object} entity
- * @param {Object} options
- * @return {String} data
- */
-function entity_assemble_data(entity_type, bundle, entity, options) {
-  try {
-    // @TODO - this is an old function that was once deprecated, however the
-    // Services module appears to require a application/x-www-form-urlencoded
-    // content type when using PUT via the Comment Update resource, so we need
-    // this function to generate the URL encoded string.
-    var data = '';
-    for (var property in entity) {
-      if (entity.hasOwnProperty(property)) {
-        var type = typeof entity[property];
-        // Assemble field items.
-        if (type === 'object') {
-          for (var language in entity[property]) {
-            if (entity[property].hasOwnProperty(language)) {
-              for (var delta in entity[property][language]) {
-                if (entity[property][language].hasOwnProperty(delta)) {
-                  for (var value in entity[property][language][delta]) {
-                    if (
-                      entity[property][language][delta].hasOwnProperty(value)) {
-                      data += property +
-                        '[' + language + '][' + delta + '][' + value + ']=' +
-                        encodeURIComponent(
-                          entity[property][language][delta][value]
-                        ) + '&';
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-        // Assemble flat properties.
-        else {
-          data += property + '=' + encodeURIComponent(entity[property]) + '&';
-        }
-      }
-    }
-    if (data != '') { data = data.substring(0, data.length - 1); }
-    return data;
-  }
-  catch (error) { console.log('entity_assemble_data - ' + error); }
-}
-
-/**
  * Loads a file, given a file id.
  * @param {Number} fid
  * @param {Object} options
@@ -1361,11 +1310,6 @@ Drupal.services.call = function(options) {
             }
             else if (method == 'PUT') {
               contentType = 'application/json';
-              // The comment update resource needs a url encoded data string.
-              if (options.service == 'comment' &&
-                options.resource == 'update') {
-                contentType = 'application/x-www-form-urlencoded';
-              }
             }
 
             // Anyone overriding the content type?
@@ -1770,13 +1714,7 @@ function entity_update(entity_type, bundle, entity, options) {
   try {
     var entity_wrapper = _entity_wrap(entity_type, entity);
     var primary_key = entity_primary_key(entity_type);
-    var data = null;
-    // The comment update resource needs the data url encoded for some reason,
-    // all others get stringified.
-    if (entity_type == 'comment') {
-      data = entity_assemble_data(entity_type, bundle, entity, options);
-    }
-    else { data = JSON.stringify(entity_wrapper); }
+    var data = JSON.stringify(entity_wrapper);
     Drupal.services.call({
         method: 'PUT',
         path: entity_type + '/' + entity[primary_key] + '.json',
@@ -1942,9 +1880,9 @@ function entity_index_build_query_string(query) {
  */
 function _entity_wrap(entity_type, entity) {
   try {
-    // We don't wrap taxonomy, users or commerce entities.
+    // We don't wrap comments, taxonomy, users or commerce entities.
     var entity_wrapper = {};
-    if (entity_type == 'taxonomy_term' ||
+    if (entity_type == 'comment' || entity_type == 'taxonomy_term' ||
       entity_type == 'taxonomy_vocabulary' ||
       entity_type == 'user' || entity_type.indexOf('commerce') != -1) {
       entity_wrapper = entity;

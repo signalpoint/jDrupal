@@ -76,13 +76,7 @@ function entity_update(entity_type, bundle, entity, options) {
   try {
     var entity_wrapper = _entity_wrap(entity_type, entity);
     var primary_key = entity_primary_key(entity_type);
-    var data = null;
-    // The comment update resource needs the data url encoded for some reason,
-    // all others get stringified.
-    if (entity_type == 'comment') {
-      data = entity_assemble_data(entity_type, bundle, entity, options);
-    }
-    else { data = JSON.stringify(entity_wrapper); }
+    var data = JSON.stringify(entity_wrapper);
     Drupal.services.call({
         method: 'PUT',
         path: entity_type + '/' + entity[primary_key] + '.json',
@@ -248,9 +242,9 @@ function entity_index_build_query_string(query) {
  */
 function _entity_wrap(entity_type, entity) {
   try {
-    // We don't wrap taxonomy, users or commerce entities.
+    // We don't wrap comments, taxonomy, users or commerce entities.
     var entity_wrapper = {};
-    if (entity_type == 'taxonomy_term' ||
+    if (entity_type == 'comment' || entity_type == 'taxonomy_term' ||
       entity_type == 'taxonomy_vocabulary' ||
       entity_type == 'user' || entity_type.indexOf('commerce') != -1) {
       entity_wrapper = entity;

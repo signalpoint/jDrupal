@@ -50,7 +50,7 @@ var test_comment_crud = function(callback) {
                                 expect(3);
                                 ok(comment_retrieve_result.cid == comment_create_result.cid, "cid");
                                 ok(comment_retrieve_result.subject == comment.subject, "subject");
-                                ok(comment_retrieve_result.comment_body[lng][0].value == comment_retrieve_result.comment_body[lng][0].value, "comment_body");
+                                ok(comment_retrieve_result.comment_body[lng][0].value == comment.comment_body[lng][0].value, "comment_body");
                                 
                                 // Update
                                 asyncTest("comment_save - update existing", function() {
