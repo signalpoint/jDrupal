@@ -1862,6 +1862,19 @@ function entity_index_build_query_string(query) {
         result += parameters_op + '&';
       }
     }
+    if (query.orderby) {
+      var orderby = '';
+      for (var column in query.orderby) {
+          if (!query.orderby.hasOwnProperty(column)) { continue; }
+          var key = encodeURIComponent(column);
+          var value = encodeURIComponent(query.orderby[column]);
+          orderby += 'orderby[' + key + ']=' + value + '&';
+      }
+      if (orderby != '') {
+        orderby = orderby.substring(0, orderby.length - 1);
+        result += orderby + '&';
+      }
+    }
     if (typeof query.page !== 'undefined') { // int
       result += 'page=' + encodeURIComponent(query.page) + '&';
     }
