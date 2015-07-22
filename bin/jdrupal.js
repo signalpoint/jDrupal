@@ -1875,6 +1875,23 @@ function entity_index_build_query_string(query) {
         result += orderby + '&';
       }
     }
+    if (query.options) {
+      var options = '';
+      for (var option in query.options) {
+          if (!query.options.hasOwnProperty(option)) { continue; }
+          var _option = query.options[option];
+          for (var column in _option) {
+            if (!_option.hasOwnProperty(column)) { continue; }
+            var key = encodeURIComponent(column);
+            var value = encodeURIComponent(_option[column]);
+            options += 'options[' + option + '][' + key + ']=' + value + '&';
+          }
+      }
+      if (options != '') {
+        options = options.substring(0, options.length - 1);
+        result += options + '&';
+      }
+    }
     if (typeof query.page !== 'undefined') { // int
       result += 'page=' + encodeURIComponent(query.page) + '&';
     }
