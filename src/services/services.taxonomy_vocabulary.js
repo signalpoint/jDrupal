@@ -80,3 +80,26 @@ function taxonomy_vocabulary_index(query, options) {
   catch (error) { console.log('taxonomy_vocabulary_index - ' + error); }
 }
 
+/**
+ * @see https://api.drupal.org/api/drupal/modules!taxonomy!taxonomy.module/function/taxonomy_get_tree/7
+ */
+function taxonomy_get_tree(vid, parent, max_depth, load_entities, options) {
+  try {
+    var parent = arguments[1] ? arguments[1] : 0;
+    var max_depth = arguments[2] ? arguments[2] : null;
+    var load_entities = arguments[3] ? arguments[3] : false;
+    options.method = 'POST';
+    options.path = 'taxonomy_vocabulary/getTree.json';
+    options.service = 'taxonomy_vocabulary';
+    options.resource = 'get_tree';
+    options.data = JSON.stringify({
+        vid: vid,
+        parent: parent,
+        max_depth: max_depth,
+        load_entities: load_entities
+    });
+    Drupal.services.call(options);
+  }
+  catch (error) { console.log('taxonomy_get_tree - ' + error); }
+}
+
