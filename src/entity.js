@@ -238,7 +238,7 @@ function _entity_local_storage_load(entity_type, entity_id, options) {
           drupalgap.page.options.reloadingPage) {
           // Reloading page... cached entity is still valid.
           if (typeof drupalgap.page.options.reset !== 'undefined' &&
-            drupalgap.page.options.reset == false) {
+            drupalgap.page.options.reset === false) {
             // We were told to not reset it, so we'll use the cached copy.
             return entity;
           }
