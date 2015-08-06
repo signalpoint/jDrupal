@@ -887,7 +887,7 @@ function _entity_local_storage_load(entity_type, entity_id, options) {
           drupalgap.page.options.reloadingPage) {
           // Reloading page... cached entity is still valid.
           if (typeof drupalgap.page.options.reset !== 'undefined' &&
-            drupalgap.page.options.reset == false) {
+            drupalgap.page.options.reset === false) {
             // We were told to not reset it, so we'll use the cached copy.
             return entity;
           }
@@ -1854,9 +1854,11 @@ function entity_index_build_query_string(query) {
           if (query.parameters_op.hasOwnProperty(parameter_op)) {
             var key = encodeURIComponent(parameter_op);
             var value = encodeURIComponent(query.parameters_op[parameter_op]);
-            // @TODO remove double compatability upon resolution of #2537968 on d.o
+            // @TODO remove double compatability upon resolution of #2537968 on
+            // drupal.org
             parameters_op += 'parameters_op[' + key + ']=' + value + '&';
-            parameters_op += 'options[parameters_op][' + key + ']=' + value + '&';
+            parameters_op +=
+              'options[parameters_op][' + key + ']=' + value + '&';
           }
       }
       if (parameters_op != '') {
@@ -1870,7 +1872,8 @@ function entity_index_build_query_string(query) {
           if (!query.orderby.hasOwnProperty(column)) { continue; }
           var key = encodeURIComponent(column);
           var value = encodeURIComponent(query.orderby[column]);
-          // @TODO remove double compatability upon resolution of #2537968 on d.o
+          // @TODO remove double compatability upon resolution of #2537968 on
+          // drupal.org
           orderby += 'orderby[' + key + ']=' + value + '&';
           orderby += 'options[orderby][' + key + ']=' + value + '&';
       }
