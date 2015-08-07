@@ -1,0 +1,22 @@
+{
+  "name": "jdrupal",
+  "version": "7.0.0",
+  "homepage": "https://github.com/easystreet3/jDrupal",
+  "authors": [
+    "Tyler Frankenstein <tyler.frankenstein@gmail.com>"
+  ],
+  "description": "An JavaScript module for Drupal 7 Services.",
+  "keywords": [
+    "drupal"
+  ],
+  "license": "GNU",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+  }
+}
