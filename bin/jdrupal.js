@@ -465,6 +465,7 @@ function ucfirst(str) {
   return f + str.substr(1);
 }
 
+
 /**
  * Determines which modules are implementing a hook. Returns an array with the
  * names of the modules which are implementing this hook. If no modules
@@ -623,6 +624,7 @@ function module_types() {
   catch (error) { console.log('module_types - ' + error); }
 }
 
+
 /**
  * Loads a comment.
  * @param {Number} cid
@@ -646,6 +648,7 @@ function comment_save(comment, options) {
   }
   catch (error) { console.log('comment_save - ' + error); }
 }
+
 
 /**
  * Delete an entity.
@@ -1036,6 +1039,7 @@ function entity_types() {
   catch (error) { console.log('entity_types - ' + error); }
 }
 
+
 /**
  * Loads a file, given a file id.
  * @param {Number} fid
@@ -1059,6 +1063,7 @@ function file_save(file, options) {
   }
   catch (error) { console.log('file_save - ' + error); }
 }
+
 
 /**
  * Loads a node.
@@ -1084,6 +1089,7 @@ function node_save(node, options) {
   catch (error) { console.log('node_save - ' + error); }
 }
 
+
 /**
  * Loads a taxonomy term.
  * @param {Number} tid
@@ -1108,6 +1114,7 @@ function taxonomy_term_save(taxonomy_term, options) {
   catch (error) { console.log('taxonomy_term_save - ' + error); }
 }
 
+
 /**
  * Loads a taxonomy vocabulary.
  * @param {Number} vid
@@ -1131,6 +1138,7 @@ function taxonomy_vocabulary_save(taxonomy_vocabulary, options) {
   }
   catch (error) { console.log('taxonomy_vocabulary_save - ' + error); }
 }
+
 
 /**
  * Loads a user account.
@@ -1175,6 +1183,7 @@ function user_password() {
   }
   catch (error) { console.log('user_password - ' + error); }
 }
+
 
 /**
  * The Drupal services JSON object.
@@ -1572,6 +1581,7 @@ function _services_queue_callback_count(service, resource, entity_id,
   catch (error) { console.log('_services_queue_callback_count - ' + error); }
 }
 
+
 /**
  * Creates a comment.
  * @param {Object} comment
@@ -1636,6 +1646,7 @@ function comment_index(query, options) {
   }
   catch (error) { console.log('comment_index - ' + error); }
 }
+
 
 /**
  * Creates an entity.
@@ -1931,6 +1942,7 @@ function _entity_wrap(entity_type, entity) {
   catch (error) { console.log('_entity_wrap - ' + error); }
 }
 
+
 /**
  * Creates a file.
  * @param {Object} file
@@ -1956,6 +1968,7 @@ function file_retrieve(ids, options) {
   }
   catch (error) { console.log('file_retrieve - ' + error); }
 }
+
 
 /**
  * Creates a node.
@@ -2021,6 +2034,7 @@ function node_index(query, options) {
   }
   catch (error) { console.log('node_index - ' + error); }
 }
+
 
 /**
  * System connect call.
@@ -2089,6 +2103,7 @@ function system_connect(options) {
   }
 }
 
+
 /**
  * Creates a taxonomy term.
  * @param {Object} taxonomy_term
@@ -2153,6 +2168,7 @@ function taxonomy_term_index(query, options) {
   }
   catch (error) { console.log('taxonomy_term_index - ' + error); }
 }
+
 
 /**
  * Creates a taxonomy vocabulary.
@@ -2258,6 +2274,7 @@ function taxonomy_get_tree(vid, parent, max_depth, load_entities, options) {
   }
   catch (error) { console.log('taxonomy_get_tree - ' + error); }
 }
+
 
 /**
  * Creates a user.
