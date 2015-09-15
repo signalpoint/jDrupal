@@ -19,7 +19,12 @@ Drupal.services.call = function(options) {
       return;
     }
 
-    module_invoke_all('services_preprocess', options);
+    if (options.hasOwnProperty('tries')) {
+      options.tries++;
+    }else {
+      module_invoke_all('services_preprocess', options);
+      options.tries = 0;
+    }
 
     // Build the Request, URL and extract the HTTP method.
     var request = new XMLHttpRequest();
@@ -88,7 +93,7 @@ Drupal.services.call = function(options) {
               if (!message || message == '') { message = title; }
               options.error(request, request.status, message);
             }
-            module_invoke_all('services_postprocess', options, request);
+            module_invoke_all('services_postprocess_error', options, request);
           }
         }
         else {
