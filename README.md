@@ -40,7 +40,7 @@ Download and enable the Services module on the Drupal site. Import the endpoint 
 - Under admin/config/development/performance click Clear all caches
 
 ### Add jDrupal library to your app and configure it
-- Download the jDrupal library with `bower install jdrupal` or [download a release](https://github.com/rjsteinert/jDrupal/releases) manually.
+- Download the jDrupal library with `bower install jdrupal` or [download a release](https://github.com/easystreet3/jDrupal/releases) manually.
 - Include the `bin/jdrupal.js` file using a script tag in your app.
 - Configure the environmental variables to let jDrupal know where your Drupal endpoint is.
 ```
