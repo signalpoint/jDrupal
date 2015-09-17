@@ -1203,10 +1203,12 @@ Drupal.services.call = function(options) {
       module_invoke_all('services_preprocess', options);
       options.tries = 1;
     }
-    // TODO: maybe this is the only case we should queue the request for retry.
-    // so, probably we should create another hook
     if (!drupalgap.online) {
       module_invoke_all('services_postprocess', options, 0);
+      if (options.hasOwnProperty('retry') && options.retry)
+        _services_queue_submission(options);
+      if (typeof options.queued !== 'undefined')
+        options.queued(options);
       return;
     }
 
@@ -1255,14 +1257,15 @@ Drupal.services.call = function(options) {
               options,
               result
             );
-            if (options.tries == 1)
-              options.success(result);
+            options.success(result, options.tries);
             module_invoke_all(
               'services_request_postprocess_alter',
               options,
               result
             );
             module_invoke_all('services_postprocess', options, result);
+            // process the next queued submission
+            _services_process_submission_queue();
           }
           else {
             // Not OK...
@@ -1277,10 +1280,9 @@ Drupal.services.call = function(options) {
               var message = request.responseText || '';
               if (!message || message == '') { message = title; }
               if (options.tries == 1)
-                options.error(request, request.status, message);
+                options.error(request, request.status, message, options.tries);
             }
-//             module_invoke_all('services_postprocess', options, request);
-            module_invoke_all('services_postprocess', options, 0);
+            module_invoke_all('services_postprocess', options, request);
           }
         }
         else {
@@ -1371,7 +1373,6 @@ Drupal.services.call = function(options) {
         },
         error: function(xhr, status, message) {
           try {
-            module_invoke_all('services_postprocess', options, 0);
             console.log(
               'Drupal.services.call - services_get_csrf_token - ' + message
             );
@@ -1388,7 +1389,6 @@ Drupal.services.call = function(options) {
 
   }
   catch (error) {
-    module_invoke_all('services_postprocess', options, 0);
     console.log('Drupal.services.call - error - ' + error);
   }
 };
@@ -1588,6 +1588,55 @@ function _services_queue_callback_count(service, resource, entity_id,
   catch (error) { console.log('_services_queue_callback_count - ' + error); }
 }
 
+/**
+ * RETRY QUEUE HELPERS
+ */
+
+function _services_process_submission_queue() {
+  try {
+    var submission = _services_dequeue_submission();
+    if (typeof submission !== 'undefined')
+      Drupal.services.call(submission);
+  }
+  catch (error) {
+    console.log('_services_process_submission_queue - ' + error);
+  }
+}
+
+function _services_get_submission_queue() {
+  try {
+    var queue = variable_get('services_submission_queue', []);
+    if (typeof queue === 'string') { queue = JSON.parse(queue); }
+    return queue;
+  }
+  catch (error) { console.log('_services_get_submission_queue - ' + error); }
+}
+
+function _services_set_submission_queue(queue) {
+  try {
+    variable_set('services_submission_queue', queue);
+  }
+  catch (error) { console.log('_services_set_submission_queue - ' + error); }
+}
+
+function _services_queue_submission(submission) {
+  try {
+    var queue = _services_get_submission_queue();
+    queue.push(submission);
+    _services_set_submission_queue(queue);
+  }
+  catch (error) { console.log('_services_queue_submission - ' + error); }
+}
+
+function _services_dequeue_submission() {
+  try {
+    var queue = _services_get_submission_queue();
+    var submission = queue.shift();
+    _services_set_submission_queue(queue);
+    return submission;
+  }
+  catch (error) { console.log('_services_dequeue_submission - ' + error); }
+}
 /**
  * Creates a comment.
  * @param {Object} comment
