@@ -1199,9 +1199,15 @@ Drupal.services.call = function(options) {
 
     if (options.hasOwnProperty('tries')) {
       options.tries++;
-    }else {
+    } else {
       module_invoke_all('services_preprocess', options);
-      options.tries = 0;
+      options.tries = 1;
+    }
+    // TODO: maybe this is the only case we should queue the request for retry.
+    // so, probably we should create another hook
+    if (!drupalgap.online) {
+      module_invoke_all('services_postprocess', options, 0);
+      return;
     }
 
     // Build the Request, URL and extract the HTTP method.
@@ -1249,7 +1255,8 @@ Drupal.services.call = function(options) {
               options,
               result
             );
-            options.success(result);
+            if (options.tries == 1)
+              options.success(result);
             module_invoke_all(
               'services_request_postprocess_alter',
               options,
@@ -1269,9 +1276,11 @@ Drupal.services.call = function(options) {
             if (typeof options.error !== 'undefined') {
               var message = request.responseText || '';
               if (!message || message == '') { message = title; }
-              options.error(request, request.status, message);
+              if (options.tries == 1)
+                options.error(request, request.status, message);
             }
-            module_invoke_all('services_postprocess_error', options, request);
+//             module_invoke_all('services_postprocess', options, request);
+            module_invoke_all('services_postprocess', options, 0);
           }
         }
         else {
@@ -1362,6 +1371,7 @@ Drupal.services.call = function(options) {
         },
         error: function(xhr, status, message) {
           try {
+            module_invoke_all('services_postprocess', options, 0);
             console.log(
               'Drupal.services.call - services_get_csrf_token - ' + message
             );
@@ -1378,6 +1388,7 @@ Drupal.services.call = function(options) {
 
   }
   catch (error) {
+    module_invoke_all('services_postprocess', options, 0);
     console.log('Drupal.services.call - error - ' + error);
   }
 };
