@@ -1231,15 +1231,12 @@ Drupal.services.call = function(options) {
 
     request.addEventListener('error', function(e) {
       _services_submission_error_handler(options);
-      drupalgap_alert('SERVICE ERROR');
     });
     request.addEventListener('abort', function(e) {
-      _services_submission_error_handler(options);
-      drupalgap_alert('SERVICE ABORT');
+//       _services_submission_error_handler(options);
     });
     request.addEventListener('timeout', function(e) {
       _services_submission_error_handler(options);
-      drupalgap_alert('SERVICE TIMEOUT');
     });
 
     // Request Success Handler
@@ -1435,15 +1432,12 @@ function services_get_csrf_token(options) {
 
     token_request.addEventListener('error', function(e) {
       if (options.error) { options.error(); }
-      drupalgap_alert('CSRF TOKEN ERROR');
     });
     token_request.addEventListener('abort', function(e) {
-      if (options.error) { options.error(); }
-      drupalgap_alert('CSRF TOKEN ABORT');
+      //if (options.error) { options.error(); }
     });
     token_request.addEventListener('timeout', function(e) {
       if (options.error) { options.error(); }
-      drupalgap_alert('CSRF TOKEN TIMEOUT');
     });
 
 
