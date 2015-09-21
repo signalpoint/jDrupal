@@ -1187,7 +1187,6 @@ Drupal.services = {};
  */
 Drupal.services.call = function(options) {
   try {
-
     options.debug = false;
 
     // Make sure the settings have been provided for Services.
@@ -1203,17 +1202,20 @@ Drupal.services.call = function(options) {
       module_invoke_all('services_preprocess', options);
       options.tries = 1;
     }
-    if (!drupalgap.online) {
-      module_invoke_all('services_postprocess', options, 0);
-      if (options.hasOwnProperty('retry') && options.retry)
-        _services_queue_submission(options);
-      if (typeof options.queued !== 'undefined')
-        options.queued(options);
-      return;
-    }
+//     if (!drupalgap.online) {
+//       module_invoke_all('services_postprocess', options, 0);
+//       if (options.hasOwnProperty('retry') && options.retry) {
+//         _services_queue_submission(options);
+//         if (typeof options.queued !== 'undefined') {
+//           options.queued(options);
+//         }
+//       }
+//       return;
+//     }
 
     // Build the Request, URL and extract the HTTP method.
     var request = new XMLHttpRequest();
+    request.timeout = Drupal.settings.timeout ? Drupal.settings.timeout : 5000;
     var url = Drupal.settings.site_path +
               Drupal.settings.base_path + '?q=';
     // Use an endpoint, unless someone passed in an empty string.
@@ -1227,69 +1229,78 @@ Drupal.services.call = function(options) {
     var method = options.method.toUpperCase();
     if (Drupal.settings.debug) { console.log(method + ': ' + url); }
 
+    request.addEventListener('error', function(e) {
+      _services_submission_error_handler(options);
+      drupalgap_alert('SERVICE ERROR');
+    });
+    request.addEventListener('abort', function(e) {
+      _services_submission_error_handler(options);
+      drupalgap_alert('SERVICE ABORT');
+    });
+    request.addEventListener('timeout', function(e) {
+      _services_submission_error_handler(options);
+      drupalgap_alert('SERVICE TIMEOUT');
+    });
+
     // Request Success Handler
     request.onload = function(e) {
       try {
-        if (request.readyState == 4) {
-          // Build a human readable response title.
-          var title = request.status + ' - ' +
-            http_status_code_title(request.status);
-          // 200 OK
-          if (request.status == 200) {
-            if (Drupal.settings.debug) { console.log('200 - OK'); }
-            // Extract the JSON result, or throw an error if the response wasn't
-            // JSON.
+        // Build a human readable response title.
+        var title = request.status + ' - ' +
+          http_status_code_title(request.status);
+        // 200 OK
+        if (request.status == 200) {
+          if (Drupal.settings.debug) { console.log('200 - OK'); }
+          // Extract the JSON result, or throw an error if the response wasn't
+          // JSON.
 
-            // Extract the JSON result if the server sent back JSON, otherwise
-            // hand back the response as is.
-            var result = null;
-            var response_header = request.getResponseHeader('Content-Type');
-            if (response_header.indexOf('application/json') != -1) {
-              result = JSON.parse(request.responseText);
-            }
-            else { result = request.responseText; }
+          // Extract the JSON result if the server sent back JSON, otherwise
+          // hand back the response as is.
+          var result = null;
+          var response_header = request.getResponseHeader('Content-Type');
+          if (response_header.indexOf('application/json') != -1) {
+            result = JSON.parse(request.responseText);
+          }
+          else { result = request.responseText; }
 
-            // Give modules a chance to pre post process the results, send the
-            // results to the success callback, then give modules a chance to
-            // post process the results.
-            module_invoke_all(
-              'services_request_pre_postprocess_alter',
-              options,
-              result
-            );
-            options.success(result, options.tries);
-            module_invoke_all(
-              'services_request_postprocess_alter',
-              options,
-              result
-            );
-            module_invoke_all('services_postprocess', options, result);
-            // process the next queued submission
-            _services_process_submission_queue();
-          }
-          else {
-            // Not OK...
-            if (Drupal.settings.debug) {
-              console.log(method + ': ' + url + ' - ' + title);
-              console.log(request.responseText);
-              console.log(request.getAllResponseHeaders());
-            }
-            if (request.responseText) { console.log(request.responseText); }
-            else { dpm(request); }
-            if (typeof options.error !== 'undefined') {
-              var message = request.responseText || '';
-              if (!message || message == '') { message = title; }
-              if (options.tries == 1)
-                options.error(request, request.status, message, options.tries);
-            }
-            module_invoke_all('services_postprocess', options, request);
-          }
+          // Give modules a chance to pre post process the results, send the
+          // results to the success callback, then give modules a chance to
+          // post process the results.
+          module_invoke_all(
+            'services_request_pre_postprocess_alter',
+            options,
+            result
+          );
+
+          if (typeof options.success !== 'undefined')
+            options.success(result);
+
+          module_invoke_all(
+            'services_request_postprocess_alter',
+            options,
+            result
+          );
+          module_invoke_all('services_postprocess', options, result);
         }
         else {
-          console.log(
-            'Drupal.services.call - request.readyState = ' + request.readyState
-          );
+          // Not OK...
+          if (Drupal.settings.debug) {
+            console.log(method + ': ' + url + ' - ' + title);
+            console.log(request.responseText);
+            console.log(request.getAllResponseHeaders());
+          }
+          if (request.responseText) { console.log(request.responseText); }
+          else { dpm(request); }
+          if (typeof options.error !== 'undefined') {
+            var message = request.responseText || '';
+            if (!message || message == '') { message = title; }
+            options.error(request, request.status, message);
+          }
+          // server error, contrib bug? probably we should not retry
+          options.retry = false;
+          _services_submission_error_handler(options);
         }
+        _services_process_submission_queue();
       }
       catch (error) {
         // Not OK...
@@ -1299,6 +1310,7 @@ Drupal.services.call = function(options) {
           console.log(request.getAllResponseHeaders());
         }
         console.log('Drupal.services.call - onload - ' + error);
+        _services_submission_error_handler(options);
       }
     };
 
@@ -1369,6 +1381,7 @@ Drupal.services.call = function(options) {
               'Drupal.services.call - services_get_csrf_token - success - ' +
               error
             );
+            _services_submission_error_handler(options);
           }
         },
         error: function(xhr, status, message) {
@@ -1376,7 +1389,6 @@ Drupal.services.call = function(options) {
             console.log(
               'Drupal.services.call - services_get_csrf_token - ' + message
             );
-            if (options.error) { options.error(xhr, status, message); }
           }
           catch (error) {
             console.log(
@@ -1384,6 +1396,7 @@ Drupal.services.call = function(options) {
               error
             );
           }
+          _services_submission_error_handler(options);
         }
     });
 
@@ -1420,31 +1433,40 @@ function services_get_csrf_token(options) {
               Drupal.settings.base_path +
               '?q=services/session/token';
 
+    token_request.addEventListener('error', function(e) {
+      if (options.error) { options.error(); }
+      drupalgap_alert('CSRF TOKEN ERROR');
+    });
+    token_request.addEventListener('abort', function(e) {
+      if (options.error) { options.error(); }
+      drupalgap_alert('CSRF TOKEN ABORT');
+    });
+    token_request.addEventListener('timeout', function(e) {
+      if (options.error) { options.error(); }
+      drupalgap_alert('CSRF TOKEN TIMEOUT');
+    });
+
+
     // Token Request Success Handler
     token_request.onload = function(e) {
       try {
-        if (token_request.readyState == 4) {
-          var title = token_request.status + ' - ' +
-            http_status_code_title(token_request.status);
-          if (token_request.status != 200) { // Not OK
-            console.log(token_url + ' - ' + title);
-            console.log(token_request.responseText);
-          }
-          else { // OK
-            // Set Drupal.sessid with the token, then return the token to the
-            // success function.
-            token = token_request.responseText;
-            Drupal.sessid = token;
-            if (options.success) { options.success(token); }
-          }
+        var title = token_request.status + ' - ' +
+          http_status_code_title(token_request.status);
+        if (token_request.status != 200) { // Not OK
+          if (options.error) { options.error(); }
+          console.log(token_url + ' - ' + title);
+          console.log(token_request.responseText);
         }
-        else {
-          console.log(
-            'services_get_csrf_token - readyState - ' + token_request.readyState
-          );
+        else { // OK
+          // Set Drupal.sessid with the token, then return the token to the
+          // success function.
+          token = token_request.responseText;
+          Drupal.sessid = token;
+          if (options.success) { options.success(token); }
         }
       }
       catch (error) {
+        if (options.error) { options.error(); }
         console.log(
           'services_get_csrf_token - token_request. onload - ' + error
         );
@@ -1636,6 +1658,26 @@ function _services_dequeue_submission() {
     return submission;
   }
   catch (error) { console.log('_services_dequeue_submission - ' + error); }
+}
+
+function _services_submission_error_handler(options) {
+  try {
+    module_invoke_all('services_postprocess', options, 0);
+    //retry or...
+    if (options.hasOwnProperty('retry') && options.retry) {
+      _services_queue_submission(options);
+      if (typeof options.queued !== 'undefined') {
+        options.queued(options);
+      }
+    }
+    // ...give up
+    else if (typeof options.error !== 'undefined') {
+      options.error(xhr, status, message);
+    }
+  }
+  catch (error) {
+    console.log('_services_submission_error_handler - ' + error);
+  }
 }
 /**
  * Creates a comment.
