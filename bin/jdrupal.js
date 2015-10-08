@@ -397,6 +397,54 @@ function language_default() {
 }
 
 /**
+ * Given a variable name and value, this will save the value to local storage,
+ * keyed by its name.
+ * @param {String} name
+ * @param {*} value
+ * @return {*}
+ */
+function local_variable_set(name, value) {
+  try {
+    if (!value) { value = ' '; } // store null values as a single space*
+    else if (is_int(value)) { value = value.toString(); }
+    else if (typeof value === 'object') { value = JSON.stringify(value); }
+    return window.localStorage.setItem(name, value);
+    // * phonegap won't store an empty string in local storage
+  }
+  catch (error) { drupalgap_error(error); }
+}
+
+/**
+ * Given a variable name and a default value, this will first attempt to load
+ * the variable from local storage, if it can't then the default value will be
+ * returned.
+ * @param {String} name
+ * @param {*} default_value
+ * @return {*}
+ */
+function local_variable_get(name, default_value) {
+  try {
+    var value = window.localStorage.getItem(name);
+    if (!value) { value = default_value; }
+    if (value == ' ') { value = ''; } // Convert single spaces to empty strings.
+    return value;
+  }
+  catch (error) { drupalgap_error(error); }
+}
+
+/**
+ * Given a variable name, this will remove the value from local storage.
+ * @param {String} name
+ * @return {*}
+ */
+function local_variable_del(name) {
+  try {
+    return window.localStorage.removeItem(name);
+  }
+  catch (error) { drupalgap_error(error); }
+}
+
+/**
  * Given a module name, this returns true if the module is enabled, false
  * otherwise.
  * @param {String} name The name of the module
@@ -503,7 +551,7 @@ function module_implements(hook) {
 function module_invoke(module, hook) {
   try {
     var module_invocation_results = null;
-    if (drupalgap_module_load(module)) {
+    if (module_load(module)) {
       var module_arguments = Array.prototype.slice.call(arguments);
       var function_name = module + '_' + hook;
       if (function_exists(function_name)) {
@@ -1195,6 +1243,30 @@ Drupal.services.call = function(options) {
       options.error(null, null, error);
       return;
     }
+    
+    // We'll assume we're online, unless someone tells us otherwise. Give
+    // module's a chance to determine the app's online status.
+    var online = true;
+    var online_invocation = module_invoke_all('online');
+    if (!empty(online_invocation)) {
+      for (var i = 0; i < online_invocation.length; i++) {
+        if (!online_invocation[i]) {
+          online = false;
+          break;
+        }
+      }
+    }
+    
+    // If we're not online, queue the service call, invoke hook_offline() and
+    // then return. Do not queue any sensitive data.
+    if (!online) {
+      if (options.service == 'user' && (
+        options.resource == 'login' || options.resource == 'register'
+      )) { /* Sensitive data, do not queue. */ }
+      else { _services_queue_submission(options); }
+      module_invoke_all('offline', options);
+      return;
+    }
 
     if (options.hasOwnProperty('tries')) {
       options.tries++;
@@ -1621,7 +1693,7 @@ function _services_process_submission_queue() {
 
 function _services_get_submission_queue() {
   try {
-    var queue = variable_get('services_submission_queue', []);
+    var queue = local_variable_get('services_submission_queue', []);
     if (typeof queue === 'string') { queue = JSON.parse(queue); }
     return queue;
   }
@@ -1630,7 +1702,7 @@ function _services_get_submission_queue() {
 
 function _services_set_submission_queue(queue) {
   try {
-    variable_set('services_submission_queue', queue);
+    local_variable_set('services_submission_queue', queue);
   }
   catch (error) { console.log('_services_set_submission_queue - ' + error); }
 }
