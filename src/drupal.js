@@ -397,6 +397,54 @@ function language_default() {
 }
 
 /**
+ * Given a variable name and value, this will save the value to local storage,
+ * keyed by its name.
+ * @param {String} name
+ * @param {*} value
+ * @return {*}
+ */
+function local_variable_set(name, value) {
+  try {
+    if (!value) { value = ' '; } // store null values as a single space*
+    else if (is_int(value)) { value = value.toString(); }
+    else if (typeof value === 'object') { value = JSON.stringify(value); }
+    return window.localStorage.setItem(name, value);
+    // * phonegap won't store an empty string in local storage
+  }
+  catch (error) { drupalgap_error(error); }
+}
+
+/**
+ * Given a variable name and a default value, this will first attempt to load
+ * the variable from local storage, if it can't then the default value will be
+ * returned.
+ * @param {String} name
+ * @param {*} default_value
+ * @return {*}
+ */
+function local_variable_get(name, default_value) {
+  try {
+    var value = window.localStorage.getItem(name);
+    if (!value) { value = default_value; }
+    if (value == ' ') { value = ''; } // Convert single spaces to empty strings.
+    return value;
+  }
+  catch (error) { drupalgap_error(error); }
+}
+
+/**
+ * Given a variable name, this will remove the value from local storage.
+ * @param {String} name
+ * @return {*}
+ */
+function local_variable_del(name) {
+  try {
+    return window.localStorage.removeItem(name);
+  }
+  catch (error) { drupalgap_error(error); }
+}
+
+/**
  * Given a module name, this returns true if the module is enabled, false
  * otherwise.
  * @param {String} name The name of the module
