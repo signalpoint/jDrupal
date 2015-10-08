@@ -50,3 +50,18 @@ Drupal.settings.site_path = "http://www.example.com";
 // Set the Service Resource endpoint path.
 Drupal.settings.endpoint = "rest";
 ```
+
+## Custom Modules
+
+To tell jDrupal about your custom module, add this to your JS code:
+
+```
+Drupal.modules.custom['my_module'] = {};
+```
+
+Then include your module's source code, for example in the <head> of your page:
+
+```
+<script src="my_module.js"></script>
+```
+
