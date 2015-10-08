@@ -12,8 +12,8 @@
     <script type='text/javascript' src='http://code.jquery.com/qunit/qunit-1.12.0.js'></script>
     
     <!-- include to test binary -->
-    <!--<script src="bin/jdrupal.js"></script>-->
-    <script src="bin/jdrupal.min.js"></script>
+    <script src="bin/jdrupal.js"></script>
+    <!--<script src="bin/jdrupal.min.js"></script>-->
     
     <!-- includes to test source code -->
     <!--<script src="src/includes/module.inc.js"></script>
@@ -34,12 +34,13 @@
     <script src="src/user.js"></script>-->
     
     <!-- include tests -->
-    <script src="tests/services.comment.test.js"></script>
-    <script src="tests/services.node.test.js"></script>
+    <!--<script src="tests/services.comment.test.js"></script>
+    <script src="tests/services.node.test.js"></script>-->
     <script src="tests/services.system.test.js"></script>
-    <script src="tests/services.taxonomy_term.test.js"></script>
+    <!--<script src="tests/services.taxonomy_term.test.js"></script>
     <script src="tests/services.taxonomy_vocabulary.test.js"></script>
-    <script src="tests/services.user.test.js"></script>
+    <script src="tests/services.user.test.js"></script>-->
+    <script src="tests/offline.services.node.test.js"></script>
     
   </head>
 
@@ -64,7 +65,7 @@
         </div>
         <div data-role="fieldcontain" id="login_pass_wrapper" style="display: none;">
           <label for="login_pass">Password</label>
-          <input type="password" id="login_pass" />
+          <input type="password" id="login_pass" value="" />
         </div>
         <fieldset>
           <div><button type="submit" id="go">Connect</button></div>
@@ -79,9 +80,25 @@
     </div><!-- /page -->
     
     <script type="text/javascript">
+    
+    // Implements hook_online().
+    function my_module_online() {
+      return false;
+    }
+    
+    // Implements hook_offline().
+    function my_module_offline() {
+      alert('You are offline dude!');
+    }
+  
       $().ready(function() {
+      
+          console.log(Drupal);
           
           Drupal.settings.debug = true;
+          
+          // Add my_module.
+          Drupal.modules.custom['my_module'] = {};
           
           // Set the site path.
           Drupal.settings.site_path = window.location.href.replace(
@@ -173,7 +190,10 @@
               set_drupal_settings();
               test_services_system();
               // this call iterates through other tests
-              test_services_user($('#login_name').val(), $('#login_pass').val());
+              //test_services_user($('#login_name').val(), $('#login_pass').val());
+              offline_test_services_node(function() {
+                console.log('done and done');
+              });
               return false;
           });
       });
