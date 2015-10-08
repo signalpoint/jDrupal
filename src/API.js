@@ -1,4 +1,29 @@
 /**
+ * Implements hook_offline().
+ * Take action when the app is offline and a service call was just attempted.
+ * @param {Object} options
+ */
+function hook_offline(options) {
+  try {
+    alert('Please check your connection and try again!');
+  }
+  catch (error) { console.log('hook_offline - ' + error); }
+}
+
+/**
+ * Implements hook_online().
+ * Let jDrupal know if your app is online or not. If any implementor of this
+ * hook returns false, then jDrupal assumes the app is offline.
+ */
+function hook_online() {
+  try {
+    if (!foo_bar_is_online()) { return false; }
+    return true;
+  }
+  catch (error) { console.log('hook_online - ' + error); }
+}
+
+/**
  * Preprocess a service call.
  * @param {Object} options
  */
