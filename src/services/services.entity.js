@@ -264,7 +264,13 @@ function entity_index_build_query_string(query) {
       result += 'page=' + encodeURIComponent(query.page) + '&';
     }
     if (typeof query.page_size !== 'undefined') { // int
+      var msg =
+        'WARNING query.page_size is deprecated, use query.pagesize instead!';
+      console.log(msg);
       result += 'pagesize=' + encodeURIComponent(query.page_size) + '&';
+    }
+    else if (typeof query.pagesize !== 'undefined') { // int
+      result += 'pagesize=' + encodeURIComponent(query.pagesize) + '&';
     }
     return result.substring(0, result.length - 1);
   }
