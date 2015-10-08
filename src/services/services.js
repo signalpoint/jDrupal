@@ -17,6 +17,30 @@ Drupal.services.call = function(options) {
       options.error(null, null, error);
       return;
     }
+    
+    // We'll assume we're online, unless someone tells us otherwise. Give
+    // module's a chance to determine the app's online status.
+    var online = true;
+    var online_invocation = module_invoke_all('online');
+    if (!empty(online_invocation)) {
+      for (var i = 0; i < online_invocation.length; i++) {
+        if (!online_invocation[i]) {
+          online = false;
+          break;
+        }
+      }
+    }
+    
+    // If we're not online, queue the service call, invoke hook_offline() and
+    // then return. Do not queue any sensitive data.
+    if (!online) {
+      if (options.service == 'user' && (
+        options.resource == 'login' || options.resource == 'register'
+      )) { /* Sensitive data, do not queue. */ }
+      else { _services_queue_submission(options); }
+      module_invoke_all('offline', options);
+      return;
+    }
 
     if (options.hasOwnProperty('tries')) {
       options.tries++;
@@ -443,7 +467,7 @@ function _services_process_submission_queue() {
 
 function _services_get_submission_queue() {
   try {
-    var queue = variable_get('services_submission_queue', []);
+    var queue = local_variable_get('services_submission_queue', []);
     if (typeof queue === 'string') { queue = JSON.parse(queue); }
     return queue;
   }
@@ -452,7 +476,7 @@ function _services_get_submission_queue() {
 
 function _services_set_submission_queue(queue) {
   try {
-    variable_set('services_submission_queue', queue);
+    local_variable_set('services_submission_queue', queue);
   }
   catch (error) { console.log('_services_set_submission_queue - ' + error); }
 }
