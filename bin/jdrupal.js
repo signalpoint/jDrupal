@@ -692,7 +692,15 @@ function entity_local_storage_key(entity_type, id) {
   try {
     return entity_type + '_' + id;
   }
-  catch (error) { drupalgap_error(error); }
+  catch (error) { console.log('entity_local_storage_key - ' + error); }
+}
+
+/**
+ * A placeholder function used to provide a local storage key for entity index
+ * queries.
+ */
+function entity_index_local_storage_key(path) {
+  return path;
 }
 
 /**
@@ -709,6 +717,7 @@ function entity_load(entity_type, ids, options) {
       console.log(msg);
       return;
     }
+    var caching_enabled = entity_caching_enabled();
     var entity_id = ids;
     // Convert the id to an int, if it's a string.
     entity_id = entity_id_parse(entity_id);
@@ -722,7 +731,7 @@ function entity_load(entity_type, ids, options) {
       entity_id,
       'success'
     )) {
-      if (Drupal.settings.cache.entity.enabled) {
+      if (caching_enabled) {
         entity = _entity_local_storage_load(entity_type, entity_id, options);
         if (entity) {
           if (options.success) { options.success(entity); }
@@ -763,7 +772,7 @@ function entity_load(entity_type, ids, options) {
     // If entity caching is enabled, try to load the entity from local storage.
     // If a copy is available in local storage, send it to the success callback.
     var entity = false;
-    if (Drupal.settings.cache.entity.enabled) {
+    if (caching_enabled) {
       entity = _entity_local_storage_load(entity_type, entity_id, options);
       if (entity) {
         if (options.success) { options.success(entity); }
@@ -785,32 +794,27 @@ function entity_load(entity_type, ids, options) {
     var call_options = {
       success: function(data) {
         try {
+
           // Set the entity equal to the returned data.
           entity = data;
-          // Is entity caching enabled?
-          if (Drupal.settings.cache.entity &&
-              Drupal.settings.cache.entity.enabled) {
-            // Set the expiration time as a property on the entity that can be
-            // used later.
-            if (Drupal.settings.cache.entity.expiration !== 'undefined') {
-              var expiration = time() + Drupal.settings.cache.entity.expiration;
-              if (Drupal.settings.cache.entity.expiration == 0) {
-                expiration = 0;
-              }
-              entity.expiration = expiration;
-            }
-            // Save the entity to local storage.
+
+          // If entity caching is enabled, set its expiration time and save it
+          // to local storage.
+          if (caching_enabled) {
+            _entity_set_expiration_time(entity);
             _entity_local_storage_save(entity_type, entity_id, entity);
           }
-          // Send the entity back to the queued callback(s).
+
+          // Send the entity back to the queued callback(s), then clear out the
+          // callbacks.
           var _success_callbacks =
             Drupal.services_queue[entity_type]['retrieve'][entity_id].success;
           for (var i = 0; i < _success_callbacks.length; i++) {
             _success_callbacks[i](entity);
           }
-          // Clear out the success callbacks.
           Drupal.services_queue[entity_type]['retrieve'][entity_id].success =
             [];
+
         }
         catch (error) {
           console.log('entity_load - success - ' + error);
@@ -901,7 +905,7 @@ function _entity_local_storage_load(entity_type, entity_id, options) {
     }
     return entity;
   }
-  catch (error) { console.log('_entity_load_from_local_storage - ' + error); }
+  catch (error) { console.log('_entity_local_storage_load - ' + error); }
 }
 
 /**
@@ -1019,6 +1023,45 @@ function entity_save(entity_type, bundle, entity, options) {
 }
 
 /**
+ *
+ */
+function entity_caching_enabled() {
+  try {
+    return Drupal.settings.cache.entity &&
+      Drupal.settings.cache.entity.enabled;
+  }
+  catch (error) { console.log('entity_caching_enabled - ' + error); }
+}
+
+/**
+ *
+ */
+function _entity_get_expiration_time() {
+  try {
+    var expiration = null;
+    if (
+      Drupal.settings.cache.entity.enabled &&
+      Drupal.settings.cache.entity.expiration !== 'undefined'
+    ) {
+      expiration = Drupal.settings.cache.entity.expiration === 0 ?
+        0 : time() + Drupal.settings.cache.entity.expiration;
+    }
+    return expiration;
+  }
+  catch (error) { console.log('_entity_get_expiration_time - ' + error); }
+}
+
+/**
+ *
+ */
+function _entity_set_expiration_time(entity) {
+  try {
+    entity.expiration = _entity_get_expiration_time();
+  }
+  catch (error) { console.log('_entity_set_expiration_time - ' + error); }
+}
+
+/**
  * Returns an array of entity type names.
  * @return {Array}
  */
@@ -1034,6 +1077,96 @@ function entity_types() {
     ];
   }
   catch (error) { console.log('entity_types - ' + error); }
+}
+
+/**
+ * An internal function used by entity_index() to attempt loading a specific
+ * query's results from local storage.
+ * @param {String} entity_type
+ * @param {String} path The URL path used by entity_index(), used as the cache key.
+ * @param {Object} options
+ * @return {Object}
+ */
+function _entity_index_local_storage_load(entity_type, path, options) {
+  try {
+    var _entity_index = false;
+    // Process options if necessary.
+    if (options) {
+      // If we are resetting, remove the item from localStorage.
+      if (options.reset) {
+        _entity_index_local_storage_delete(path);
+      }
+    }
+    // Attempt to load the entity_index from local storage.
+    var local_storage_key = entity_index_local_storage_key(path);
+    _entity_index = window.localStorage.getItem(local_storage_key);
+    if (_entity_index) {
+      _entity_index = JSON.parse(_entity_index);
+      // We successfully loaded the entity_index result ids from local storage. If it expired
+      // remove it from local storage then continue onward with the entity_index
+      // retrieval from Drupal. Otherwise return the local storage entity_index copy.
+      if (typeof _entity_index.expiration !== 'undefined' &&
+          _entity_index.expiration != 0 &&
+          time() > _entity_index.expiration) {
+        _entity_index_local_storage_delete(path);
+        _entity_index = false;
+      }
+      else {
+        // The entity_index has not yet expired, so pull each entity out of
+        // local storage, add them to the result array, and return the array.
+        var result = [];
+        for (var i = 0; i < _entity_index.entity_ids.length; i++) {
+          result.push(
+            _entity_local_storage_load(
+              entity_type,
+              _entity_index.entity_ids[i],
+              options
+            )
+          );
+        }
+        _entity_index = result;
+      }
+    }
+    return _entity_index;
+  }
+  catch (error) { console.log('_entity_index_local_storage_load - ' + error); }
+}
+
+/**
+ * An internal function used to save an entity_index result entity ids to
+ * local storage.
+ * @param {String} entity_type
+ * @param {String} path
+ * @param {Object} result
+ */
+function _entity_index_local_storage_save(entity_type, path, result) {
+  try {
+    var index = {
+      entity_type: entity_type,
+      expiration: _entity_get_expiration_time(),
+      entity_ids: []
+    };
+    for (var i = 0; i < result.length; i++) {
+      index.entity_ids.push(result[i][entity_primary_key(entity_type)]);
+    }
+    window.localStorage.setItem(
+      entity_index_local_storage_key(path),
+      JSON.stringify(index)
+    );
+  }
+  catch (error) { console.log('_entity_index_local_storage_save - ' + error); }
+}
+
+/**
+ * An internal function used to delete an entity_index from local storage.
+ * @param {String} path
+ */
+function _entity_index_local_storage_delete(path) {
+  try {
+    var storage_key = entity_index_local_storage_key(path);
+    window.localStorage.removeItem(storage_key);
+  }
+  catch (error) { console.log('_entity_index_local_storage_delete - ' + error); }
 }
 
 /**
@@ -1784,6 +1917,8 @@ function entity_delete(entity_type, entity_id, options) {
  */
 function entity_index(entity_type, query, options) {
   try {
+
+    // Build the query string and path to the index resource.
     var query_string;
     if (typeof query === 'object') {
       query_string = entity_index_build_query_string(query);
@@ -1793,15 +1928,49 @@ function entity_index(entity_type, query, options) {
     }
     if (query_string) { query_string = '&' + query_string; }
     else { query_string = ''; }
+    var path = entity_type + '.json' + query_string;
+
+    // If entity caching is enabled, try to load the index results from local
+    // storage and return them instead.
+    var caching_enabled = entity_caching_enabled();
+    if (caching_enabled) {
+      var result = _entity_index_local_storage_load(entity_type, path, {});
+      if (result  && options.success) {
+        options.success(result);
+        return;
+      }
+    }
+
+    // Ask Drupal for an index on the entity(ies)...
     Drupal.services.call({
         method: 'GET',
-        path: entity_type + '.json' + query_string,
+        path: path,
         service: options.service,
         resource: options.resource,
         entity_type: entity_type,
         success: function(result) {
           try {
-            if (options.success) { options.success(result); }
+            if (options.success) {
+
+              // If entity caching is enabled, iterate over each entity and save
+              // it to local storage, then set aside this index path so the same
+              // query can easily be reloaded later.
+              if (caching_enabled) {
+                for (var i = 0; i < result.length; i++) {
+                  var entity = result[i];
+                  _entity_set_expiration_time(entity);
+                  _entity_local_storage_save(
+                    entity_type,
+                    result[i][entity_primary_key(entity_type)],
+                    entity
+                  );
+                }
+                _entity_index_local_storage_save(entity_type, path, result);
+              }
+
+              // Send along the results.
+              options.success(result);
+            }
           }
           catch (error) { console.log('entity_index - success - ' + error); }
         },
