@@ -186,7 +186,7 @@ function entity_index(entity_type, query, options) {
               if (caching_enabled) {
                 for (var i = 0; i < result.length; i++) {
                   var entity = result[i];
-                  entity_set_expiration_time(entity);
+                  _entity_set_expiration_time(entity);
                   _entity_local_storage_save(
                     entity_type,
                     result[i][entity_primary_key(entity_type)],

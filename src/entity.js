@@ -152,7 +152,7 @@ function entity_load(entity_type, ids, options) {
           // If entity caching is enabled, set its expiration time and save it
           // to local storage.
           if (caching_enabled) {
-            entity_set_expiration_time(entity);
+            _entity_set_expiration_time(entity);
             _entity_local_storage_save(entity_type, entity_id, entity);
           }
 
@@ -387,17 +387,29 @@ function entity_caching_enabled() {
 /**
  *
  */
-function entity_set_expiration_time(entity) {
+function _entity_get_expiration_time() {
   try {
+    var expiration = null;
     if (
       Drupal.settings.cache.entity.enabled &&
       Drupal.settings.cache.entity.expiration !== 'undefined'
     ) {
-      entity.expiration = Drupal.settings.cache.entity.expiration == 0 ?
+      expiration = Drupal.settings.cache.entity.expiration === 0 ?
         0 : time() + Drupal.settings.cache.entity.expiration;
     }
+    return expiration;
   }
-  catch (error) { console.log('entity_set_expiration_time - ' + error); }
+  catch (error) { console.log('_entity_get_expiration_time - ' + error); }
+}
+
+/**
+ *
+ */
+function _entity_set_expiration_time(entity) {
+  try {
+    entity.expiration = _entity_get_expiration_time();
+  }
+  catch (error) { console.log('_entity_set_expiration_time - ' + error); }
 }
 
 /**
@@ -481,7 +493,8 @@ function _entity_index_local_storage_load(entity_type, path, options) {
 function _entity_index_local_storage_save(entity_type, path, result) {
   try {
     var index = {
-      expiration: 0,
+      entity_type: entity_type,
+      expiration: _entity_get_expiration_time(),
       entity_ids: []
     };
     for (var i = 0; i < result.length; i++) {
