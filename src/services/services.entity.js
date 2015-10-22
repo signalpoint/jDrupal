@@ -145,6 +145,8 @@ function entity_delete(entity_type, entity_id, options) {
  */
 function entity_index(entity_type, query, options) {
   try {
+
+    // Build the query string and path to the index resource.
     var query_string;
     if (typeof query === 'object') {
       query_string = entity_index_build_query_string(query);
@@ -154,15 +156,49 @@ function entity_index(entity_type, query, options) {
     }
     if (query_string) { query_string = '&' + query_string; }
     else { query_string = ''; }
+    var path = entity_type + '.json' + query_string;
+
+    // If entity caching is enabled, try to load the index results from local
+    // storage and return them instead.
+    var caching_enabled = entity_caching_enabled();
+    if (caching_enabled) {
+      var result = _entity_index_local_storage_load(entity_type, path, {});
+      if (result  && options.success) {
+        options.success(result);
+        return;
+      }
+    }
+
+    // Ask Drupal for an index on the entity(ies)...
     Drupal.services.call({
         method: 'GET',
-        path: entity_type + '.json' + query_string,
+        path: path,
         service: options.service,
         resource: options.resource,
         entity_type: entity_type,
         success: function(result) {
           try {
-            if (options.success) { options.success(result); }
+            if (options.success) {
+
+              // If entity caching is enabled, iterate over each entity and save
+              // it to local storage, then set aside this index path so the same
+              // query can easily be reloaded later.
+              if (caching_enabled) {
+                for (var i = 0; i < result.length; i++) {
+                  var entity = result[i];
+                  entity_set_expiration_time(entity);
+                  _entity_local_storage_save(
+                    entity_type,
+                    result[i][entity_primary_key(entity_type)],
+                    entity
+                  );
+                }
+                _entity_index_local_storage_save(entity_type, path, result);
+              }
+
+              // Send along the results.
+              options.success(result);
+            }
           }
           catch (error) { console.log('entity_index - success - ' + error); }
         },
