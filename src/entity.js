@@ -61,8 +61,10 @@ function entity_load(entity_type, ids, options) {
       return;
     }
     var entity_id = ids;
+
     // Convert the id to an int, if it's a string.
     entity_id = entity_id_parse(entity_id);
+
     // If this entity is already queued for retrieval, set the success and
     // error callbacks aside, and return. Unless entity caching is enabled and
     // we have a copy of the entity in local storage, then send it to the
@@ -76,7 +78,10 @@ function entity_load(entity_type, ids, options) {
       if (Drupal.settings.cache.entity.enabled) {
         entity = _entity_local_storage_load(entity_type, entity_id, options);
         if (entity) {
-          if (options.success) { options.success(entity); }
+          if (options.success) {
+            console.log(entity_type + ' ' + entity_id + ' was already queued and it was in local storage, so we return it now.');
+            options.success(entity);
+          }
           return;
         }
       }
@@ -113,11 +118,17 @@ function entity_load(entity_type, ids, options) {
 
     // If entity caching is enabled, try to load the entity from local storage.
     // If a copy is available in local storage, send it to the success callback.
+    //dpm('Drupal.services_queue');
+    //console.log(Drupal.services_queue);
     var entity = false;
     if (Drupal.settings.cache.entity.enabled) {
       entity = _entity_local_storage_load(entity_type, entity_id, options);
       if (entity) {
-        if (options.success) { options.success(entity); }
+        if (options.success) {
+          var msg = entity_type + ' ' + entity_id + ' was NOT already queued, BUT it was in local storage, so we return it now.';
+          console.log(msg);
+          options.success(entity);
+        }
         return;
       }
     }
@@ -234,22 +245,28 @@ function _entity_local_storage_load(entity_type, entity_id, options) {
         // false) then we'll grab a fresh copy of the entity from Drupal.
         // If the page is reloading and the developer didn't call for a reset,
         // then just return the cached copy.
+        dpm('drupalgap page options');
+        console.log(drupalgap.page.options);
         if (drupalgap && drupalgap.page.options &&
           drupalgap.page.options.reloadingPage) {
           // Reloading page... cached entity is still valid.
           if (typeof drupalgap.page.options.reset !== 'undefined' &&
             drupalgap.page.options.reset === false) {
             // We were told to not reset it, so we'll use the cached copy.
+            console.log('DrupalGap told us NOT to reset the entity on page reload!');
             return entity;
           }
           else {
             // Remove the entity from local storage and reset it.
+            console.log('DrupalGap told us to reset the entity on page reload!');
             _entity_local_storage_delete(entity_type, entity_id);
             entity = false;
           }
         }
       }
     }
+    console.log('entity from storage');
+    console.log(entity);
     return entity;
   }
   catch (error) { console.log('_entity_load_from_local_storage - ' + error); }

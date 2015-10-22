@@ -317,10 +317,10 @@ function _services_queue_already_queued(service, resource, entity_id,
     if (
       typeof Drupal.services_queue[service][resource][entity_id] !== 'undefined'
     ) {
-      //queued = true;
       var queue = Drupal.services_queue[service][resource][entity_id];
       if (queue[callback_type].length != 0) { queued = true; }
     }
+    console.log(service + ' ' + resource + ' for entity ' + entity_id + ' queued: ' + queued);
     return queued;
   }
   catch (error) { console.log('_services_queue_already_queued - ' + error); }
