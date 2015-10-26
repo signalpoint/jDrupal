@@ -2056,11 +2056,17 @@ function entity_index_build_query_string(query) {
       for (var option in query.options) {
           if (!query.options.hasOwnProperty(option)) { continue; }
           var _option = query.options[option];
-          for (var column in _option) {
-            if (!_option.hasOwnProperty(column)) { continue; }
-            var key = encodeURIComponent(column);
-            var value = encodeURIComponent(_option[column]);
-            options += 'options[' + option + '][' + key + ']=' + value + '&';
+          if (typeof _option === 'object') {
+            for (var column in _option) {
+              if (!_option.hasOwnProperty(column)) { continue; }
+              var key = encodeURIComponent(column);
+              var value = encodeURIComponent(_option[column]);
+              options += 'options[' + option + '][' + key + ']=' + value + '&';
+            }
+          }
+          else {
+            var value = encodeURIComponent(_option);
+            options += 'options[' + option + ']=' + value + '&';
           }
       }
       if (options != '') {
