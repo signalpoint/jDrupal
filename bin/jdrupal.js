@@ -668,6 +668,37 @@ function entity_delete(entity_type, ids, options) {
 }
 
 /**
+ * Given an entity type and entity, this will return the bundle name as a
+ * string for the given entity, or null if the bundle is N/A.
+ * @todo This isn't dynamic at all.
+ * @param {String} entity_type The entity type.
+ * @param {Object} entity The entity JSON object.
+ * @return {*}
+ */
+function entity_get_bundle(entity_type, entity) {
+  try {
+    var bundle = null;
+    switch (entity_type) {
+      case 'node': bundle = entity.type; break;
+      case 'comment':
+      case 'file':
+      case 'user':
+      case 'taxonomy_vocabulary':
+      case 'taxonomy_term':
+        // These entity types don't have a bundle.
+        break;
+      default:
+        var msg = 'WARNING: entity_get_bundle - unsupported entity type (' +
+          entity_type + ')';
+        console.log(msg);
+        break;
+    }
+    return bundle;
+  }
+  catch (error) { console.log('entity_get_bundle - ' + error); }
+}
+
+/**
  * Parses an entity id and returns it as an integer (not a string).
  * @param {*} entity_id
  * @return {Number}
@@ -717,7 +748,7 @@ function entity_load(entity_type, ids, options) {
       console.log(msg);
       return;
     }
-    var caching_enabled = entity_caching_enabled();
+    var caching_enabled = entity_caching_enabled(entity_type);
     var entity_id = ids;
     // Convert the id to an int, if it's a string.
     entity_id = entity_id_parse(entity_id);
@@ -800,7 +831,12 @@ function entity_load(entity_type, ids, options) {
 
           // If entity caching is enabled, set its expiration time and save it
           // to local storage.
-          if (caching_enabled) {
+          if (
+            entity_caching_enabled(
+              entity_type,
+              entity_get_bundle(entity_type, entity)
+            )
+          ) {
             _entity_set_expiration_time(entity);
             _entity_local_storage_save(entity_type, entity_id, entity);
           }
@@ -866,10 +902,13 @@ function _entity_local_storage_load(entity_type, entity_id, options) {
     var local_storage_key = entity_local_storage_key(entity_type, entity_id);
     entity = window.localStorage.getItem(local_storage_key);
     if (entity) {
+
       entity = JSON.parse(entity);
+
       // We successfully loaded the entity from local storage. If it expired
       // remove it from local storage then continue onward with the entity
       // retrieval from Drupal. Otherwise return the local storage entity copy.
+      // @TODO add new expiration layer for entity types and bundles!
       if (typeof entity.expiration !== 'undefined' &&
           entity.expiration != 0 &&
           time() > entity.expiration) {
@@ -878,7 +917,7 @@ function _entity_local_storage_load(entity_type, entity_id, options) {
       }
       else {
 
-        // @todo - this code belongs to DrupalGap! Figure out how to bring the
+        // @TODO - this code belongs to DrupalGap! Figure out how to bring the
         // idea of DrupalGap modules into jDrupal that way jDrupal can provide
         // a hook for DrupalGap to take care of this code!
 
@@ -1027,8 +1066,42 @@ function entity_save(entity_type, bundle, entity, options) {
  */
 function entity_caching_enabled() {
   try {
-    return Drupal.settings.cache.entity &&
-      Drupal.settings.cache.entity.enabled;
+
+    // First make sure entity caching is at least defined, then
+    // make sure it's enabled.
+    if (
+      typeof Drupal.settings.cache === 'undefined' ||
+      typeof Drupal.settings.cache.entity === 'undefined' ||
+      !Drupal.settings.cache.entity.enabled
+    ) { return false;  }
+
+    // Entity caching is enabled globally...
+
+    // Did they provide an entity type?
+    var entity_type = arguments[0];
+    if (!entity_type) { return true; }
+
+    // Is caching explicitly disabled for this entity type?
+    var entity_type_caching_disabled = Drupal.settings.cache.entity.entity_types &&
+      Drupal.settings.cache.entity.entity_types[entity_type] &&
+      typeof Drupal.settings.cache.entity.entity_types[entity_type].enabled !== 'undefined' &&
+      Drupal.settings.cache.entity.entity_types[entity_type].enabled === false;
+    if (entity_type_caching_disabled) { return false; }
+
+    // Did they provide a bundle? If not, then this entity type's caching is
+    // enabled.
+    var bundle = arguments[1];
+    if (!bundle) { return true; }
+
+    // Is caching explicitly disabled for this bundle?
+    var entity_bundle_caching_disabled =
+      typeof Drupal.settings.cache.entity.entity_types[entity_type].bundles !== 'undefined' &&
+      typeof Drupal.settings.cache.entity.entity_types[entity_type].bundles[bundle] !== 'undefined' &&
+      typeof Drupal.settings.cache.entity.entity_types[entity_type].bundles[bundle].enabled !== 'undefined' &&
+      Drupal.settings.cache.entity.entity_types[entity_type].bundles[bundle].enabled === false;
+    if (entity_bundle_caching_disabled) { return false; }
+
+    return true;
   }
   catch (error) { console.log('entity_caching_enabled - ' + error); }
 }
@@ -1932,7 +2005,7 @@ function entity_index(entity_type, query, options) {
 
     // If entity caching is enabled, try to load the index results from local
     // storage and return them instead.
-    var caching_enabled = entity_caching_enabled();
+    var caching_enabled = entity_caching_enabled(entity_type);
     if (caching_enabled) {
       var result = _entity_index_local_storage_load(entity_type, path, {});
       if (result  && options.success) {
