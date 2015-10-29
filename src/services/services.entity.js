@@ -160,7 +160,7 @@ function entity_index(entity_type, query, options) {
 
     // If entity caching is enabled, try to load the index results from local
     // storage and return them instead.
-    var caching_enabled = entity_caching_enabled();
+    var caching_enabled = entity_caching_enabled(entity_type);
     if (caching_enabled) {
       var result = _entity_index_local_storage_load(entity_type, path, {});
       if (result  && options.success) {
