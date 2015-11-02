@@ -180,10 +180,11 @@ function entity_index(entity_type, query, options) {
           try {
             if (options.success) {
 
-              // If entity caching is enabled, iterate over each entity and save
-              // it to local storage, then set aside this index path so the same
-              // query can easily be reloaded later.
-              if (caching_enabled) {
+              // If entity caching is enabled and we fully loaded the entities,
+              // iterate over each entity and save them to local storage, then
+              // set aside this index path so the same query can easily be
+              // reloaded later.
+              if (caching_enabled && query.options && query.options.entity_load) {
                 for (var i = 0; i < result.length; i++) {
                   var entity = result[i];
                   _entity_set_expiration_time(entity);
