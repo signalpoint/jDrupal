@@ -21,13 +21,13 @@ function entity_delete(entity_type, ids, options) {
 /**
  * Given an entity type and entity, this will return the bundle name as a
  * string for the given entity, or null if the bundle is N/A.
- * @todo This isn't dynamic at all.
  * @param {String} entity_type The entity type.
  * @param {Object} entity The entity JSON object.
  * @return {*}
  */
 function entity_get_bundle(entity_type, entity) {
   try {
+    // @todo This isn't dynamic at all.
     var bundle = null;
     switch (entity_type) {
       case 'node': bundle = entity.type; break;
@@ -80,6 +80,8 @@ function entity_local_storage_key(entity_type, id) {
 /**
  * A placeholder function used to provide a local storage key for entity index
  * queries.
+ * @param {String} path
+ * @return {String}
  */
 function entity_index_local_storage_key(path) {
   return path;
@@ -413,7 +415,11 @@ function entity_save(entity_type, bundle, entity, options) {
 }
 
 /**
- *
+ * Returns true or false depending on whether caching is enabled or not. You
+ * may optionally pass in an entity type as the first argument, and optionally
+ * pass in a bundle name as a second argument to see if that particular cache
+ * is enabled.
+ * @return {Boolean}
  */
 function entity_caching_enabled() {
   try {
@@ -424,7 +430,7 @@ function entity_caching_enabled() {
       typeof Drupal.settings.cache === 'undefined' ||
       typeof Drupal.settings.cache.entity === 'undefined' ||
       !Drupal.settings.cache.entity.enabled
-    ) { return false;  }
+    ) { return false; }
 
     // Entity caching is enabled globally...
 
@@ -433,9 +439,11 @@ function entity_caching_enabled() {
     if (!entity_type) { return true; }
 
     // Is caching explicitly disabled for this entity type?
-    var entity_type_caching_disabled = Drupal.settings.cache.entity.entity_types &&
+    var entity_type_caching_disabled =
+      Drupal.settings.cache.entity.entity_types &&
       Drupal.settings.cache.entity.entity_types[entity_type] &&
-      typeof Drupal.settings.cache.entity.entity_types[entity_type].enabled !== 'undefined' &&
+      typeof Drupal.settings.cache.entity.entity_types[entity_type].enabled !==
+        'undefined' &&
       Drupal.settings.cache.entity.entity_types[entity_type].enabled === false;
     if (entity_type_caching_disabled) { return false; }
 
@@ -445,11 +453,12 @@ function entity_caching_enabled() {
     if (!bundle) { return true; }
 
     // Is caching explicitly disabled for this bundle?
+    var cache = Drupal.settings.cache.entity.entity_types[entity_type];
     var entity_bundle_caching_disabled =
-      typeof Drupal.settings.cache.entity.entity_types[entity_type].bundles !== 'undefined' &&
-      typeof Drupal.settings.cache.entity.entity_types[entity_type].bundles[bundle] !== 'undefined' &&
-      typeof Drupal.settings.cache.entity.entity_types[entity_type].bundles[bundle].enabled !== 'undefined' &&
-      Drupal.settings.cache.entity.entity_types[entity_type].bundles[bundle].enabled === false;
+      typeof cache.bundles !== 'undefined' &&
+      typeof cache.bundles[bundle] !== 'undefined' &&
+      typeof cache.bundles[bundle].enabled !== 'undefined' &&
+      cache.bundles[bundle].enabled === false;
     if (entity_bundle_caching_disabled) { return false; }
 
     return true;
@@ -458,7 +467,8 @@ function entity_caching_enabled() {
 }
 
 /**
- *
+ * An internal function used to get the expiration time for entities.
+ * @return {Number}
  */
 function _entity_get_expiration_time() {
   try {
@@ -476,7 +486,8 @@ function _entity_get_expiration_time() {
 }
 
 /**
- *
+ * An internal function used to set the expiration time for entities.
+ * @param {Object} entity
  */
 function _entity_set_expiration_time(entity) {
   try {
@@ -507,7 +518,8 @@ function entity_types() {
  * An internal function used by entity_index() to attempt loading a specific
  * query's results from local storage.
  * @param {String} entity_type
- * @param {String} path The URL path used by entity_index(), used as the cache key.
+ * @param {String} path The URL path used by entity_index(), used as the cache
+ *  key.
  * @param {Object} options
  * @return {Object}
  */
@@ -526,9 +538,10 @@ function _entity_index_local_storage_load(entity_type, path, options) {
     _entity_index = window.localStorage.getItem(local_storage_key);
     if (_entity_index) {
       _entity_index = JSON.parse(_entity_index);
-      // We successfully loaded the entity_index result ids from local storage. If it expired
-      // remove it from local storage then continue onward with the entity_index
-      // retrieval from Drupal. Otherwise return the local storage entity_index copy.
+      // We successfully loaded the entity_index result ids from local storage.
+      // If it expired remove it from local storage then continue onward with
+      // the entity_index retrieval from Drupal. Otherwise return the local
+      // storage entity_index copy.
       if (typeof _entity_index.expiration !== 'undefined' &&
           _entity_index.expiration != 0 &&
           time() > _entity_index.expiration) {
@@ -590,6 +603,8 @@ function _entity_index_local_storage_delete(path) {
     var storage_key = entity_index_local_storage_key(path);
     window.localStorage.removeItem(storage_key);
   }
-  catch (error) { console.log('_entity_index_local_storage_delete - ' + error); }
+  catch (error) {
+    console.log('_entity_index_local_storage_delete - ' + error);
+  }
 }
 

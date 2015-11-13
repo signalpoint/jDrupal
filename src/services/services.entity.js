@@ -163,7 +163,7 @@ function entity_index(entity_type, query, options) {
     var caching_enabled = entity_caching_enabled(entity_type);
     if (caching_enabled) {
       var result = _entity_index_local_storage_load(entity_type, path, {});
-      if (result  && options.success) {
+      if (result && options.success) {
         options.success(result);
         return;
       }
@@ -184,7 +184,11 @@ function entity_index(entity_type, query, options) {
               // iterate over each entity and save them to local storage, then
               // set aside this index path so the same query can easily be
               // reloaded later.
-              if (caching_enabled && query.options && query.options.entity_load) {
+              if (
+                caching_enabled &&
+                query.options &&
+                query.options.entity_load
+              ) {
                 for (var i = 0; i < result.length; i++) {
                   var entity = result[i];
                   _entity_set_expiration_time(entity);
