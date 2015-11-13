@@ -1,6 +1,6 @@
 {
   "name": "jdrupal",
-  "version": "7.0.0",
+  "version": "7.0.2",
   "description": "A JavaScript library for Drupal 7 Services.",
   "main": "index.html",
   "scripts": {
