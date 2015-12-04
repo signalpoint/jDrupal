@@ -20,7 +20,7 @@ function jdrupal_connect(options) {
           if (result.account.uid) {
             user_load(result.account.uid, {
                 success: function(account) {
-                  Drupal.user = account;
+                  jdrupal.user = account;
                   if (options.success) { options.success(result); }
                 }
             });
@@ -37,18 +37,18 @@ function jdrupal_connect(options) {
       }
     };
 
-    Drupal.services.call(jdrupal_connect);
+    jdrupal.services.call(jdrupal_connect);
     return;
 
     // If we don't have a token, grab one first.
-    if (!Drupal.csrf_token) {
+    if (!jdrupal.csrf_token) {
       services_get_csrf_token({
           success: function(token) {
             try {
               if (options.debug) { console.log('Grabbed new token.'); }
               // Now that we have a token, make the system connect call.
-              Drupal.csrf_token = true;
-              Drupal.services.call(system_connect);
+              jdrupal.csrf_token = true;
+              jdrupal.services.call(system_connect);
             }
             catch (error) {
               console.log(
@@ -71,7 +71,7 @@ function jdrupal_connect(options) {
     else {
       // We already have a token, make the system connect call.
       if (options.debug) { console.log('Token already available.'); }
-      Drupal.services.call(system_connect);
+      jdrupal.services.call(system_connect);
     }
   }
   catch (error) {

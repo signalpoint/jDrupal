@@ -1,19 +1,19 @@
 // Initialize the Drupal JSON object and run the bootstrap, if necessary.
-var Drupal = {}; drupal_init();
+var jdrupal = {}; drupal_init();
 
 /**
- * Initializes the Drupal JSON object.
+ * Initializes the jdrupal JSON object.
  */
 function drupal_init() {
   try {
-    if (!Drupal) { Drupal = {}; }
+    if (!jdrupal) { jdrupal = {}; }
 
     // General properties.
-    Drupal.csrf_token = false;
-    Drupal.sessid = null;
+    jdrupal.csrf_token = false;
+    jdrupal.sessid = null;
 
     // Settings.
-    Drupal.settings = {
+    jdrupal.settings = {
       app_directory: 'app',
       base_path: '/',
       cache: {
@@ -35,12 +35,12 @@ function drupal_init() {
     // Includes. Although we no longer dynamically load the includes, we want
     // to place them each in their own JSON object, so we have an easy way to
     // access them.
-    Drupal.includes = {};
-    Drupal.includes['module'] = {};
+    jdrupal.includes = {};
+    jdrupal.includes['module'] = {};
     // Modules. Although we no longer dynamically load the core modules, we want
     // to place them each in their own JSON object, so we have an easy way to
     // access them.
-    Drupal.modules = {
+    jdrupal.modules = {
       core: {},
       contrib: {},
       custom: {}
@@ -49,7 +49,7 @@ function drupal_init() {
     // used to prevent async calls to the same resource from piling up and
     // making duplicate requests.
     // @TODO - this needs to be dynamic, what about custom entity types?
-    Drupal.services_queue = {
+    jdrupal.services_queue = {
       comment: {
         retrieve: {}
       },
@@ -70,10 +70,10 @@ function drupal_init() {
       }
     };
 
-    Drupal.Entity = {};
+    jdrupal.Entity = {};
 
     // @see https://api.drupal.org/api/drupal/core!modules!user!src!Entity!User.php/class/User/8
-    Drupal.Entity.User = function(account) {
+    jdrupal.Entity.User = function(account) {
       try {
         this.entity = account;
         this.getUsername = function() {
@@ -84,23 +84,23 @@ function drupal_init() {
         };
       }
       catch (error) {
-        console.log('Drupal.Entity.User - ' + error);
+        console.log('jdrupal.Entity.User - ' + error);
       }
     };
 
     // Init anonymous user (we'll connect to retrieve the actual user later).
-    Drupal.user = new Drupal.Entity.User(drupal_user_defaults());
+    jdrupal.user = new jdrupal.Entity.User(drupal_user_defaults());
 
     /**
      * Gets the current active user.
      * @return {Object}
      */
-    Drupal.currentUser = function() {
-      return Drupal.user;
+    jdrupal.currentUser = function() {
+      return jdrupal.user;
     };
 
     // @see https://api.drupal.org/api/drupal/core!modules!node!src!Entity!Node.php/class/Node/8
-    Drupal.Entity.Node = function(node) {
+    jdrupal.Entity.Node = function(node) {
       try {
         this.entity = node;
         this.id = function() {
@@ -125,7 +125,7 @@ function drupal_init() {
           this.entity.title[0].value = title;
         };
       }
-      catch (error) { console.log('Drupal.Entity.Node - ' + error); }
+      catch (error) { console.log('jdrupal.Entity.Node - ' + error); }
     };
   }
   catch (error) { console.log('drupal_init - ' + error); }
@@ -305,7 +305,7 @@ function dpm(data) {
 }
 
 /**
- * Returns a default JSON object representing an anonymous Drupal user account.
+ * Returns a default JSON object representing an anonymous jdrupal user account.
  * @return {Object}
  */
 function drupal_user_defaults() {
@@ -410,14 +410,14 @@ function is_int(n) {
 }
 
 /**
- * Get the default language from Drupal.settings.
+ * Get the default language from jdrupal.settings.
  * @return {String}
  */
 function language_default() {
   try {
-    if (Drupal.settings.language_default &&
-      Drupal.settings.language_default != '') {
-      return Drupal.settings.language_default;
+    if (jdrupal.settings.language_default &&
+      jdrupal.settings.language_default != '') {
+      return jdrupal.settings.language_default;
     }
     return 'en';
   }
@@ -433,13 +433,13 @@ function language_default() {
 function module_exists(name) {
   try {
     var exists = false;
-    if (typeof Drupal.modules.core[name] !== 'undefined') {
+    if (typeof jdrupal.modules.core[name] !== 'undefined') {
       exists = true;
     }
-    else if (typeof Drupal.modules.contrib[name] !== 'undefined') {
+    else if (typeof jdrupal.modules.contrib[name] !== 'undefined') {
       exists = true;
     }
-    else if (typeof Drupal.modules.custom[name] !== 'undefined') {
+    else if (typeof jdrupal.modules.custom[name] !== 'undefined') {
       exists = true;
     }
     return exists;

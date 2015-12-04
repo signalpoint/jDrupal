@@ -1,5 +1,5 @@
 var jdrupal_grunt_src = [
-  'src/drupal.js',
+  'src/core.js',
   'src/includes/module.inc.js',
   'src/comment.js',
   'src/entity.js',

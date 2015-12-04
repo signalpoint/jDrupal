@@ -6,7 +6,7 @@
 #
 
 # Create the list of files
-files =				 src/drupal.js\
+files =				 src/core.js\
         src/includes/module.inc.js\
 				src/comment.js\
 				src/entity.js\

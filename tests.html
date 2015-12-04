@@ -13,25 +13,7 @@
     
     <!-- include to test binary -->
     <!--<script src="bin/jdrupal.js"></script> -->
-    <!--<script src="bin/jdrupal.min.js"></script>-->
-    
-    <!-- includes to test source code -->
-    <script src="src/includes/module.inc.js"></script>
-    <script src="src/comment.js"></script>
-    <script src="src/drupal.js"></script>
-    <script src="src/entity.js"></script>
-    <script src="src/node.js"></script>
-    <script src="src/services/services.comment.js"></script>
-    <script src="src/services/services.entity.js"></script>
-    <script src="src/services/services.js"></script>
-    <script src="src/services/services.node.js"></script>
-    <script src="src/services/services.system.js"></script>
-    <script src="src/services/services.taxonomy_term.js"></script>
-    <script src="src/services/services.taxonomy_vocabulary.js"></script>
-    <script src="src/services/services.user.js"></script>
-    <script src="src/taxonomy_term.js"></script>
-    <script src="src/taxonomy_vocabulary.js"></script>
-    <script src="src/user.js"></script>
+    <script src="bin/jdrupal.min.js"></script>
     
     <!-- include tests -->
     <script src="tests/services.comment.test.js"></script>
@@ -77,24 +59,24 @@
     <script type="text/javascript">
       $().ready(function() {
           
-          Drupal.settings.debug = true;
+          jdrupal.settings.debug = true;
           
           // Set the site path.
-          Drupal.settings.site_path = window.location.href.replace(
+          jdrupal.settings.site_path = window.location.href.replace(
             '/libraries/jDrupal/',
             ''
           ).replace('tests.html', '');
-          $('#site_path').val(Drupal.settings.site_path);
+          $('#site_path').val(jdrupal.settings.site_path);
           
           $('#go').on('click', function(){
               set_drupal_settings();
-              if (Drupal.settings.site_path == '') {
+              if (jdrupal.settings.site_path == '') {
                 alert('Enter a site path!');
                 return false;
               }
               jdrupal_connect({
                   success:function(result){
-                  var account = Drupal.currentUser();
+                  var account = jdrupal.currentUser();
                   var uid = account.id();
                     $('#login_name_wrapper').show('slow');
                     $('#login_pass_wrapper').show('slow');
@@ -151,11 +133,11 @@
           });
           
           function set_drupal_settings() {
-            Drupal.settings.site_path = $('#site_path').val();
+            jdrupal.settings.site_path = $('#site_path').val();
           }
           
           $('#run_tests').on('click', function(){
-              var account = Drupal.currentUser();
+              var account = jdrupal.currentUser();
               if (account.id() != 1) {
                 alert('Only user #1 can run tests!');
                 return;

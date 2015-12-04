@@ -12,7 +12,7 @@ function entity_hal_links(entity_type, bundle, entity, options) {
     if (typeof entity.entity['_links'] === 'undefined') {
       entity.entity['_links'] = {
         type: {
-          href: Drupal.settings.site_path +
+          href: jdrupal.settings.site_path +
             '/rest/type/' + entity_type + '/' + bundle
         }
       };
@@ -35,7 +35,7 @@ function entity_create(entity_type, bundle, entity, options) {
     // @see https://api.drupal.org/api/drupal/core!includes!entity.inc/function/entity_create/8
 
     entity_hal_links(entity_type, bundle, entity, options);
-    Drupal.services.call({
+    jdrupal.services.call({
         method: 'POST',
         contentType: 'application/hal+json',
         async: options.async,
@@ -70,7 +70,7 @@ function entity_create(entity_type, bundle, entity, options) {
  */
 function entity_retrieve(entity_type, ids, options) {
   try {
-    Drupal.services.call({
+    jdrupal.services.call({
         method: 'GET',
         path: entity_type + '/' + ids,
         service: options.service,
@@ -81,8 +81,8 @@ function entity_retrieve(entity_type, ids, options) {
           try {
             if (options.success) {
               var class_name = ucfirst(entity_type);
-              if (typeof Drupal.Entity[class_name] !== 'undefined') {
-                data = new Drupal.Entity[class_name](data);
+              if (typeof jdrupal.Entity[class_name] !== 'undefined') {
+                data = new jdrupal.Entity[class_name](data);
               }
               else {
                 console.log('entity_retrieve - missing prototype - (' +
@@ -115,7 +115,7 @@ function entity_retrieve(entity_type, ids, options) {
 function entity_update(entity_type, bundle, entity, options) {
   try {
     entity_hal_links(entity_type, bundle, entity, options);
-    Drupal.services.call({
+    jdrupal.services.call({
         method: 'PATCH',
         contentType: 'application/hal+json',
         path: entity_type + '/' + entity.id(),
@@ -153,7 +153,7 @@ function entity_update(entity_type, bundle, entity, options) {
  */
 function entity_delete(entity_type, entity_id, options) {
   try {
-    Drupal.services.call({
+    jdrupal.services.call({
         method: 'DELETE',
         path: entity_type + '/' + entity_id,
         service: options.service,
@@ -195,7 +195,7 @@ function entity_index(entity_type, query, options) {
     }
     if (query_string) { query_string = '&' + query_string; }
     else { query_string = ''; }
-    Drupal.services.call({
+    jdrupal.services.call({
         method: 'GET',
         path: entity_type + '.json' + query_string,
         service: options.service,

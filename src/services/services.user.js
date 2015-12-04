@@ -72,7 +72,7 @@ function user_index(query, options) {
  */
 function user_register(account, options) {
   try {
-    Drupal.services.call({
+    jdrupal.services.call({
         service: 'user',
         resource: 'register',
         method: 'POST',
@@ -116,7 +116,7 @@ function user_login(name, pass, options) {
       if (options.error) { options.error(null, 406, 'user_login - bad input'); }
       return;
     }
-    Drupal.services.call({
+    jdrupal.services.call({
         service: 'user',
         resource: 'login',
         method: 'POST',
@@ -127,8 +127,8 @@ function user_login(name, pass, options) {
         success: function(account) {
           try {
             // Now that we are logged in, we need to get a new CSRF token.
-            Drupal.user = new Drupal.Entity.User(account);
-            Drupal.sessid = null;
+            jdrupal.user = new jdrupal.Entity.User(account);
+            jdrupal.sessid = null;
             services_get_csrf_token({
                 success: function(token) {
                   try {
@@ -171,7 +171,7 @@ function user_login(name, pass, options) {
  */
 function user_logout(options) {
   try {
-    Drupal.services.call({
+    jdrupal.services.call({
         service: 'user',
         resource: 'logout',
         method: 'GET',
@@ -181,8 +181,8 @@ function user_logout(options) {
           try {
             // Now that we logged out, clear the user and sessid, then make a
             // fresh connection.
-            Drupal.user = new Drupal.Entity.User(drupal_user_defaults());
-            Drupal.sessid = null;
+            jdrupal.user = new jdrupal.Entity.User(drupal_user_defaults());
+            jdrupal.sessid = null;
             jdrupal_connect({
                 success: function(result) {
                   try {
