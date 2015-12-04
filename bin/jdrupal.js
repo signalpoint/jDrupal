@@ -493,6 +493,7 @@ function ucfirst(str) {
   return f + str.substr(1);
 }
 
+
 /**
  * Determines which modules are implementing a hook. Returns an array with the
  * names of the modules which are implementing this hook. If no modules
@@ -651,6 +652,7 @@ function module_types() {
   catch (error) { console.log('module_types - ' + error); }
 }
 
+
 /**
  * Loads a comment.
  * @param {Number} cid
@@ -674,6 +676,7 @@ function comment_save(comment, options) {
   }
   catch (error) { console.log('comment_save - ' + error); }
 }
+
 
 /**
  * Delete an entity.
@@ -1079,6 +1082,7 @@ function entity_id_from_location(location) {
   catch (error) { console.log('entity_id_from_location - ' + error); }
 }
 
+
 /**
  * Loads a file, given a file id.
  * @param {Number} fid
@@ -1102,6 +1106,7 @@ function file_save(file, options) {
   }
   catch (error) { console.log('file_save - ' + error); }
 }
+
 
 /**
  * Loads a node.
@@ -1127,6 +1132,7 @@ function node_save(node, options) {
   catch (error) { console.log('node_save - ' + error); }
 }
 
+
 /**
  * Loads a taxonomy term.
  * @param {Number} tid
@@ -1151,6 +1157,7 @@ function taxonomy_term_save(taxonomy_term, options) {
   catch (error) { console.log('taxonomy_term_save - ' + error); }
 }
 
+
 /**
  * Loads a taxonomy vocabulary.
  * @param {Number} vid
@@ -1174,6 +1181,7 @@ function taxonomy_vocabulary_save(taxonomy_vocabulary, options) {
   }
   catch (error) { console.log('taxonomy_vocabulary_save - ' + error); }
 }
+
 
 /**
  * Loads a user account.
@@ -1219,6 +1227,7 @@ function user_password() {
   catch (error) { console.log('user_password - ' + error); }
 }
 
+
 /**
  * The Drupal services JSON object.
  */
@@ -1242,11 +1251,17 @@ Drupal.services.call = function(options) {
 
     module_invoke_all('services_preprocess', options);
 
-    // Build the Request, URL and extract the HTTP method.
+
+    // Build the Request, and its url with a separator and '_format';
     var request = new XMLHttpRequest();
     var url = Drupal.settings.site_path +
               Drupal.settings.base_path;
-    url += options.path;
+    var separator = options.path.indexOf('?') == -1 ? '?' : '&';
+    var format = typeof options._format !== 'undefined' ?
+      '&_format=' + options._format : '';
+    url += /*'?q=' + */ options.path + separator + format;
+
+    // Extract the method, then print out some debug info if enabled.
     var method = options.method.toUpperCase();
     if (Drupal.settings.debug) { console.log(method + ': ' + url); }
 
@@ -1444,8 +1459,7 @@ function services_get_csrf_token(options) {
     // @TODO turn this into bool that the caller can specify to skip the token
     // retrieval.
     if (
-      (options.service == 'user' && options.resource == 'login') ||
-      (options.service == 'jdrupal' && options.resource == 'connect')
+      (options.service == 'user' && options.resource == 'login')
     ) {
       if (options.success) { options.success(token); }
       return;
@@ -1630,6 +1644,7 @@ function _services_queue_callback_count(service, resource, entity_id,
   catch (error) { console.log('_services_queue_callback_count - ' + error); }
 }
 
+
 /**
  * Creates a comment.
  * @param {Object} comment
@@ -1694,6 +1709,7 @@ function comment_index(query, options) {
   }
   catch (error) { console.log('comment_index - ' + error); }
 }
+
 
 /**
  * Adds hal json "_links" to the entity.
@@ -1979,6 +1995,7 @@ function _entity_wrap(entity_type, entity) {
   catch (error) { console.log('_entity_wrap - ' + error); }
 }
 
+
 /**
  * Creates a file.
  * @param {Object} file
@@ -2004,6 +2021,7 @@ function file_retrieve(ids, options) {
   }
   catch (error) { console.log('file_retrieve - ' + error); }
 }
+
 
 /**
  * Creates a node.
@@ -2070,6 +2088,7 @@ function node_index(query, options) {
   catch (error) { console.log('node_index - ' + error); }
 }
 
+
 /**
  * System connect call.
  * @param {Object} options
@@ -2080,10 +2099,13 @@ function jdrupal_connect(options) {
     var jdrupal_connect = {
       service: 'jdrupal',
       resource: 'connect',
-      method: 'GET',
+      method: 'get',
       path: 'jdrupal/connect',
+      _format: 'json',
       success: function(result) {
         try {
+          options.success(result);
+          return;
           // If the user is authenticated load their user account, otherwise
           // just proceed as an anonymous user.
           if (result.account.uid) {
@@ -2147,6 +2169,7 @@ function jdrupal_connect(options) {
     console.log('jdrupal_connect - ' + error);
   }
 }
+
 
 /**
  * Creates a taxonomy term.
@@ -2212,6 +2235,7 @@ function taxonomy_term_index(query, options) {
   }
   catch (error) { console.log('taxonomy_term_index - ' + error); }
 }
+
 
 /**
  * Creates a taxonomy vocabulary.
@@ -2294,6 +2318,7 @@ function taxonomy_vocabulary_index(query, options) {
   }
   catch (error) { console.log('taxonomy_vocabulary_index - ' + error); }
 }
+
 
 /**
  * Creates a user.
