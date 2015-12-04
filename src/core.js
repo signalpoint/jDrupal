@@ -1,10 +1,10 @@
 // Initialize the Drupal JSON object and run the bootstrap, if necessary.
-var jdrupal = {}; drupal_init();
+var jdrupal = {}; jdrupal_init();
 
 /**
  * Initializes the jdrupal JSON object.
  */
-function drupal_init() {
+function jdrupal_init() {
   try {
     if (!jdrupal) { jdrupal = {}; }
 
