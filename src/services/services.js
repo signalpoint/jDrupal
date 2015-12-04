@@ -21,11 +21,17 @@ Drupal.services.call = function(options) {
 
     module_invoke_all('services_preprocess', options);
 
-    // Build the Request, URL and extract the HTTP method.
+
+    // Build the Request, and its url with a separator and '_format';
     var request = new XMLHttpRequest();
     var url = Drupal.settings.site_path +
               Drupal.settings.base_path;
-    url += options.path;
+    var separator = options.path.indexOf('?') == -1 ? '?' : '&';
+    var format = typeof options._format !== 'undefined' ?
+      '&_format=' + options._format : '';
+    url += /*'?q=' + */ options.path + separator + format;
+
+    // Extract the method, then print out some debug info if enabled.
     var method = options.method.toUpperCase();
     if (Drupal.settings.debug) { console.log(method + ': ' + url); }
 
@@ -223,8 +229,7 @@ function services_get_csrf_token(options) {
     // @TODO turn this into bool that the caller can specify to skip the token
     // retrieval.
     if (
-      (options.service == 'user' && options.resource == 'login') ||
-      (options.service == 'jdrupal' && options.resource == 'connect')
+      (options.service == 'user' && options.resource == 'login')
     ) {
       if (options.success) { options.success(token); }
       return;
