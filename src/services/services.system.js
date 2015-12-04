@@ -8,10 +8,13 @@ function jdrupal_connect(options) {
     var jdrupal_connect = {
       service: 'jdrupal',
       resource: 'connect',
-      method: 'GET',
+      method: 'get',
       path: 'jdrupal/connect',
+      _format: 'json',
       success: function(result) {
         try {
+          options.success(result);
+          return;
           // If the user is authenticated load their user account, otherwise
           // just proceed as an anonymous user.
           if (result.account.uid) {
