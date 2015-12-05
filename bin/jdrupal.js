@@ -1,46 +1,26 @@
-// Initialize the Drupal JSON object and run the bootstrap, if necessary.
-var jdrupal = {}; jdrupal_init();
+// Initialize the Drupal JSON object and run the bootstrap.
+var jDrupal = {}; jDrupal_init();
 
 /**
- * Initializes the jdrupal JSON object.
+ * Initializes the jDrupal JSON object.
  */
-function jdrupal_init() {
+function jDrupal_init() {
   try {
-    if (!jdrupal) { jdrupal = {}; }
+    if (!jDrupal) { jDrupal = {}; }
 
     // General properties.
-    jdrupal.csrf_token = false;
-    jdrupal.sessid = null;
+    jDrupal.csrf_token = false;
+    jDrupal.sessid = null;
 
-    // Settings.
-    jdrupal.settings = {
-      app_directory: 'app',
-      base_path: '/',
-      cache: {
-        entity: {
-          enabled: false,
-          expiration: 3600
-        },
-        views: {
-          enabled: false,
-          expiration: 3600
-        }
-      },
-      debug: false,
-      endpoint: '',
-      file_public_path: 'sites/default/files',
-      language_default: 'und',
-      site_path: ''
-    };
     // Includes. Although we no longer dynamically load the includes, we want
     // to place them each in their own JSON object, so we have an easy way to
     // access them.
-    jdrupal.includes = {};
-    jdrupal.includes['module'] = {};
+    jDrupal.includes = {};
+    jDrupal.includes['module'] = {};
     // Modules. Although we no longer dynamically load the core modules, we want
     // to place them each in their own JSON object, so we have an easy way to
     // access them.
-    jdrupal.modules = {
+    jDrupal.modules = {
       core: {},
       contrib: {},
       custom: {}
@@ -49,7 +29,7 @@ function jdrupal_init() {
     // used to prevent async calls to the same resource from piling up and
     // making duplicate requests.
     // @TODO - this needs to be dynamic, what about custom entity types?
-    jdrupal.services_queue = {
+    jDrupal.services_queue = {
       comment: {
         retrieve: {}
       },
@@ -70,10 +50,10 @@ function jdrupal_init() {
       }
     };
 
-    jdrupal.Entity = {};
+    jDrupal.Entity = {};
 
     // @see https://api.drupal.org/api/drupal/core!modules!user!src!Entity!User.php/class/User/8
-    jdrupal.Entity.User = function(account) {
+    jDrupal.Entity.User = function(account) {
       try {
         this.entity = account;
         this.getUsername = function() {
@@ -84,23 +64,23 @@ function jdrupal_init() {
         };
       }
       catch (error) {
-        console.log('jdrupal.Entity.User - ' + error);
+        console.log('jDrupal.Entity.User - ' + error);
       }
     };
 
     // Init anonymous user (we'll connect to retrieve the actual user later).
-    jdrupal.user = new jdrupal.Entity.User(drupal_user_defaults());
+    jDrupal.user = new jDrupal.Entity.User(drupal_user_defaults());
 
     /**
      * Gets the current active user.
      * @return {Object}
      */
-    jdrupal.currentUser = function() {
-      return jdrupal.user;
+    jDrupal.currentUser = function() {
+      return jDrupal.user;
     };
 
     // @see https://api.drupal.org/api/drupal/core!modules!node!src!Entity!Node.php/class/Node/8
-    jdrupal.Entity.Node = function(node) {
+    jDrupal.Entity.Node = function(node) {
       try {
         this.entity = node;
         this.id = function() {
@@ -125,7 +105,7 @@ function jdrupal_init() {
           this.entity.title[0].value = title;
         };
       }
-      catch (error) { console.log('jdrupal.Entity.Node - ' + error); }
+      catch (error) { console.log('jDrupal.Entity.Node - ' + error); }
     };
   }
   catch (error) { console.log('drupal_init - ' + error); }
@@ -305,7 +285,7 @@ function dpm(data) {
 }
 
 /**
- * Returns a default JSON object representing an anonymous jdrupal user account.
+ * Returns a default JSON object representing an anonymous jDrupal user account.
  * @return {Object}
  */
 function drupal_user_defaults() {
@@ -410,14 +390,14 @@ function is_int(n) {
 }
 
 /**
- * Get the default language from jdrupal.settings.
+ * Get the default language from jDrupal.settings.
  * @return {String}
  */
 function language_default() {
   try {
-    if (jdrupal.settings.language_default &&
-      jdrupal.settings.language_default != '') {
-      return jdrupal.settings.language_default;
+    if (jDrupal.settings.language_default &&
+      jDrupal.settings.language_default != '') {
+      return jDrupal.settings.language_default;
     }
     return 'en';
   }
@@ -433,13 +413,13 @@ function language_default() {
 function module_exists(name) {
   try {
     var exists = false;
-    if (typeof jdrupal.modules.core[name] !== 'undefined') {
+    if (typeof jDrupal.modules.core[name] !== 'undefined') {
       exists = true;
     }
-    else if (typeof jdrupal.modules.contrib[name] !== 'undefined') {
+    else if (typeof jDrupal.modules.contrib[name] !== 'undefined') {
       exists = true;
     }
-    else if (typeof jdrupal.modules.custom[name] !== 'undefined') {
+    else if (typeof jDrupal.modules.custom[name] !== 'undefined') {
       exists = true;
     }
     return exists;
@@ -508,8 +488,8 @@ function module_implements(hook) {
       var bundles = module_types();
       for (var i = 0; i < bundles.length; i++) {
         var bundle = bundles[i];
-        for (var module in jdrupal.modules[bundle]) {
-          if (jdrupal.modules[bundle].hasOwnProperty(module)) {
+        for (var module in jDrupal.modules[bundle]) {
+          if (jDrupal.modules[bundle].hasOwnProperty(module)) {
             if (function_exists(module + '_' + hook)) {
               modules_that_implement.push(module);
             }
@@ -578,8 +558,8 @@ function module_invoke_all(hook) {
     var bundles = module_types();
     for (var i = 0; i < bundles.length; i++) {
       var bundle = bundles[i];
-      for (var module in jdrupal.modules[bundle]) {
-        if (jdrupal.modules[bundle].hasOwnProperty(module)) {
+      for (var module in jDrupal.modules[bundle]) {
+        if (jDrupal.modules[bundle].hasOwnProperty(module)) {
           var function_name = module + '_' + hook;
           if (function_exists(function_name)) {
             // If there are no arguments, just call the hook directly,
@@ -609,7 +589,7 @@ function module_invoke_all(hook) {
 }
 
 /**
- * Given a module name, this will return the module inside jdrupal.modules, or
+ * Given a module name, this will return the module inside jDrupal.modules, or
  * false if it fails to find it.
  * @param {String} name
  * @return {Object|Boolean}
@@ -619,8 +599,8 @@ function module_load(name) {
     var bundles = module_types();
     for (var i = 0; i < bundles.length; i++) {
       var bundle = bundles[i];
-      if (jdrupal.modules[bundle][name]) {
-        return jdrupal.modules[bundle][name];
+      if (jDrupal.modules[bundle][name]) {
+        return jDrupal.modules[bundle][name];
       }
     }
     return false;
@@ -753,7 +733,7 @@ function entity_load(entity_type, ids, options) {
       entity_id,
       'success'
     )) {
-      if (jdrupal.settings.cache.entity.enabled) {
+      if (jDrupal.settings.cache.entity.enabled) {
         entity = _entity_local_storage_load(entity_type, entity_id, options);
         if (entity) {
           if (options.success) { options.success(entity); }
@@ -794,7 +774,7 @@ function entity_load(entity_type, ids, options) {
     // If entity caching is enabled, try to load the entity from local storage.
     // If a copy is available in local storage, send it to the success callback.
     var entity = false;
-    if (jdrupal.settings.cache.entity.enabled) {
+    if (jDrupal.settings.cache.entity.enabled) {
       entity = _entity_local_storage_load(entity_type, entity_id, options);
       if (entity) {
         if (options.success) { options.success(entity); }
@@ -819,13 +799,13 @@ function entity_load(entity_type, ids, options) {
           // Set the entity equal to the returned data.
           entity = data;
           // Is entity caching enabled?
-          if (jdrupal.settings.cache.entity &&
-              jdrupal.settings.cache.entity.enabled) {
+          if (jDrupal.settings.cache.entity &&
+              jDrupal.settings.cache.entity.enabled) {
             // Set the expiration time as a property on the entity that can be
             // used later.
-            if (jdrupal.settings.cache.entity.expiration !== 'undefined') {
-              var expiration = time() + jdrupal.settings.cache.entity.expiration;
-              if (jdrupal.settings.cache.entity.expiration == 0) {
+            if (jDrupal.settings.cache.entity.expiration !== 'undefined') {
+              var expiration = time() + jDrupal.settings.cache.entity.expiration;
+              if (jDrupal.settings.cache.entity.expiration == 0) {
                 expiration = 0;
               }
               entity.expiration = expiration;
@@ -835,12 +815,12 @@ function entity_load(entity_type, ids, options) {
           }
           // Send the entity back to the queued callback(s).
           var _success_callbacks =
-            jdrupal.services_queue[entity_type]['retrieve'][entity_id].success;
+            jDrupal.services_queue[entity_type]['retrieve'][entity_id].success;
           for (var i = 0; i < _success_callbacks.length; i++) {
             _success_callbacks[i](entity);
           }
           // Clear out the success callbacks.
-          jdrupal.services_queue[entity_type]['retrieve'][entity_id].success =
+          jDrupal.services_queue[entity_type]['retrieve'][entity_id].success =
             [];
         }
         catch (error) {
@@ -896,7 +876,7 @@ function _entity_local_storage_load(entity_type, entity_id, options) {
       entity = JSON.parse(entity);
       // We successfully loaded the entity from local storage. If it expired
       // remove it from local storage then continue onward with the entity
-      // retrieval from jdrupal. Otherwise return the local storage entity copy.
+      // retrieval from jDrupal. Otherwise return the local storage entity copy.
       if (typeof entity.expiration !== 'undefined' &&
           entity.expiration != 0 &&
           time() > entity.expiration) {
@@ -1207,20 +1187,20 @@ function user_password() {
 /**
  * The Drupal services JSON object.
  */
-jdrupal.services = {};
+jDrupal.services = {};
 
 /**
  * Drupal Services XMLHttpRequest Object.
  * @param {Object} options
  */
-jdrupal.services.call = function(options) {
+jDrupal.services.call = function(options) {
   try {
 
     options.debug = false;
 
     // Make sure the settings have been provided for Services.
     if (!services_ready()) {
-      var error = 'Set the site_path property on the jdrupal.settings object!';
+      var error = 'Set the site_path property on the jDrupal.settings object!';
       options.error(null, null, error);
       return;
     }
@@ -1230,8 +1210,8 @@ jdrupal.services.call = function(options) {
 
     // Build the Request, and its url with a separator and '_format';
     var request = new XMLHttpRequest();
-    var url = jdrupal.settings.site_path +
-              jdrupal.settings.base_path;
+    var url = jDrupal.settings.site_path +
+              jDrupal.settings.base_path;
     var separator = options.path.indexOf('?') == -1 ? '?' : '&';
     var format = typeof options._format !== 'undefined' ?
       '&_format=' + options._format : '';
@@ -1239,7 +1219,7 @@ jdrupal.services.call = function(options) {
 
     // Extract the method, then print out some debug info if enabled.
     var method = options.method.toUpperCase();
-    if (jdrupal.settings.debug) { console.log(method + ': ' + url); }
+    if (jDrupal.settings.debug) { console.log(method + ': ' + url); }
 
     // Request Success Handler
     request.onload = function(e) {
@@ -1250,7 +1230,7 @@ jdrupal.services.call = function(options) {
             http_status_code_title(request.status);
           // 200 OK, 201 Created, 204 No Content
           if (in_array(request.status, [200, 201, 204])) {
-            if (jdrupal.settings.debug) { console.log(title); }
+            if (jDrupal.settings.debug) { console.log(title); }
             // Extract the JSON result, or throw an error if the response wasn't
             // JSON.
             var result = null;
@@ -1280,7 +1260,7 @@ jdrupal.services.call = function(options) {
           }
           else {
             // Not OK...
-            if (jdrupal.settings.debug) {
+            if (jDrupal.settings.debug) {
               console.log(method + ': ' + url + ' - ' + title);
               console.log(request.responseText);
               console.log(request.getAllResponseHeaders());
@@ -1297,18 +1277,18 @@ jdrupal.services.call = function(options) {
         }
         else {
           console.log(
-            'jdrupal.services.call - request.readyState = ' + request.readyState
+            'jDrupal.services.call - request.readyState = ' + request.readyState
           );
         }
       }
       catch (error) {
         // Not OK...
-        if (jdrupal.settings.debug) {
+        if (jDrupal.settings.debug) {
           console.log(method + ' (ERROR): ' + url + ' - ' + title);
           console.log(request.responseText);
           console.log(request.getAllResponseHeaders());
         }
-        console.log('jdrupal.services.call - onload - ' + error);
+        console.log('jDrupal.services.call - onload - ' + error);
       }
     };
 
@@ -1365,7 +1345,7 @@ jdrupal.services.call = function(options) {
             if (typeof options.data !== 'undefined') {
               // Print out debug information if debug is enabled. Don't print
               // out any sensitive debug data containing passwords.
-              if (jdrupal.settings.debug) {
+              if (jDrupal.settings.debug) {
                 var show = true;
                 if (options.service == 'user' &&
                   in_array(options.resource, ['login', 'create', 'update'])) {
@@ -1385,7 +1365,7 @@ jdrupal.services.call = function(options) {
           }
           catch (error) {
             console.log(
-              'jdrupal.services.call - services_get_csrf_token - success - ' +
+              'jDrupal.services.call - services_get_csrf_token - success - ' +
               error
             );
           }
@@ -1393,13 +1373,13 @@ jdrupal.services.call = function(options) {
         error: function(xhr, status, message) {
           try {
             console.log(
-              'jdrupal.services.call - services_get_csrf_token - ' + message
+              'jDrupal.services.call - services_get_csrf_token - ' + message
             );
             if (options.error) { options.error(xhr, status, message); }
           }
           catch (error) {
             console.log(
-              'jdrupal.services.call - services_get_csrf_token - error - ' +
+              'jDrupal.services.call - services_get_csrf_token - error - ' +
               error
             );
           }
@@ -1408,7 +1388,7 @@ jdrupal.services.call = function(options) {
 
   }
   catch (error) {
-    console.log('jdrupal.services.call - error - ' + error);
+    console.log('jDrupal.services.call - error - ' + error);
   }
 };
 
@@ -1429,7 +1409,7 @@ function services_get_csrf_token(options) {
     { options.success(token); return; }
 
     // Are we resetting the token?
-    if (options.reset) { jdrupal.sessid = null; }
+    if (options.reset) { jDrupal.sessid = null; }
 
     // On some calls we don't need a token, so skip it.
     // @TODO turn this into bool that the caller can specify to skip the token
@@ -1442,17 +1422,17 @@ function services_get_csrf_token(options) {
     }
 
     // Do we already have a token? If we do, return it the success callback.
-    if (jdrupal.sessid) { token = jdrupal.sessid; }
+    if (jDrupal.sessid) { token = jDrupal.sessid; }
     if (token) {
       if (options.success) { options.success(token); }
       return;
     }
 
-    // We don't have a token, let's get it from jdrupal...
+    // We don't have a token, let's get it from jDrupal...
 
     // Build the Request and URL.
     var token_request = new XMLHttpRequest();
-    var token_url = jdrupal.settings.site_path +
+    var token_url = jDrupal.settings.site_path +
               '/rest/session/token';
 
     // Token Request Success Handler
@@ -1466,10 +1446,10 @@ function services_get_csrf_token(options) {
             console.log(token_request.responseText);
           }
           else { // OK
-            // Set jdrupal.sessid with the token, then return the token to the
+            // Set jDrupal.sessid with the token, then return the token to the
             // success function.
             token = token_request.responseText;
-            jdrupal.sessid = token;
+            jDrupal.sessid = token;
             console.log('Grabbed a token from the server: ' + token);
             if (options.success) { options.success(token); }
           }
@@ -1502,10 +1482,11 @@ function services_get_csrf_token(options) {
  */
 function services_ready() {
   try {
+    console.log(jDrupal);
     var result = true;
-    if (jdrupal.settings.site_path == '') {
+    if (jDrupal.settings.site_path == '') {
       result = false;
-      console.log('jDrupal\'s jdrupal.settings.site_path is not set!');
+      console.log('jDrupal\'s jDrupal.settings.site_path is not set!');
     }
     return result;
   }
@@ -1541,10 +1522,10 @@ function _services_queue_already_queued(service, resource, entity_id,
   try {
     var queued = false;
     if (
-      typeof jdrupal.services_queue[service][resource][entity_id] !== 'undefined'
+      typeof jDrupal.services_queue[service][resource][entity_id] !== 'undefined'
     ) {
       //queued = true;
-      var queue = jdrupal.services_queue[service][resource][entity_id];
+      var queue = jDrupal.services_queue[service][resource][entity_id];
       if (queue[callback_type].length != 0) { queued = true; }
     }
     return queued;
@@ -1560,7 +1541,7 @@ function _services_queue_already_queued(service, resource, entity_id,
  */
 function _services_queue_add_to_queue(service, resource, entity_id) {
   try {
-    jdrupal.services_queue[service][resource][entity_id] = {
+    jDrupal.services_queue[service][resource][entity_id] = {
       entity_id: entity_id,
       success: [],
       error: []
@@ -1595,7 +1576,7 @@ function _services_queue_remove_from_queue(service, resource, entity_id) {
 function _services_queue_callback_add(service, resource, entity_id,
   callback_type, callback) {
   try {
-    jdrupal.services_queue[service][resource][entity_id][callback_type].push(
+    jDrupal.services_queue[service][resource][entity_id][callback_type].push(
       callback
     );
   }
@@ -1614,7 +1595,7 @@ function _services_queue_callback_count(service, resource, entity_id,
   callback_type) {
   try {
     var length =
-      jdrupal.services_queue[service][resource][entity_id][callback_type].length;
+      jDrupal.services_queue[service][resource][entity_id][callback_type].length;
     return length;
   }
   catch (error) { console.log('_services_queue_callback_count - ' + error); }
@@ -1701,7 +1682,7 @@ function entity_hal_links(entity_type, bundle, entity, options) {
     if (typeof entity.entity['_links'] === 'undefined') {
       entity.entity['_links'] = {
         type: {
-          href: jdrupal.settings.site_path +
+          href: jDrupal.settings.site_path +
             '/rest/type/' + entity_type + '/' + bundle
         }
       };
@@ -1724,7 +1705,7 @@ function entity_create(entity_type, bundle, entity, options) {
     // @see https://api.drupal.org/api/drupal/core!includes!entity.inc/function/entity_create/8
 
     entity_hal_links(entity_type, bundle, entity, options);
-    jdrupal.services.call({
+    jDrupal.services.call({
         method: 'POST',
         contentType: 'application/hal+json',
         async: options.async,
@@ -1759,7 +1740,7 @@ function entity_create(entity_type, bundle, entity, options) {
  */
 function entity_retrieve(entity_type, ids, options) {
   try {
-    jdrupal.services.call({
+    jDrupal.services.call({
         method: 'GET',
         path: entity_type + '/' + ids,
         service: options.service,
@@ -1770,8 +1751,8 @@ function entity_retrieve(entity_type, ids, options) {
           try {
             if (options.success) {
               var class_name = ucfirst(entity_type);
-              if (typeof jdrupal.Entity[class_name] !== 'undefined') {
-                data = new jdrupal.Entity[class_name](data);
+              if (typeof jDrupal.Entity[class_name] !== 'undefined') {
+                data = new jDrupal.Entity[class_name](data);
               }
               else {
                 console.log('entity_retrieve - missing prototype - (' +
@@ -1804,7 +1785,7 @@ function entity_retrieve(entity_type, ids, options) {
 function entity_update(entity_type, bundle, entity, options) {
   try {
     entity_hal_links(entity_type, bundle, entity, options);
-    jdrupal.services.call({
+    jDrupal.services.call({
         method: 'PATCH',
         contentType: 'application/hal+json',
         path: entity_type + '/' + entity.id(),
@@ -1842,7 +1823,7 @@ function entity_update(entity_type, bundle, entity, options) {
  */
 function entity_delete(entity_type, entity_id, options) {
   try {
-    jdrupal.services.call({
+    jDrupal.services.call({
         method: 'DELETE',
         path: entity_type + '/' + entity_id,
         service: options.service,
@@ -1884,7 +1865,7 @@ function entity_index(entity_type, query, options) {
     }
     if (query_string) { query_string = '&' + query_string; }
     else { query_string = ''; }
-    jdrupal.services.call({
+    jDrupal.services.call({
         method: 'GET',
         path: entity_type + '.json' + query_string,
         service: options.service,
@@ -2069,10 +2050,10 @@ function node_index(query, options) {
  * System connect call.
  * @param {Object} options
  */
-function jdrupal_connect(options) {
+function jDrupal_connect(options) {
   try {
 
-    var jdrupal_connect = {
+    var jDrupal_connect = {
       service: 'jdrupal',
       resource: 'connect',
       method: 'get',
@@ -2087,39 +2068,39 @@ function jdrupal_connect(options) {
           if (result.account.uid) {
             user_load(result.account.uid, {
                 success: function(account) {
-                  jdrupal.user = account;
+                  jDrupal.user = account;
                   if (options.success) { options.success(result); }
                 }
             });
           }
           else if (options.success) { options.success(result); }
         }
-        catch (error) { console.log('jdrupal_connect - success - ' + error); }
+        catch (error) { console.log('jDrupal_connect - success - ' + error); }
       },
       error: function(xhr, status, message) {
         try {
           if (options.error) { options.error(xhr, status, message); }
         }
-        catch (error) { console.log('jdrupal_connect - error - ' + error); }
+        catch (error) { console.log('jDrupal_connect - error - ' + error); }
       }
     };
 
-    jdrupal.services.call(jdrupal_connect);
+    jDrupal.services.call(jDrupal_connect);
     return;
 
     // If we don't have a token, grab one first.
-    if (!jdrupal.csrf_token) {
+    if (!jDrupal.csrf_token) {
       services_get_csrf_token({
           success: function(token) {
             try {
               if (options.debug) { console.log('Grabbed new token.'); }
               // Now that we have a token, make the system connect call.
-              jdrupal.csrf_token = true;
-              jdrupal.services.call(system_connect);
+              jDrupal.csrf_token = true;
+              jDrupal.services.call(system_connect);
             }
             catch (error) {
               console.log(
-                'jdrupal_connect - services_csrf_token - success - ' + message
+                'jDrupal_connect - services_csrf_token - success - ' + message
               );
             }
           },
@@ -2129,7 +2110,7 @@ function jdrupal_connect(options) {
             }
             catch (error) {
               console.log(
-                'jdrupal_connect - services_csrf_token - error - ' + message
+                'jDrupal_connect - services_csrf_token - error - ' + message
               );
             }
           }
@@ -2138,11 +2119,11 @@ function jdrupal_connect(options) {
     else {
       // We already have a token, make the system connect call.
       if (options.debug) { console.log('Token already available.'); }
-      jdrupal.services.call(system_connect);
+      jDrupal.services.call(system_connect);
     }
   }
   catch (error) {
-    console.log('jdrupal_connect - ' + error);
+    console.log('jDrupal_connect - ' + error);
   }
 }
 
@@ -2370,7 +2351,7 @@ function user_index(query, options) {
  */
 function user_register(account, options) {
   try {
-    jdrupal.services.call({
+    jDrupal.services.call({
         service: 'user',
         resource: 'register',
         method: 'POST',
@@ -2414,7 +2395,7 @@ function user_login(name, pass, options) {
       if (options.error) { options.error(null, 406, 'user_login - bad input'); }
       return;
     }
-    jdrupal.services.call({
+    jDrupal.services.call({
         service: 'user',
         resource: 'login',
         method: 'POST',
@@ -2425,8 +2406,8 @@ function user_login(name, pass, options) {
         success: function(account) {
           try {
             // Now that we are logged in, we need to get a new CSRF token.
-            jdrupal.user = new jdrupal.Entity.User(account);
-            jdrupal.sessid = null;
+            jDrupal.user = new jDrupal.Entity.User(account);
+            jDrupal.sessid = null;
             services_get_csrf_token({
                 success: function(token) {
                   try {
@@ -2469,7 +2450,7 @@ function user_login(name, pass, options) {
  */
 function user_logout(options) {
   try {
-    jdrupal.services.call({
+    jDrupal.services.call({
         service: 'user',
         resource: 'logout',
         method: 'GET',
@@ -2479,16 +2460,16 @@ function user_logout(options) {
           try {
             // Now that we logged out, clear the user and sessid, then make a
             // fresh connection.
-            jdrupal.user = new jdrupal.Entity.User(drupal_user_defaults());
-            jdrupal.sessid = null;
-            jdrupal_connect({
+            jDrupal.user = new jDrupal.Entity.User(drupal_user_defaults());
+            jDrupal.sessid = null;
+            jDrupal_connect({
                 success: function(result) {
                   try {
                     if (options.success) { options.success(data); }
                   }
                   catch (error) {
                     console.log(
-                      'user_logout - jdrupal_connect - success - ' +
+                      'user_logout - jDrupal_connect - success - ' +
                       error
                     );
                   }
@@ -2499,7 +2480,7 @@ function user_logout(options) {
                   }
                   catch (error) {
                     console.log(
-                      'user_logout - jdrupal_connect - error - ' +
+                      'user_logout - jDrupal_connect - error - ' +
                       error
                     );
                   }
