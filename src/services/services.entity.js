@@ -77,20 +77,10 @@ function entity_retrieve(entity_type, ids, options) {
         resource: options.resource,
         entity_type: entity_type,
         entity_id: ids,
+        _format: 'json',
         success: function(data) {
           try {
-            if (options.success) {
-              var class_name = ucfirst(entity_type);
-              if (typeof jDrupal.Entity[class_name] !== 'undefined') {
-                data = new jDrupal.Entity[class_name](data);
-              }
-              else {
-                console.log('entity_retrieve - missing prototype - (' +
-                  entity_type + ')'
-                );
-              }
-              options.success(data);
-            }
+            if (options.success) { options.success(data); }
           }
           catch (error) { console.log('entity_retrieve - success - ' + error); }
         },

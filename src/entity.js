@@ -1,4 +1,56 @@
 /**
+ * Entity
+ * @param entityType
+ * @param bundle
+ * @param id
+ * @constructor
+ */
+jDrupal.Entity = function(entityType, bundle, id) {
+  this.entityType = entityType;
+  this.bundle = bundle;
+  this.entityID = id;
+  this.entity = null;
+};
+jDrupal.Entity.prototype.load = function(options) {
+  var _entity = this;
+  entity_retrieve(this.getEntityType(), this.id(), {
+    success: function(entity) {
+      _entity.entity = entity;
+      if (options.success) { options.success(); }
+    }
+  });
+};
+jDrupal.Entity.prototype.getEntityType = function() {
+  return this.entityType;
+};
+jDrupal.Entity.prototype.getBundle = function() {
+  return this.bundle;
+};
+jDrupal.Entity.prototype.id = function() {
+  return this.entityID;
+};
+
+/**
+ * User
+ * @param uid
+ * @constructor
+ */
+jDrupal.User = function(uid) {
+  this.entityType = 'user';
+  this.bundle = 'user';
+  this.entityID = uid;
+};
+jDrupal.User.prototype = new jDrupal.Entity;
+jDrupal.User.prototype.constructor = jDrupal.User;
+jDrupal.User.prototype.getAccountName = function() {
+  return this.entity.name[0].value;
+};
+
+function jDrupalEntityInit(options) {
+
+}
+
+/**
  * Delete an entity.
  * @param {String} entity_type
  * @param {Number} ids

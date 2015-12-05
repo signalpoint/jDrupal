@@ -1,3 +1,25 @@
+// @see https://api.drupal.org/api/drupal/core!modules!user!src!Entity!User.php/class/User/8
+//jDrupal.user = {
+//  Entity: {}
+//};
+//jDrupal.user.Entity.User = function(account) {
+//  try {
+//    this.entity = account;
+//    this.getUsername = function() {
+//      return this.entity.name[0].value;
+//    };
+//    this.id = function() {
+//      return this.entity.uid[0].value;
+//    };
+//    this.load = function(uid, options) {
+//      entity_load('user', uid, options);
+//    }
+//  }
+//  catch (error) {
+//    console.log('jDrupal.user.Entity.User - ' + error);
+//  }
+//};
+
 /**
  * Loads a user account.
  * @param {Number} uid
@@ -5,7 +27,8 @@
  */
 function user_load(uid, options) {
   try {
-    entity_load('user', uid, options);
+    console.log('DEPRECATED - user_load() | use jDrupal.user.Entity.User.load() instead');
+    jDrupal.user.Entity.User.load(uid, options);
   }
   catch (error) { console.log('user_load - ' + error); }
 }

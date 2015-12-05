@@ -101,19 +101,19 @@ function user_register(account, options) {
  * @param {String} pass
  * @param {Object} options
  */
-function user_login(name, pass, options) {
+function jDrupalUserLogin(name, pass, options) {
   try {
     var valid = true;
     if (!name || typeof name !== 'string') {
       valid = false;
-      console.log('user_login - invalid name');
+      console.log('jDrupalUserLogin - invalid name');
     }
     if (!pass || typeof pass !== 'string') {
       valid = false;
-      console.log('user_login - invalid pass');
+      console.log('jDrupalUserLogin - invalid pass');
     }
     if (!valid) {
-      if (options.error) { options.error(null, 406, 'user_login - bad input'); }
+      if (options.error) { options.error(null, 406, 'jDrupalUserLogin - bad input'); }
       return;
     }
     jDrupal.services.call({
@@ -126,6 +126,23 @@ function user_login(name, pass, options) {
           '&form_id=user_login_form',
         success: function(account) {
           try {
+
+            // Since Drupal only returns a 200 OK to us, we don't have much
+            // opportunity to make a decision here yet. So let's do a connect
+            // call to get the current user id, then load the user's account.
+
+            jDrupalConnect({
+              success: function(connect) {
+                console.log(connect);
+                if (options.success) { options.success(connect); }
+              },
+              error: function(xhr, status, message) {
+                console.log('jDrupalUserLogin -> jDrupalConnect | error');
+                console.log(arguments);
+              }
+            });
+
+            return;
             // Now that we are logged in, we need to get a new CSRF token.
             jDrupal.user = new jDrupal.Entity.User(account);
             jDrupal.sessid = null;
@@ -150,18 +167,18 @@ function user_login(name, pass, options) {
                 }
             });
           }
-          catch (error) { console.log('user_login - success - ' + error); }
+          catch (error) { console.log('jDrupalUserLogin - success - ' + error); }
         },
         error: function(xhr, status, message) {
           try {
             if (options.error) { options.error(xhr, status, message); }
           }
-          catch (error) { console.log('user_login - error - ' + error); }
+          catch (error) { console.log('jDrupalUserLogin - error - ' + error); }
         }
     });
   }
   catch (error) {
-    console.log('user_login - ' + error);
+    console.log('jDrupalUserLogin - ' + error);
   }
 }
 

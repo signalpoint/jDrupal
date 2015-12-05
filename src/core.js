@@ -1,10 +1,10 @@
 // Initialize the Drupal JSON object and run the bootstrap.
-var jDrupal = {}; jDrupal_init();
+var jDrupal = {}; jDrupalInit();
 
 /**
  * Initializes the jDrupal JSON object.
  */
-function jDrupal_init() {
+function jDrupalInit() {
   try {
     if (!jDrupal) { jDrupal = {}; }
 
@@ -17,6 +17,7 @@ function jDrupal_init() {
     // access them.
     jDrupal.includes = {};
     jDrupal.includes['module'] = {};
+
     // Modules. Although we no longer dynamically load the core modules, we want
     // to place them each in their own JSON object, so we have an easy way to
     // access them.
@@ -25,6 +26,7 @@ function jDrupal_init() {
       contrib: {},
       custom: {}
     };
+
     // Build a JSON object to house the entity service request queues. This is
     // used to prevent async calls to the same resource from piling up and
     // making duplicate requests.
@@ -50,65 +52,8 @@ function jDrupal_init() {
       }
     };
 
-    jDrupal.Entity = {};
-
-    // @see https://api.drupal.org/api/drupal/core!modules!user!src!Entity!User.php/class/User/8
-    jDrupal.Entity.User = function(account) {
-      try {
-        this.entity = account;
-        this.getUsername = function() {
-          return this.entity.name[0].value;
-        };
-        this.id = function() {
-          return this.entity.uid[0].value;
-        };
-      }
-      catch (error) {
-        console.log('jDrupal.Entity.User - ' + error);
-      }
-    };
-
-    // Init anonymous user (we'll connect to retrieve the actual user later).
-    jDrupal.user = new jDrupal.Entity.User(drupal_user_defaults());
-
-    /**
-     * Gets the current active user.
-     * @return {Object}
-     */
-    jDrupal.currentUser = function() {
-      return jDrupal.user;
-    };
-
-    // @see https://api.drupal.org/api/drupal/core!modules!node!src!Entity!Node.php/class/Node/8
-    jDrupal.Entity.Node = function(node) {
-      try {
-        this.entity = node;
-        this.id = function() {
-          return this.entity.nid ? this.entity.nid[0].value : null;
-        };
-        this.isPromoted = function() {
-          return this.entity.promote[0].value;
-        };
-        this.isPublished = function() {
-          return this.entity.status[0].value;
-        };
-        this.isSticky = function() {
-          return this.entity.sticky[0].value;
-        };
-        this.getTitle = function() {
-          return this.entity.title[0].value;
-        };
-        this.getType = function() {
-          return this.entity.type[0].target_id;
-        };
-        this.setTitle = function(title) {
-          this.entity.title[0].value = title;
-        };
-      }
-      catch (error) { console.log('jDrupal.Entity.Node - ' + error); }
-    };
   }
-  catch (error) { console.log('drupal_init - ' + error); }
+  catch (error) { console.log('jDrupalInit - ' + error); }
 }
 
 /**

@@ -2,17 +2,39 @@
  * System connect call.
  * @param {Object} options
  */
-function jDrupal_connect(options) {
+function jDrupalConnect(options) {
   try {
 
-    var jDrupal_connect = {
+    var service = {
+
       service: 'jdrupal',
       resource: 'connect',
       method: 'get',
       path: 'jdrupal/connect',
       _format: 'json',
+
       success: function(result) {
         try {
+
+          var account = new jDrupal.User(result.currentUser.uid);
+          account.load({
+            success: function() {
+              console.log('Hello ' + account.getAccountName());
+            }
+          });
+
+          // Parse the connect result from Drupal and build the currentUser
+          // object.
+          //jDrupalConnectExtractUser(result, {
+          //  success: function() {
+          //    if (jDrupal.currentUser) {
+          //
+          //    }
+          //  }
+          //});
+
+          // Load the user's account from Drupal
+          console.log('connected');
           options.success(result);
           return;
           // If the user is authenticated load their user account, otherwise
@@ -27,55 +49,29 @@ function jDrupal_connect(options) {
           }
           else if (options.success) { options.success(result); }
         }
-        catch (error) { console.log('jDrupal_connect - success - ' + error); }
+        catch (error) { console.log('jDrupalConnect - success - ' + error); }
       },
       error: function(xhr, status, message) {
         try {
           if (options.error) { options.error(xhr, status, message); }
         }
-        catch (error) { console.log('jDrupal_connect - error - ' + error); }
+        catch (error) { console.log('jDrupalConnect - error - ' + error); }
       }
     };
-
-    jDrupal.services.call(jDrupal_connect);
-    return;
-
-    // If we don't have a token, grab one first.
-    if (!jDrupal.csrf_token) {
-      services_get_csrf_token({
-          success: function(token) {
-            try {
-              if (options.debug) { console.log('Grabbed new token.'); }
-              // Now that we have a token, make the system connect call.
-              jDrupal.csrf_token = true;
-              jDrupal.services.call(system_connect);
-            }
-            catch (error) {
-              console.log(
-                'jDrupal_connect - services_csrf_token - success - ' + message
-              );
-            }
-          },
-          error: function(xhr, status, message) {
-            try {
-              if (options.error) { options.error(xhr, status, message); }
-            }
-            catch (error) {
-              console.log(
-                'jDrupal_connect - services_csrf_token - error - ' + message
-              );
-            }
-          }
-      });
-    }
-    else {
-      // We already have a token, make the system connect call.
-      if (options.debug) { console.log('Token already available.'); }
-      jDrupal.services.call(system_connect);
-    }
+    jDrupal.services.call(service);
   }
   catch (error) {
-    console.log('jDrupal_connect - ' + error);
+    console.log('jDrupalConnect - ' + error);
   }
 }
 
+function jDrupalConnectExtractUser(result, options) {
+  try {
+    var currentUser = result.currentUser;
+    jDrupal.currentUser = currentUser;
+    options.success(currentUser);
+  }
+  catch (error) {
+    console.log('jDrupalConnectExtractUser - ' + error);
+  }
+}
