@@ -10,63 +10,30 @@
       <script src="bin/jdrupal.js"></script>
 
       <!-- Load Settings for jDrupal -->
-      <script src="app/settings.js"></script>
+      <script src="app/jdrupal.settings.js"></script>
+
+      <!-- Load the App -->
+      <script src="app/hello.world.js"></script>
     
   </head>
 
   <body onload="start_my_app()">
   
     <h1>jDrupal</h1>
+
     <form id="user_login_form" style="display: none;">
-      <label for="name">Username</label>
-      <input name="name" id="edit-name" type="text" value="" />
-      <label for="name">Password</label>
-      <input name="pass" id="edit-pass" type="password" value=""  />
-      <input type="button" value="Login" onclick="user_login_click()"/>
+
+        <div>
+            <input id="name" type="text" value="" placeholder="Username"/>
+        </div>
+
+        <div>
+            <input id="pass" type="password" value="" placeholder="Password" />
+        </div>
+
+        <input type="button" value="Login" onclick="login_click()"/>
+
     </form>
-    
-    <script type="text/javascript">
-    
-      function start_my_app() {
-        try {
-        
-          // Connect to Drupal... if the user is anonymous show them the login
-          // form, otherwise say hello to them.
-          jDrupal_connect({
-            success: function(result) {
-                console.log(result);
-                var account = jDrupal.currentUser();
-                if (account.id() != 0) {
-                  console.log('Hi, ' + account.getUsername() + '!');
-                }
-                else {
-                  document.getElementById('user_login_form').style.display = 'inline';
-                }
-            }
-          });
-        
-        }
-        catch (error) { console.log('start_my_app - ' + error); }
-      }
-      
-      // Handle the login button click.
-      function user_login_click() {
-        var name = document.getElementById('edit-name').value;
-        var pass = document.getElementById('edit-pass').value;
-        if (empty(name)) { alert('Enter a user name!'); return; }
-        if (empty(pass)) { alert('Enter a password!'); return; }
-        user_login(name, pass, {
-            success: function(result) {
-              var account = jDrupal.currentUser();
-              alert('Hello ' + account.getUsername());
-            },
-            error: function(xhr, status, result) {
-              alert(result.message);
-            }
-        });
-      }
-    
-    </script>
     
   </body>
 </html>
