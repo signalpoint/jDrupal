@@ -1,10 +1,10 @@
 // Initialize the Drupal JSON object and run the bootstrap.
-var jDrupal = {}; jDrupal_init();
+var jDrupal = {}; jDrupalInit();
 
 /**
  * Initializes the jDrupal JSON object.
  */
-function jDrupal_init() {
+function jDrupalInit() {
   try {
     if (!jDrupal) { jDrupal = {}; }
 
@@ -17,6 +17,7 @@ function jDrupal_init() {
     // access them.
     jDrupal.includes = {};
     jDrupal.includes['module'] = {};
+
     // Modules. Although we no longer dynamically load the core modules, we want
     // to place them each in their own JSON object, so we have an easy way to
     // access them.
@@ -25,6 +26,7 @@ function jDrupal_init() {
       contrib: {},
       custom: {}
     };
+
     // Build a JSON object to house the entity service request queues. This is
     // used to prevent async calls to the same resource from piling up and
     // making duplicate requests.
@@ -50,65 +52,8 @@ function jDrupal_init() {
       }
     };
 
-    jDrupal.Entity = {};
-
-    // @see https://api.drupal.org/api/drupal/core!modules!user!src!Entity!User.php/class/User/8
-    jDrupal.Entity.User = function(account) {
-      try {
-        this.entity = account;
-        this.getUsername = function() {
-          return this.entity.name[0].value;
-        };
-        this.id = function() {
-          return this.entity.uid[0].value;
-        };
-      }
-      catch (error) {
-        console.log('jDrupal.Entity.User - ' + error);
-      }
-    };
-
-    // Init anonymous user (we'll connect to retrieve the actual user later).
-    jDrupal.user = new jDrupal.Entity.User(drupal_user_defaults());
-
-    /**
-     * Gets the current active user.
-     * @return {Object}
-     */
-    jDrupal.currentUser = function() {
-      return jDrupal.user;
-    };
-
-    // @see https://api.drupal.org/api/drupal/core!modules!node!src!Entity!Node.php/class/Node/8
-    jDrupal.Entity.Node = function(node) {
-      try {
-        this.entity = node;
-        this.id = function() {
-          return this.entity.nid ? this.entity.nid[0].value : null;
-        };
-        this.isPromoted = function() {
-          return this.entity.promote[0].value;
-        };
-        this.isPublished = function() {
-          return this.entity.status[0].value;
-        };
-        this.isSticky = function() {
-          return this.entity.sticky[0].value;
-        };
-        this.getTitle = function() {
-          return this.entity.title[0].value;
-        };
-        this.getType = function() {
-          return this.entity.type[0].target_id;
-        };
-        this.setTitle = function(title) {
-          this.entity.title[0].value = title;
-        };
-      }
-      catch (error) { console.log('jDrupal.Entity.Node - ' + error); }
-    };
   }
-  catch (error) { console.log('drupal_init - ' + error); }
+  catch (error) { console.log('jDrupalInit - ' + error); }
 }
 
 /**
@@ -659,6 +604,58 @@ function comment_save(comment, options) {
 
 
 /**
+ * Entity
+ * @param entityType
+ * @param bundle
+ * @param id
+ * @constructor
+ */
+jDrupal.Entity = function(entityType, bundle, id) {
+  this.entityType = entityType;
+  this.bundle = bundle;
+  this.entityID = id;
+  this.entity = null;
+};
+jDrupal.Entity.prototype.load = function(options) {
+  var _entity = this;
+  entity_retrieve(this.getEntityType(), this.id(), {
+    success: function(entity) {
+      _entity.entity = entity;
+      if (options.success) { options.success(); }
+    }
+  });
+};
+jDrupal.Entity.prototype.getEntityType = function() {
+  return this.entityType;
+};
+jDrupal.Entity.prototype.getBundle = function() {
+  return this.bundle;
+};
+jDrupal.Entity.prototype.id = function() {
+  return this.entityID;
+};
+
+/**
+ * User
+ * @param uid
+ * @constructor
+ */
+jDrupal.User = function(uid) {
+  this.entityType = 'user';
+  this.bundle = 'user';
+  this.entityID = uid;
+};
+jDrupal.User.prototype = new jDrupal.Entity;
+jDrupal.User.prototype.constructor = jDrupal.User;
+jDrupal.User.prototype.getAccountName = function() {
+  return this.entity.name[0].value;
+};
+
+function jDrupalEntityInit(options) {
+
+}
+
+/**
  * Delete an entity.
  * @param {String} entity_type
  * @param {Number} ids
@@ -1064,6 +1061,38 @@ function file_save(file, options) {
 }
 
 
+// @see https://api.drupal.org/api/drupal/core!modules!node!src!Entity!Node.php/class/Node/8
+//jDrupal.node = {
+//  Entity: {}
+//};
+//jDrupal.node.Entity.Node = function(node) {
+//  try {
+//    this.entity = node;
+//    this.id = function() {
+//      return this.entity.nid ? this.entity.nid[0].value : null;
+//    };
+//    this.isPromoted = function() {
+//      return this.entity.promote[0].value;
+//    };
+//    this.isPublished = function() {
+//      return this.entity.status[0].value;
+//    };
+//    this.isSticky = function() {
+//      return this.entity.sticky[0].value;
+//    };
+//    this.getTitle = function() {
+//      return this.entity.title[0].value;
+//    };
+//    this.getType = function() {
+//      return this.entity.type[0].target_id;
+//    };
+//    this.setTitle = function(title) {
+//      this.entity.title[0].value = title;
+//    };
+//  }
+//  catch (error) { console.log('jDrupal.Entity.Node - ' + error); }
+//};
+
 /**
  * Loads a node.
  * @param {Number} nid
@@ -1139,6 +1168,28 @@ function taxonomy_vocabulary_save(taxonomy_vocabulary, options) {
 }
 
 
+// @see https://api.drupal.org/api/drupal/core!modules!user!src!Entity!User.php/class/User/8
+//jDrupal.user = {
+//  Entity: {}
+//};
+//jDrupal.user.Entity.User = function(account) {
+//  try {
+//    this.entity = account;
+//    this.getUsername = function() {
+//      return this.entity.name[0].value;
+//    };
+//    this.id = function() {
+//      return this.entity.uid[0].value;
+//    };
+//    this.load = function(uid, options) {
+//      entity_load('user', uid, options);
+//    }
+//  }
+//  catch (error) {
+//    console.log('jDrupal.user.Entity.User - ' + error);
+//  }
+//};
+
 /**
  * Loads a user account.
  * @param {Number} uid
@@ -1146,7 +1197,8 @@ function taxonomy_vocabulary_save(taxonomy_vocabulary, options) {
  */
 function user_load(uid, options) {
   try {
-    entity_load('user', uid, options);
+    console.log('DEPRECATED - user_load() | use jDrupal.user.Entity.User.load() instead');
+    jDrupal.user.Entity.User.load(uid, options);
   }
   catch (error) { console.log('user_load - ' + error); }
 }
@@ -1747,20 +1799,10 @@ function entity_retrieve(entity_type, ids, options) {
         resource: options.resource,
         entity_type: entity_type,
         entity_id: ids,
+        _format: 'json',
         success: function(data) {
           try {
-            if (options.success) {
-              var class_name = ucfirst(entity_type);
-              if (typeof jDrupal.Entity[class_name] !== 'undefined') {
-                data = new jDrupal.Entity[class_name](data);
-              }
-              else {
-                console.log('entity_retrieve - missing prototype - (' +
-                  entity_type + ')'
-                );
-              }
-              options.success(data);
-            }
+            if (options.success) { options.success(data); }
           }
           catch (error) { console.log('entity_retrieve - success - ' + error); }
         },
@@ -2050,17 +2092,39 @@ function node_index(query, options) {
  * System connect call.
  * @param {Object} options
  */
-function jDrupal_connect(options) {
+function jDrupalConnect(options) {
   try {
 
-    var jDrupal_connect = {
+    var service = {
+
       service: 'jdrupal',
       resource: 'connect',
       method: 'get',
       path: 'jdrupal/connect',
       _format: 'json',
+
       success: function(result) {
         try {
+
+          var account = new jDrupal.User(result.currentUser.uid);
+          account.load({
+            success: function() {
+              console.log('Hello ' + account.getAccountName());
+            }
+          });
+
+          // Parse the connect result from Drupal and build the currentUser
+          // object.
+          //jDrupalConnectExtractUser(result, {
+          //  success: function() {
+          //    if (jDrupal.currentUser) {
+          //
+          //    }
+          //  }
+          //});
+
+          // Load the user's account from Drupal
+          console.log('connected');
           options.success(result);
           return;
           // If the user is authenticated load their user account, otherwise
@@ -2075,59 +2139,32 @@ function jDrupal_connect(options) {
           }
           else if (options.success) { options.success(result); }
         }
-        catch (error) { console.log('jDrupal_connect - success - ' + error); }
+        catch (error) { console.log('jDrupalConnect - success - ' + error); }
       },
       error: function(xhr, status, message) {
         try {
           if (options.error) { options.error(xhr, status, message); }
         }
-        catch (error) { console.log('jDrupal_connect - error - ' + error); }
+        catch (error) { console.log('jDrupalConnect - error - ' + error); }
       }
     };
-
-    jDrupal.services.call(jDrupal_connect);
-    return;
-
-    // If we don't have a token, grab one first.
-    if (!jDrupal.csrf_token) {
-      services_get_csrf_token({
-          success: function(token) {
-            try {
-              if (options.debug) { console.log('Grabbed new token.'); }
-              // Now that we have a token, make the system connect call.
-              jDrupal.csrf_token = true;
-              jDrupal.services.call(system_connect);
-            }
-            catch (error) {
-              console.log(
-                'jDrupal_connect - services_csrf_token - success - ' + message
-              );
-            }
-          },
-          error: function(xhr, status, message) {
-            try {
-              if (options.error) { options.error(xhr, status, message); }
-            }
-            catch (error) {
-              console.log(
-                'jDrupal_connect - services_csrf_token - error - ' + message
-              );
-            }
-          }
-      });
-    }
-    else {
-      // We already have a token, make the system connect call.
-      if (options.debug) { console.log('Token already available.'); }
-      jDrupal.services.call(system_connect);
-    }
+    jDrupal.services.call(service);
   }
   catch (error) {
-    console.log('jDrupal_connect - ' + error);
+    console.log('jDrupalConnect - ' + error);
   }
 }
 
-
+function jDrupalConnectExtractUser(result, options) {
+  try {
+    var currentUser = result.currentUser;
+    jDrupal.currentUser = currentUser;
+    options.success(currentUser);
+  }
+  catch (error) {
+    console.log('jDrupalConnectExtractUser - ' + error);
+  }
+}
 /**
  * Creates a taxonomy term.
  * @param {Object} taxonomy_term
@@ -2380,19 +2417,19 @@ function user_register(account, options) {
  * @param {String} pass
  * @param {Object} options
  */
-function user_login(name, pass, options) {
+function jDrupalUserLogin(name, pass, options) {
   try {
     var valid = true;
     if (!name || typeof name !== 'string') {
       valid = false;
-      console.log('user_login - invalid name');
+      console.log('jDrupalUserLogin - invalid name');
     }
     if (!pass || typeof pass !== 'string') {
       valid = false;
-      console.log('user_login - invalid pass');
+      console.log('jDrupalUserLogin - invalid pass');
     }
     if (!valid) {
-      if (options.error) { options.error(null, 406, 'user_login - bad input'); }
+      if (options.error) { options.error(null, 406, 'jDrupalUserLogin - bad input'); }
       return;
     }
     jDrupal.services.call({
@@ -2405,6 +2442,23 @@ function user_login(name, pass, options) {
           '&form_id=user_login_form',
         success: function(account) {
           try {
+
+            // Since Drupal only returns a 200 OK to us, we don't have much
+            // opportunity to make a decision here yet. So let's do a connect
+            // call to get the current user id, then load the user's account.
+
+            jDrupalConnect({
+              success: function(connect) {
+                console.log(connect);
+                if (options.success) { options.success(connect); }
+              },
+              error: function(xhr, status, message) {
+                console.log('jDrupalUserLogin -> jDrupalConnect | error');
+                console.log(arguments);
+              }
+            });
+
+            return;
             // Now that we are logged in, we need to get a new CSRF token.
             jDrupal.user = new jDrupal.Entity.User(account);
             jDrupal.sessid = null;
@@ -2429,18 +2483,18 @@ function user_login(name, pass, options) {
                 }
             });
           }
-          catch (error) { console.log('user_login - success - ' + error); }
+          catch (error) { console.log('jDrupalUserLogin - success - ' + error); }
         },
         error: function(xhr, status, message) {
           try {
             if (options.error) { options.error(xhr, status, message); }
           }
-          catch (error) { console.log('user_login - error - ' + error); }
+          catch (error) { console.log('jDrupalUserLogin - error - ' + error); }
         }
     });
   }
   catch (error) {
-    console.log('user_login - ' + error);
+    console.log('jDrupalUserLogin - ' + error);
   }
 }
 
