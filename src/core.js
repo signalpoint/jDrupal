@@ -1,46 +1,26 @@
-// Initialize the Drupal JSON object and run the bootstrap, if necessary.
-var jdrupal = {}; jdrupal_init();
+// Initialize the Drupal JSON object and run the bootstrap.
+var jDrupal = {}; jDrupal_init();
 
 /**
- * Initializes the jdrupal JSON object.
+ * Initializes the jDrupal JSON object.
  */
-function jdrupal_init() {
+function jDrupal_init() {
   try {
-    if (!jdrupal) { jdrupal = {}; }
+    if (!jDrupal) { jDrupal = {}; }
 
     // General properties.
-    jdrupal.csrf_token = false;
-    jdrupal.sessid = null;
+    jDrupal.csrf_token = false;
+    jDrupal.sessid = null;
 
-    // Settings.
-    jdrupal.settings = {
-      app_directory: 'app',
-      base_path: '/',
-      cache: {
-        entity: {
-          enabled: false,
-          expiration: 3600
-        },
-        views: {
-          enabled: false,
-          expiration: 3600
-        }
-      },
-      debug: false,
-      endpoint: '',
-      file_public_path: 'sites/default/files',
-      language_default: 'und',
-      site_path: ''
-    };
     // Includes. Although we no longer dynamically load the includes, we want
     // to place them each in their own JSON object, so we have an easy way to
     // access them.
-    jdrupal.includes = {};
-    jdrupal.includes['module'] = {};
+    jDrupal.includes = {};
+    jDrupal.includes['module'] = {};
     // Modules. Although we no longer dynamically load the core modules, we want
     // to place them each in their own JSON object, so we have an easy way to
     // access them.
-    jdrupal.modules = {
+    jDrupal.modules = {
       core: {},
       contrib: {},
       custom: {}
@@ -49,7 +29,7 @@ function jdrupal_init() {
     // used to prevent async calls to the same resource from piling up and
     // making duplicate requests.
     // @TODO - this needs to be dynamic, what about custom entity types?
-    jdrupal.services_queue = {
+    jDrupal.services_queue = {
       comment: {
         retrieve: {}
       },
@@ -70,10 +50,10 @@ function jdrupal_init() {
       }
     };
 
-    jdrupal.Entity = {};
+    jDrupal.Entity = {};
 
     // @see https://api.drupal.org/api/drupal/core!modules!user!src!Entity!User.php/class/User/8
-    jdrupal.Entity.User = function(account) {
+    jDrupal.Entity.User = function(account) {
       try {
         this.entity = account;
         this.getUsername = function() {
@@ -84,23 +64,23 @@ function jdrupal_init() {
         };
       }
       catch (error) {
-        console.log('jdrupal.Entity.User - ' + error);
+        console.log('jDrupal.Entity.User - ' + error);
       }
     };
 
     // Init anonymous user (we'll connect to retrieve the actual user later).
-    jdrupal.user = new jdrupal.Entity.User(drupal_user_defaults());
+    jDrupal.user = new jDrupal.Entity.User(drupal_user_defaults());
 
     /**
      * Gets the current active user.
      * @return {Object}
      */
-    jdrupal.currentUser = function() {
-      return jdrupal.user;
+    jDrupal.currentUser = function() {
+      return jDrupal.user;
     };
 
     // @see https://api.drupal.org/api/drupal/core!modules!node!src!Entity!Node.php/class/Node/8
-    jdrupal.Entity.Node = function(node) {
+    jDrupal.Entity.Node = function(node) {
       try {
         this.entity = node;
         this.id = function() {
@@ -125,7 +105,7 @@ function jdrupal_init() {
           this.entity.title[0].value = title;
         };
       }
-      catch (error) { console.log('jdrupal.Entity.Node - ' + error); }
+      catch (error) { console.log('jDrupal.Entity.Node - ' + error); }
     };
   }
   catch (error) { console.log('drupal_init - ' + error); }
@@ -305,7 +285,7 @@ function dpm(data) {
 }
 
 /**
- * Returns a default JSON object representing an anonymous jdrupal user account.
+ * Returns a default JSON object representing an anonymous jDrupal user account.
  * @return {Object}
  */
 function drupal_user_defaults() {
@@ -410,14 +390,14 @@ function is_int(n) {
 }
 
 /**
- * Get the default language from jdrupal.settings.
+ * Get the default language from jDrupal.settings.
  * @return {String}
  */
 function language_default() {
   try {
-    if (jdrupal.settings.language_default &&
-      jdrupal.settings.language_default != '') {
-      return jdrupal.settings.language_default;
+    if (jDrupal.settings.language_default &&
+      jDrupal.settings.language_default != '') {
+      return jDrupal.settings.language_default;
     }
     return 'en';
   }
@@ -433,13 +413,13 @@ function language_default() {
 function module_exists(name) {
   try {
     var exists = false;
-    if (typeof jdrupal.modules.core[name] !== 'undefined') {
+    if (typeof jDrupal.modules.core[name] !== 'undefined') {
       exists = true;
     }
-    else if (typeof jdrupal.modules.contrib[name] !== 'undefined') {
+    else if (typeof jDrupal.modules.contrib[name] !== 'undefined') {
       exists = true;
     }
-    else if (typeof jdrupal.modules.custom[name] !== 'undefined') {
+    else if (typeof jDrupal.modules.custom[name] !== 'undefined') {
       exists = true;
     }
     return exists;

@@ -2,10 +2,10 @@
  * System connect call.
  * @param {Object} options
  */
-function jdrupal_connect(options) {
+function jDrupal_connect(options) {
   try {
 
-    var jdrupal_connect = {
+    var jDrupal_connect = {
       service: 'jdrupal',
       resource: 'connect',
       method: 'get',
@@ -20,39 +20,39 @@ function jdrupal_connect(options) {
           if (result.account.uid) {
             user_load(result.account.uid, {
                 success: function(account) {
-                  jdrupal.user = account;
+                  jDrupal.user = account;
                   if (options.success) { options.success(result); }
                 }
             });
           }
           else if (options.success) { options.success(result); }
         }
-        catch (error) { console.log('jdrupal_connect - success - ' + error); }
+        catch (error) { console.log('jDrupal_connect - success - ' + error); }
       },
       error: function(xhr, status, message) {
         try {
           if (options.error) { options.error(xhr, status, message); }
         }
-        catch (error) { console.log('jdrupal_connect - error - ' + error); }
+        catch (error) { console.log('jDrupal_connect - error - ' + error); }
       }
     };
 
-    jdrupal.services.call(jdrupal_connect);
+    jDrupal.services.call(jDrupal_connect);
     return;
 
     // If we don't have a token, grab one first.
-    if (!jdrupal.csrf_token) {
+    if (!jDrupal.csrf_token) {
       services_get_csrf_token({
           success: function(token) {
             try {
               if (options.debug) { console.log('Grabbed new token.'); }
               // Now that we have a token, make the system connect call.
-              jdrupal.csrf_token = true;
-              jdrupal.services.call(system_connect);
+              jDrupal.csrf_token = true;
+              jDrupal.services.call(system_connect);
             }
             catch (error) {
               console.log(
-                'jdrupal_connect - services_csrf_token - success - ' + message
+                'jDrupal_connect - services_csrf_token - success - ' + message
               );
             }
           },
@@ -62,7 +62,7 @@ function jdrupal_connect(options) {
             }
             catch (error) {
               console.log(
-                'jdrupal_connect - services_csrf_token - error - ' + message
+                'jDrupal_connect - services_csrf_token - error - ' + message
               );
             }
           }
@@ -71,11 +71,11 @@ function jdrupal_connect(options) {
     else {
       // We already have a token, make the system connect call.
       if (options.debug) { console.log('Token already available.'); }
-      jdrupal.services.call(system_connect);
+      jDrupal.services.call(system_connect);
     }
   }
   catch (error) {
-    console.log('jdrupal_connect - ' + error);
+    console.log('jDrupal_connect - ' + error);
   }
 }
 

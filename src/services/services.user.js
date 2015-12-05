@@ -72,7 +72,7 @@ function user_index(query, options) {
  */
 function user_register(account, options) {
   try {
-    jdrupal.services.call({
+    jDrupal.services.call({
         service: 'user',
         resource: 'register',
         method: 'POST',
@@ -116,7 +116,7 @@ function user_login(name, pass, options) {
       if (options.error) { options.error(null, 406, 'user_login - bad input'); }
       return;
     }
-    jdrupal.services.call({
+    jDrupal.services.call({
         service: 'user',
         resource: 'login',
         method: 'POST',
@@ -127,8 +127,8 @@ function user_login(name, pass, options) {
         success: function(account) {
           try {
             // Now that we are logged in, we need to get a new CSRF token.
-            jdrupal.user = new jdrupal.Entity.User(account);
-            jdrupal.sessid = null;
+            jDrupal.user = new jDrupal.Entity.User(account);
+            jDrupal.sessid = null;
             services_get_csrf_token({
                 success: function(token) {
                   try {
@@ -171,7 +171,7 @@ function user_login(name, pass, options) {
  */
 function user_logout(options) {
   try {
-    jdrupal.services.call({
+    jDrupal.services.call({
         service: 'user',
         resource: 'logout',
         method: 'GET',
@@ -181,16 +181,16 @@ function user_logout(options) {
           try {
             // Now that we logged out, clear the user and sessid, then make a
             // fresh connection.
-            jdrupal.user = new jdrupal.Entity.User(drupal_user_defaults());
-            jdrupal.sessid = null;
-            jdrupal_connect({
+            jDrupal.user = new jDrupal.Entity.User(drupal_user_defaults());
+            jDrupal.sessid = null;
+            jDrupal_connect({
                 success: function(result) {
                   try {
                     if (options.success) { options.success(data); }
                   }
                   catch (error) {
                     console.log(
-                      'user_logout - jdrupal_connect - success - ' +
+                      'user_logout - jDrupal_connect - success - ' +
                       error
                     );
                   }
@@ -201,7 +201,7 @@ function user_logout(options) {
                   }
                   catch (error) {
                     console.log(
-                      'user_logout - jdrupal_connect - error - ' +
+                      'user_logout - jDrupal_connect - error - ' +
                       error
                     );
                   }

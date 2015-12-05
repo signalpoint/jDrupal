@@ -73,7 +73,7 @@ function entity_load(entity_type, ids, options) {
       entity_id,
       'success'
     )) {
-      if (jdrupal.settings.cache.entity.enabled) {
+      if (jDrupal.settings.cache.entity.enabled) {
         entity = _entity_local_storage_load(entity_type, entity_id, options);
         if (entity) {
           if (options.success) { options.success(entity); }
@@ -114,7 +114,7 @@ function entity_load(entity_type, ids, options) {
     // If entity caching is enabled, try to load the entity from local storage.
     // If a copy is available in local storage, send it to the success callback.
     var entity = false;
-    if (jdrupal.settings.cache.entity.enabled) {
+    if (jDrupal.settings.cache.entity.enabled) {
       entity = _entity_local_storage_load(entity_type, entity_id, options);
       if (entity) {
         if (options.success) { options.success(entity); }
@@ -139,13 +139,13 @@ function entity_load(entity_type, ids, options) {
           // Set the entity equal to the returned data.
           entity = data;
           // Is entity caching enabled?
-          if (jdrupal.settings.cache.entity &&
-              jdrupal.settings.cache.entity.enabled) {
+          if (jDrupal.settings.cache.entity &&
+              jDrupal.settings.cache.entity.enabled) {
             // Set the expiration time as a property on the entity that can be
             // used later.
-            if (jdrupal.settings.cache.entity.expiration !== 'undefined') {
-              var expiration = time() + jdrupal.settings.cache.entity.expiration;
-              if (jdrupal.settings.cache.entity.expiration == 0) {
+            if (jDrupal.settings.cache.entity.expiration !== 'undefined') {
+              var expiration = time() + jDrupal.settings.cache.entity.expiration;
+              if (jDrupal.settings.cache.entity.expiration == 0) {
                 expiration = 0;
               }
               entity.expiration = expiration;
@@ -155,12 +155,12 @@ function entity_load(entity_type, ids, options) {
           }
           // Send the entity back to the queued callback(s).
           var _success_callbacks =
-            jdrupal.services_queue[entity_type]['retrieve'][entity_id].success;
+            jDrupal.services_queue[entity_type]['retrieve'][entity_id].success;
           for (var i = 0; i < _success_callbacks.length; i++) {
             _success_callbacks[i](entity);
           }
           // Clear out the success callbacks.
-          jdrupal.services_queue[entity_type]['retrieve'][entity_id].success =
+          jDrupal.services_queue[entity_type]['retrieve'][entity_id].success =
             [];
         }
         catch (error) {
@@ -216,7 +216,7 @@ function _entity_local_storage_load(entity_type, entity_id, options) {
       entity = JSON.parse(entity);
       // We successfully loaded the entity from local storage. If it expired
       // remove it from local storage then continue onward with the entity
-      // retrieval from jdrupal. Otherwise return the local storage entity copy.
+      // retrieval from jDrupal. Otherwise return the local storage entity copy.
       if (typeof entity.expiration !== 'undefined' &&
           entity.expiration != 0 &&
           time() > entity.expiration) {

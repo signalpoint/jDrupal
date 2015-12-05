@@ -1,20 +1,20 @@
 /**
  * The Drupal services JSON object.
  */
-jdrupal.services = {};
+jDrupal.services = {};
 
 /**
  * Drupal Services XMLHttpRequest Object.
  * @param {Object} options
  */
-jdrupal.services.call = function(options) {
+jDrupal.services.call = function(options) {
   try {
 
     options.debug = false;
 
     // Make sure the settings have been provided for Services.
     if (!services_ready()) {
-      var error = 'Set the site_path property on the jdrupal.settings object!';
+      var error = 'Set the site_path property on the jDrupal.settings object!';
       options.error(null, null, error);
       return;
     }
@@ -24,8 +24,8 @@ jdrupal.services.call = function(options) {
 
     // Build the Request, and its url with a separator and '_format';
     var request = new XMLHttpRequest();
-    var url = jdrupal.settings.site_path +
-              jdrupal.settings.base_path;
+    var url = jDrupal.settings.site_path +
+              jDrupal.settings.base_path;
     var separator = options.path.indexOf('?') == -1 ? '?' : '&';
     var format = typeof options._format !== 'undefined' ?
       '&_format=' + options._format : '';
@@ -33,7 +33,7 @@ jdrupal.services.call = function(options) {
 
     // Extract the method, then print out some debug info if enabled.
     var method = options.method.toUpperCase();
-    if (jdrupal.settings.debug) { console.log(method + ': ' + url); }
+    if (jDrupal.settings.debug) { console.log(method + ': ' + url); }
 
     // Request Success Handler
     request.onload = function(e) {
@@ -44,7 +44,7 @@ jdrupal.services.call = function(options) {
             http_status_code_title(request.status);
           // 200 OK, 201 Created, 204 No Content
           if (in_array(request.status, [200, 201, 204])) {
-            if (jdrupal.settings.debug) { console.log(title); }
+            if (jDrupal.settings.debug) { console.log(title); }
             // Extract the JSON result, or throw an error if the response wasn't
             // JSON.
             var result = null;
@@ -74,7 +74,7 @@ jdrupal.services.call = function(options) {
           }
           else {
             // Not OK...
-            if (jdrupal.settings.debug) {
+            if (jDrupal.settings.debug) {
               console.log(method + ': ' + url + ' - ' + title);
               console.log(request.responseText);
               console.log(request.getAllResponseHeaders());
@@ -91,18 +91,18 @@ jdrupal.services.call = function(options) {
         }
         else {
           console.log(
-            'jdrupal.services.call - request.readyState = ' + request.readyState
+            'jDrupal.services.call - request.readyState = ' + request.readyState
           );
         }
       }
       catch (error) {
         // Not OK...
-        if (jdrupal.settings.debug) {
+        if (jDrupal.settings.debug) {
           console.log(method + ' (ERROR): ' + url + ' - ' + title);
           console.log(request.responseText);
           console.log(request.getAllResponseHeaders());
         }
-        console.log('jdrupal.services.call - onload - ' + error);
+        console.log('jDrupal.services.call - onload - ' + error);
       }
     };
 
@@ -159,7 +159,7 @@ jdrupal.services.call = function(options) {
             if (typeof options.data !== 'undefined') {
               // Print out debug information if debug is enabled. Don't print
               // out any sensitive debug data containing passwords.
-              if (jdrupal.settings.debug) {
+              if (jDrupal.settings.debug) {
                 var show = true;
                 if (options.service == 'user' &&
                   in_array(options.resource, ['login', 'create', 'update'])) {
@@ -179,7 +179,7 @@ jdrupal.services.call = function(options) {
           }
           catch (error) {
             console.log(
-              'jdrupal.services.call - services_get_csrf_token - success - ' +
+              'jDrupal.services.call - services_get_csrf_token - success - ' +
               error
             );
           }
@@ -187,13 +187,13 @@ jdrupal.services.call = function(options) {
         error: function(xhr, status, message) {
           try {
             console.log(
-              'jdrupal.services.call - services_get_csrf_token - ' + message
+              'jDrupal.services.call - services_get_csrf_token - ' + message
             );
             if (options.error) { options.error(xhr, status, message); }
           }
           catch (error) {
             console.log(
-              'jdrupal.services.call - services_get_csrf_token - error - ' +
+              'jDrupal.services.call - services_get_csrf_token - error - ' +
               error
             );
           }
@@ -202,7 +202,7 @@ jdrupal.services.call = function(options) {
 
   }
   catch (error) {
-    console.log('jdrupal.services.call - error - ' + error);
+    console.log('jDrupal.services.call - error - ' + error);
   }
 };
 
@@ -223,7 +223,7 @@ function services_get_csrf_token(options) {
     { options.success(token); return; }
 
     // Are we resetting the token?
-    if (options.reset) { jdrupal.sessid = null; }
+    if (options.reset) { jDrupal.sessid = null; }
 
     // On some calls we don't need a token, so skip it.
     // @TODO turn this into bool that the caller can specify to skip the token
@@ -236,17 +236,17 @@ function services_get_csrf_token(options) {
     }
 
     // Do we already have a token? If we do, return it the success callback.
-    if (jdrupal.sessid) { token = jdrupal.sessid; }
+    if (jDrupal.sessid) { token = jDrupal.sessid; }
     if (token) {
       if (options.success) { options.success(token); }
       return;
     }
 
-    // We don't have a token, let's get it from jdrupal...
+    // We don't have a token, let's get it from jDrupal...
 
     // Build the Request and URL.
     var token_request = new XMLHttpRequest();
-    var token_url = jdrupal.settings.site_path +
+    var token_url = jDrupal.settings.site_path +
               '/rest/session/token';
 
     // Token Request Success Handler
@@ -260,10 +260,10 @@ function services_get_csrf_token(options) {
             console.log(token_request.responseText);
           }
           else { // OK
-            // Set jdrupal.sessid with the token, then return the token to the
+            // Set jDrupal.sessid with the token, then return the token to the
             // success function.
             token = token_request.responseText;
-            jdrupal.sessid = token;
+            jDrupal.sessid = token;
             console.log('Grabbed a token from the server: ' + token);
             if (options.success) { options.success(token); }
           }
@@ -296,10 +296,11 @@ function services_get_csrf_token(options) {
  */
 function services_ready() {
   try {
+    console.log(jDrupal);
     var result = true;
-    if (jdrupal.settings.site_path == '') {
+    if (jDrupal.settings.site_path == '') {
       result = false;
-      console.log('jDrupal\'s jdrupal.settings.site_path is not set!');
+      console.log('jDrupal\'s jDrupal.settings.site_path is not set!');
     }
     return result;
   }
@@ -335,10 +336,10 @@ function _services_queue_already_queued(service, resource, entity_id,
   try {
     var queued = false;
     if (
-      typeof jdrupal.services_queue[service][resource][entity_id] !== 'undefined'
+      typeof jDrupal.services_queue[service][resource][entity_id] !== 'undefined'
     ) {
       //queued = true;
-      var queue = jdrupal.services_queue[service][resource][entity_id];
+      var queue = jDrupal.services_queue[service][resource][entity_id];
       if (queue[callback_type].length != 0) { queued = true; }
     }
     return queued;
@@ -354,7 +355,7 @@ function _services_queue_already_queued(service, resource, entity_id,
  */
 function _services_queue_add_to_queue(service, resource, entity_id) {
   try {
-    jdrupal.services_queue[service][resource][entity_id] = {
+    jDrupal.services_queue[service][resource][entity_id] = {
       entity_id: entity_id,
       success: [],
       error: []
@@ -389,7 +390,7 @@ function _services_queue_remove_from_queue(service, resource, entity_id) {
 function _services_queue_callback_add(service, resource, entity_id,
   callback_type, callback) {
   try {
-    jdrupal.services_queue[service][resource][entity_id][callback_type].push(
+    jDrupal.services_queue[service][resource][entity_id][callback_type].push(
       callback
     );
   }
@@ -408,7 +409,7 @@ function _services_queue_callback_count(service, resource, entity_id,
   callback_type) {
   try {
     var length =
-      jdrupal.services_queue[service][resource][entity_id][callback_type].length;
+      jDrupal.services_queue[service][resource][entity_id][callback_type].length;
     return length;
   }
   catch (error) { console.log('_services_queue_callback_count - ' + error); }

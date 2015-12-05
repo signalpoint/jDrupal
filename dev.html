@@ -1,27 +1,16 @@
 <!DOCTYPE html>
 <html>
-
   <head>
-    <title>jDrupal</title>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    
-    <script src="src/includes/module.inc.js"></script>
-    <script src="src/comment.js"></script>
-    <script src="src/drupal.js"></script>
-    <script src="src/entity.js"></script>
-    <script src="src/node.js"></script>
-    <script src="src/services/services.comment.js"></script>
-    <script src="src/services/services.entity.js"></script>
-    <script src="src/services/services.js"></script>
-    <script src="src/services/services.node.js"></script>
-    <script src="src/services/services.system.js"></script>
-    <script src="src/services/services.taxonomy_term.js"></script>
-    <script src="src/services/services.taxonomy_vocabulary.js"></script>
-    <script src="src/services/services.user.js"></script>
-    <script src="src/taxonomy_term.js"></script>
-    <script src="src/taxonomy_vocabulary.js"></script>
-    <script src="src/user.js"></script>
+
+      <title>jDrupal</title>
+      <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+
+      <!-- Load jDrupal -->
+      <script src="bin/jdrupal.js"></script>
+
+      <!-- Load Settings for jDrupal -->
+      <script src="app/settings.js"></script>
     
   </head>
 
@@ -38,20 +27,15 @@
     
     <script type="text/javascript">
     
-      // Set the site path (without the trailing slash).
-      Drupal.settings.site_path = ""; // http://www.example.com
-      
-      // Turn on debugging.
-      Drupal.settings.debug = true;
-    
       function start_my_app() {
         try {
         
           // Connect to Drupal... if the user is anonymous show them the login
           // form, otherwise say hello to them.
-          jdrupal_connect({
+          jDrupal_connect({
             success: function(result) {
-                var account = Drupal.currentUser();
+                console.log(result);
+                var account = jDrupal.currentUser();
                 if (account.id() != 0) {
                   console.log('Hi, ' + account.getUsername() + '!');
                 }
@@ -73,7 +57,7 @@
         if (empty(pass)) { alert('Enter a password!'); return; }
         user_login(name, pass, {
             success: function(result) {
-              var account = Drupal.currentUser();
+              var account = jDrupal.currentUser();
               alert('Hello ' + account.getUsername());
             },
             error: function(xhr, status, result) {

@@ -12,8 +12,8 @@ function module_implements(hook) {
       var bundles = module_types();
       for (var i = 0; i < bundles.length; i++) {
         var bundle = bundles[i];
-        for (var module in jdrupal.modules[bundle]) {
-          if (jdrupal.modules[bundle].hasOwnProperty(module)) {
+        for (var module in jDrupal.modules[bundle]) {
+          if (jDrupal.modules[bundle].hasOwnProperty(module)) {
             if (function_exists(module + '_' + hook)) {
               modules_that_implement.push(module);
             }
@@ -82,8 +82,8 @@ function module_invoke_all(hook) {
     var bundles = module_types();
     for (var i = 0; i < bundles.length; i++) {
       var bundle = bundles[i];
-      for (var module in jdrupal.modules[bundle]) {
-        if (jdrupal.modules[bundle].hasOwnProperty(module)) {
+      for (var module in jDrupal.modules[bundle]) {
+        if (jDrupal.modules[bundle].hasOwnProperty(module)) {
           var function_name = module + '_' + hook;
           if (function_exists(function_name)) {
             // If there are no arguments, just call the hook directly,
@@ -113,7 +113,7 @@ function module_invoke_all(hook) {
 }
 
 /**
- * Given a module name, this will return the module inside jdrupal.modules, or
+ * Given a module name, this will return the module inside jDrupal.modules, or
  * false if it fails to find it.
  * @param {String} name
  * @return {Object|Boolean}
@@ -123,8 +123,8 @@ function module_load(name) {
     var bundles = module_types();
     for (var i = 0; i < bundles.length; i++) {
       var bundle = bundles[i];
-      if (jdrupal.modules[bundle][name]) {
-        return jdrupal.modules[bundle][name];
+      if (jDrupal.modules[bundle][name]) {
+        return jDrupal.modules[bundle][name];
       }
     }
     return false;
