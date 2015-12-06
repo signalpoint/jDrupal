@@ -101,142 +101,127 @@ function user_register(account, options) {
  * @param {String} pass
  * @param {Object} options
  */
-function jDrupalUserLogin(name, pass, options) {
+jDrupal.userLogin = function(name, pass, options) {
   try {
+
+    // Validate input.
     var valid = true;
     if (!name || typeof name !== 'string') {
       valid = false;
-      console.log('jDrupalUserLogin - invalid name');
+      console.log('jDrupal.userLogin - invalid name');
     }
     if (!pass || typeof pass !== 'string') {
       valid = false;
-      console.log('jDrupalUserLogin - invalid pass');
+      console.log('jDrupal.userLogin - invalid pass');
     }
     if (!valid) {
-      if (options.error) { options.error(null, 406, 'jDrupalUserLogin - bad input'); }
+      var msg = 'jDrupal.userLogin - bad input';
+      if (options.error) { options.error(null, 406, msg); }
       return;
     }
+
+    // Make the call...
     jDrupal.services.call({
-        service: 'user',
-        resource: 'login',
-        method: 'POST',
-        path: 'user/login',
-        data: 'name=' + encodeURIComponent(name) +
-          '&pass=' + encodeURIComponent(pass) +
-          '&form_id=user_login_form',
-        success: function(account) {
-          try {
+      service: 'user',
+      resource: 'login',
+      method: 'POST',
+      path: 'user/login',
+      data: 'name=' + encodeURIComponent(name) +
+      '&pass=' + encodeURIComponent(pass) +
+      '&form_id=user_login_form',
+      success: function(account) {
+        try {
 
-            // Since Drupal only returns a 200 OK to us, we don't have much
-            // opportunity to make a decision here yet. So let's do a connect
-            // call to get the current user id, then load the user's account.
+          // Since Drupal only returns a 200 OK to us, we don't have much
+          // opportunity to make a decision here yet. So let's do a connect
+          // call to get the current user id, then load the user's account.
 
-            jDrupalConnect({
-              success: function(connect) {
-                console.log(connect);
-                if (options.success) { options.success(connect); }
-              },
-              error: function(xhr, status, message) {
-                console.log('jDrupalUserLogin -> jDrupalConnect | error');
-                console.log(arguments);
-              }
-            });
+          jDrupal.connect({
+            success: function() {
+              if (options.success) { options.success(); }
+            },
+            error: function(xhr, status, message) {
+              console.log('jDrupalUserLogin -> jDrupalConnect | error');
+              console.log(arguments);
+            }
+          });
 
-            return;
-            // Now that we are logged in, we need to get a new CSRF token.
-            jDrupal.user = new jDrupal.Entity.User(account);
-            jDrupal.sessid = null;
-            services_get_csrf_token({
-                success: function(token) {
-                  try {
-                    if (options.success) { options.success(account); }
-                  }
-                  catch (error) {
-                    console.log(
-                      'user_login - services_get_csrf_token - success - ' +
-                      error
-                    );
-                  }
-                },
-                error: function(xhr, status, message) {
-                  console.log(
-                    'user_login - services_get_csrf_token - error - ' +
-                    message
-                  );
-                  if (options.error) { options.error(xhr, status, message); }
-                }
-            });
-          }
-          catch (error) { console.log('jDrupalUserLogin - success - ' + error); }
-        },
-        error: function(xhr, status, message) {
-          try {
-            if (options.error) { options.error(xhr, status, message); }
-          }
-          catch (error) { console.log('jDrupalUserLogin - error - ' + error); }
+          // Now that we are logged in, we need to get a new CSRF token...
+
         }
+        catch (error) { console.log('jDrupal.userLogin - success - ' + error); }
+      },
+      error: function(xhr, status, message) {
+        try {
+          if (options.error) { options.error(xhr, status, message); }
+        }
+        catch (error) { console.log('jDrupal.userLogin - error - ' + error); }
+      }
     });
   }
   catch (error) {
-    console.log('jDrupalUserLogin - ' + error);
+    console.log('jDrupal.userLogin - ' + error);
   }
-}
+};
 
 /**
  * Logout current user.
  * @param {Object} options
  */
-function user_logout(options) {
+jDrupal.userLogout = function(options) {
   try {
     jDrupal.services.call({
-        service: 'user',
-        resource: 'logout',
-        method: 'GET',
-        path: 'user/logout',
-        Accept: 'text/html',
-        success: function(data) {
-          try {
-            // Now that we logged out, clear the user and sessid, then make a
-            // fresh connection.
-            jDrupal.user = new jDrupal.Entity.User(drupal_user_defaults());
-            jDrupal.sessid = null;
-            jDrupal_connect({
-                success: function(result) {
-                  try {
-                    if (options.success) { options.success(data); }
-                  }
-                  catch (error) {
-                    console.log(
-                      'user_logout - jDrupal_connect - success - ' +
-                      error
-                    );
-                  }
-                },
-                error: function(xhr, status, message) {
-                  try {
-                    if (options.error) { options.error(xhr, status, message); }
-                  }
-                  catch (error) {
-                    console.log(
-                      'user_logout - jDrupal_connect - error - ' +
-                      error
-                    );
-                  }
-                }
-            });
-          }
-          catch (error) { console.log('user_logout - success - ' + error); }
-        },
-        error: function(xhr, status, message) {
-          try {
-            if (options.error) { options.error(xhr, status, message); }
-          }
-          catch (error) { console.log('user_logout - error - ' + error); }
+      service: 'user',
+      resource: 'logout',
+      method: 'GET',
+      path: 'user/logout',
+      Accept: 'text/html',
+      success: function(data) {
+        try {
+
+          // Now that we logged out, clear the user and sessid, then make a
+          // fresh connection.
+
+          jDrupalSetCurrentUser(jDrupalUserDefaults());
+
+          //jDrupal.sessid = null;
+
+          jDrupal.connect({
+            success: function() {
+              try {
+                if (options.success) { options.success(); }
+              }
+              catch (error) {
+                console.log(
+                  'jDrupal.userLogout - connect - success - ' +
+                  error
+                );
+              }
+            },
+            error: function(xhr, status, message) {
+              try {
+                if (options.error) { options.error(xhr, status, message); }
+              }
+              catch (error) {
+                console.log(
+                  'jDrupal.userLogout - connect - error - ' +
+                  error
+                );
+              }
+            }
+          });
         }
+        catch (error) { console.log('jDrupal.userLogout - success - ' + error); }
+      },
+      error: function(xhr, status, message) {
+        try {
+          if (options.error) { options.error(xhr, status, message); }
+        }
+        catch (error) { console.log('jDrupal.userLogout - error - ' + error); }
+      }
     });
   }
   catch (error) {
-    console.log('user_logout - ' + error);
+    console.log('jDrupal.userLogout - ' + error);
   }
-}
-
+};

@@ -22,11 +22,7 @@ jDrupal.connect = function(options) {
           if (result.uid == 0) {
 
             // Create a default user account object and set it, then continue...
-            var account = new jDrupal.User({
-              uid: [ { value: 0 } ],
-              roles: [ { target_id: 'anonymous' }]
-            });
-            jDrupalSetCurrentUser(account);
+            jDrupalSetCurrentUser(jDrupalUserDefaults());
             options.success();
 
           }
@@ -39,8 +35,6 @@ jDrupal.connect = function(options) {
               success: function() {
 
                 // Set the current user and continue...
-                console.log('loaded account');
-                console.log(account);
                 jDrupalSetCurrentUser(account);
                 options.success();
 

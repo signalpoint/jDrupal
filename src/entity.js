@@ -115,6 +115,8 @@ jDrupal.userLoad = function(uid, options) {
  * @param obj
  * @param entityID_or_entity
  */
+
+// @TODO every function should live in the jDrupal namespace!
 function jDrupalEntityConstructorPrep(obj, entityID_or_entity) {
   if (typeof entityID_or_entity === 'object') {
     var entity = entityID_or_entity;

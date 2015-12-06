@@ -2,13 +2,36 @@
  * Gets the current user account object.
  * @returns {Object}
  */
-jDrupal.currentUser = function() { return jDrupal._currentUser; };
+jDrupal.currentUser = function() {
+  return jDrupal._currentUser;
+};
+
+/**
+ *
+ * @returns {jDrupal.User}
+ */
+function jDrupalUserDefaults() {
+  return new jDrupal.User({
+    uid: [ { value: 0 } ],
+    roles: [ { target_id: 'anonymous' }]
+  });
+}
 
 /**
  * Sets the current user account object.
  * @param {Object} account
  */
-function jDrupalSetCurrentUser(account) { jDrupal._currentUser = account; }
+function jDrupalSetCurrentUser(account) {
+  jDrupal._currentUser = account;
+}
+
+
+
+
+
+
+
+
 
 /**
  * Loads a user account.
