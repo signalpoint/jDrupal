@@ -643,21 +643,15 @@ jDrupal.Entity.prototype.load = function(options) {
 
 /**
  * Node
- * @param {Number} nid
+ * @param {Number|Object} nid_or_node
  * @param {Object} options
  * @constructor
  * @see https://api.drupal.org/api/drupal/core!modules!node!src!Entity!Node.php/class/Node/8
  */
-jDrupal.Node = function(nid, options) {
+jDrupal.Node = function(nid_or_node) {
   this.entityType = 'node';
-  this.entityID = nid;
-  var _node = this;
-  this.load({
-    success: function() {
-      _node.bundle = _node.entity.type[0].target_id;
-      if (options.success) { options.success(); }
-    }
-  });
+  if (typeof nid_or_node === 'object') { this.entity = nid_or_node; }
+  else { this.entityID = nid_or_node; }
 };
 jDrupal.Node.prototype = new jDrupal.Entity;
 jDrupal.Node.prototype.constructor = jDrupal.Node;
@@ -677,23 +671,34 @@ jDrupal.Node.prototype.isSticky = function() {
   return this.entity.sticky[0].value;
 };
 
+jDrupal.nodeLoad = function(nid, options) {
+  var node = new jDrupal.Node(nid);
+  node.load(options);
+  return node;
+};
 
 /**
  * User
- * @param {Number} uid
+ * @param {Number|Object} uid_or_account
  * @constructor
  * @see https://api.drupal.org/api/drupal/core!modules!user!src!Entity!User.php/class/User/8
  */
-jDrupal.User = function(uid, options) {
+jDrupal.User = function(uid_or_account) {
   this.entityType = 'user';
   this.bundle = 'user';
-  this.entityID = uid;
-  this.load(options);
+  if (typeof uid_or_account === 'object') { this.entity = uid_or_account; }
+  else { this.entityID = uid_or_account; }
 };
 jDrupal.User.prototype = new jDrupal.Entity;
 jDrupal.User.prototype.constructor = jDrupal.User;
 jDrupal.User.prototype.getAccountName = function() {
   return this.entity.name[0].value;
+};
+
+jDrupal.userLoad = function(uid, options) {
+  var account = new jDrupal.User(uid);
+  account.load(options);
+  return account;
 };
 
 /**
@@ -2109,7 +2114,7 @@ function node_index(query, options) {
  * System connect call.
  * @param {Object} options
  */
-jDrupal.Connect = function(options) {
+jDrupal.connect = function(options) {
   try {
 
     var service = {
@@ -2130,7 +2135,7 @@ jDrupal.Connect = function(options) {
           console.log('connected, still');
 
           // Load the user's account from Drupal.
-          var account = new jDrupal.User(result.uid, {
+          var account = jDrupal.userLoad(result.uid, {
             success: function() {
 
               // Set the current user.
@@ -2551,3 +2556,65 @@ function user_logout(options) {
   }
 }
 
+
+/**
+ * Entity
+ * @param {String} path
+ * @constructor
+ */
+jDrupal.Views = function(path) {
+  this.path = path;
+  this.results = null;
+};
+
+/**
+ *
+ * @returns {String|*}
+ */
+jDrupal.Views.prototype.getPath = function() {
+  return this.path;
+};
+
+jDrupal.Views.prototype.getResults = function() {
+  return this.results;
+};
+
+/**
+ *
+ * @param options
+ */
+jDrupal.Views.prototype.getView = function(options) {
+  try {
+    var _view = this;
+    jDrupal.services.call({
+      resource: 'views',
+      method: 'GET',
+      path: this.getPath(),
+      success: function(results) {
+        _view.results = results;
+        if (options.success) { options.success(); }
+      },
+      error: function(xhr, status, message) {
+        if (options.error) { options.error(xhr, status, message); }
+      }
+    });
+  }
+  catch (error) {
+    console.log('jDrupal.Views.getView - ' + error);
+  }
+};
+
+/**
+ * @param {String} path
+ * @param {Object} options
+ */
+jDrupal.viewsLoad = function(path, options) {
+  try {
+    var view = new jDrupal.Views(path);
+    view.getView(options);
+    return view;
+  }
+  catch (error) {
+    console.log('viewsLoad - ' + error);
+  }
+};
