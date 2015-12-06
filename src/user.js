@@ -1,3 +1,24 @@
+function jDrupalUserLoad(uid, options) {
+  var account = new jDrupal.User(uid);
+  account.load({
+    success: function() {
+      if (options.success) { options.success(account); }
+    }
+  });
+}
+
+/**
+ * Gets the current user account object.
+ * @returns {Object}
+ */
+jDrupal.currentUser = function() { return jDrupal._currentUser; };
+
+/**
+ * Sets the current user account object.
+ * @param {Object} account
+ */
+function jDrupalSetCurrentUser(account) { jDrupal._currentUser = account; }
+
 // @see https://api.drupal.org/api/drupal/core!modules!user!src!Entity!User.php/class/User/8
 //jDrupal.user = {
 //  Entity: {}

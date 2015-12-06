@@ -6,20 +6,13 @@
  * @constructor
  */
 jDrupal.Entity = function(entityType, bundle, id) {
+  this.entity = null;
   this.entityType = entityType;
   this.bundle = bundle;
   this.entityID = id;
-  this.entity = null;
 };
-jDrupal.Entity.prototype.load = function(options) {
-  var _entity = this;
-  entity_retrieve(this.getEntityType(), this.id(), {
-    success: function(entity) {
-      _entity.entity = entity;
-      if (options.success) { options.success(); }
-    }
-  });
-};
+
+// Entity properties.
 jDrupal.Entity.prototype.getEntityType = function() {
   return this.entityType;
 };
@@ -29,6 +22,20 @@ jDrupal.Entity.prototype.getBundle = function() {
 jDrupal.Entity.prototype.id = function() {
   return this.entityID;
 };
+
+// Entity functions...
+
+// Entity load.
+jDrupal.Entity.prototype.load = function(options) {
+  var _entity = this;
+  entity_retrieve(this.getEntityType(), this.id(), {
+    success: function(entity) {
+      _entity.entity = entity;
+      if (options.success) { options.success(); }
+    }
+  });
+};
+
 
 /**
  * User
