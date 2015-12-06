@@ -48,8 +48,8 @@ jDrupal.Node = function(nid, options) {
   this.entityID = nid;
   var _node = this;
   this.load({
-    success: function(node) {
-      _node.bundle = node.type;
+    success: function() {
+      _node.bundle = _node.entity.type[0].target_id;
       if (options.success) { options.success(); }
     }
   });

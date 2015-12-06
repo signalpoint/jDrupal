@@ -2,7 +2,7 @@
  * System connect call.
  * @param {Object} options
  */
-function jDrupalConnect(options) {
+jDrupal.Connect = function(options) {
   try {
 
     var service = {
@@ -16,10 +16,14 @@ function jDrupalConnect(options) {
       success: function(result) {
         try {
 
+          console.log(result);
+
+          //jDrupal.csrf_token = result.csrfToken;
+
           console.log('connected, still');
 
           // Load the user's account from Drupal.
-          var account = new jDrupal.User(result.currentUser.uid, {
+          var account = new jDrupal.User(result.uid, {
             success: function() {
 
               // Set the current user.
@@ -34,29 +38,18 @@ function jDrupalConnect(options) {
           });
 
         }
-        catch (error) { console.log('jDrupalConnect - success - ' + error); }
+        catch (error) { console.log('jDrupal.Connect - success - ' + error); }
       },
       error: function(xhr, status, message) {
         try {
           if (options.error) { options.error(xhr, status, message); }
         }
-        catch (error) { console.log('jDrupalConnect - error - ' + error); }
+        catch (error) { console.log('jDrupal.Connect - error - ' + error); }
       }
     };
     jDrupal.services.call(service);
   }
   catch (error) {
-    console.log('jDrupalConnect - ' + error);
+    console.log('jDrupal.Connect - ' + error);
   }
-}
-
-function jDrupalConnectExtractUser(result, options) {
-  try {
-    var currentUser = result.currentUser;
-    jDrupal.currentUser = currentUser;
-    options.success(currentUser);
-  }
-  catch (error) {
-    console.log('jDrupalConnectExtractUser - ' + error);
-  }
-}
+};
