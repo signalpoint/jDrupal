@@ -615,11 +615,15 @@ jDrupal.Entity = function(entityType, bundle, id) {
   this.entityType = entityType;
   this.bundle = bundle;
   this.entityID = id;
+  this.entityKeys = {};
 };
 
 // Entity properties.
 jDrupal.Entity.prototype.getEntityType = function() {
   return this.entityType;
+};
+jDrupal.Entity.prototype.getEntityKey = function(key) {
+  return this.entityKeys[key];
 };
 jDrupal.Entity.prototype.getBundle = function() {
   return this.bundle;
@@ -644,14 +648,15 @@ jDrupal.Entity.prototype.load = function(options) {
 /**
  * Node
  * @param {Number|Object} nid_or_node
- * @param {Object} options
  * @constructor
  * @see https://api.drupal.org/api/drupal/core!modules!node!src!Entity!Node.php/class/Node/8
  */
 jDrupal.Node = function(nid_or_node) {
   this.entityType = 'node';
-  if (typeof nid_or_node === 'object') { this.entity = nid_or_node; }
-  else { this.entityID = nid_or_node; }
+  this.entityKeys['type'] = 'node';
+  this.entityKeys['bundle'] = null;
+  this.entityKeys['id'] = 'nid';
+  jDrupalEntityConstructorPrep(this, nid_or_node);
 };
 jDrupal.Node.prototype = new jDrupal.Entity;
 jDrupal.Node.prototype.constructor = jDrupal.Node;
@@ -686,13 +691,22 @@ jDrupal.nodeLoad = function(nid, options) {
 jDrupal.User = function(uid_or_account) {
   this.entityType = 'user';
   this.bundle = 'user';
-  if (typeof uid_or_account === 'object') { this.entity = uid_or_account; }
-  else { this.entityID = uid_or_account; }
+  this.entityKeys['type'] = 'user';
+  this.entityKeys['bundle'] = 'user';
+  this.entityKeys['id'] = 'uid';
+  jDrupalEntityConstructorPrep(this, uid_or_account);
+
 };
 jDrupal.User.prototype = new jDrupal.Entity;
 jDrupal.User.prototype.constructor = jDrupal.User;
 jDrupal.User.prototype.getAccountName = function() {
   return this.entity.name[0].value;
+};
+jDrupal.User.prototype.isAnonymous = function() {
+  return this.id() == 0;
+};
+jDrupal.User.prototype.isAuthenticated = function() {
+  return !this.isAnonymous();
 };
 
 jDrupal.userLoad = function(uid, options) {
@@ -700,6 +714,30 @@ jDrupal.userLoad = function(uid, options) {
   account.load(options);
   return account;
 };
+
+/**
+ *
+ * @param obj
+ * @param entityID_or_entity
+ */
+function jDrupalEntityConstructorPrep(obj, entityID_or_entity) {
+  if (typeof entityID_or_entity === 'object') {
+    var entity = entityID_or_entity;
+    obj.entity = entity;
+    obj.entityID = entity[obj.getEntityKey('id')][0].value;
+  }
+  else { obj.entityID = entityID_or_entity; }
+}
+
+
+
+
+
+
+
+
+
+
 
 /**
  * Delete an entity.
@@ -2128,41 +2166,52 @@ jDrupal.connect = function(options) {
       success: function(result) {
         try {
 
-          console.log(result);
+          // Set the current user...
 
-          //jDrupal.csrf_token = result.csrfToken;
+          // Anonymous users.
+          if (result.uid == 0) {
 
-          console.log('connected, still');
+            // Create a default user account object and set it, then continue...
+            var account = new jDrupal.User({
+              uid: [ { value: 0 } ],
+              roles: [ { target_id: 'anonymous' }]
+            });
+            jDrupalSetCurrentUser(account);
+            options.success();
 
-          // Load the user's account from Drupal.
-          var account = jDrupal.userLoad(result.uid, {
-            success: function() {
+          }
 
-              // Set the current user.
-              jDrupalSetCurrentUser(account);
+          // Authenticated users.
+          else {
 
-              // Now that we've set some contexts, it's safe to return to the
-              // connect caller, since they'll be able to use our prototypes
-              // and functions to develop.
-              options.success();
+            // Load the user's account from Drupal.
+            var account = jDrupal.userLoad(result.uid, {
+              success: function() {
 
-            }
-          });
+                // Set the current user and continue...
+                console.log('loaded account');
+                console.log(account);
+                jDrupalSetCurrentUser(account);
+                options.success();
 
+              }
+            });
+
+          }
         }
-        catch (error) { console.log('jDrupal.Connect - success - ' + error); }
+        catch (error) { console.log('jDrupal.connect - success - ' + error); }
       },
       error: function(xhr, status, message) {
         try {
           if (options.error) { options.error(xhr, status, message); }
         }
-        catch (error) { console.log('jDrupal.Connect - error - ' + error); }
+        catch (error) { console.log('jDrupal.connect - error - ' + error); }
       }
     };
     jDrupal.services.call(service);
   }
   catch (error) {
-    console.log('jDrupal.Connect - ' + error);
+    console.log('jDrupal.connect - ' + error);
   }
 };
 /**
