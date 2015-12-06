@@ -16,40 +16,51 @@ jDrupal.connect = function(options) {
       success: function(result) {
         try {
 
-          console.log(result);
+          // Set the current user...
 
-          //jDrupal.csrf_token = result.csrfToken;
+          // Anonymous users.
+          if (result.uid == 0) {
 
-          console.log('connected, still');
+            // Create a default user account object and set it, then continue...
+            var account = new jDrupal.User({
+              uid: [ { value: 0 } ],
+              roles: [ { target_id: 'anonymous' }]
+            });
+            jDrupalSetCurrentUser(account);
+            options.success();
 
-          // Load the user's account from Drupal.
-          var account = jDrupal.userLoad(result.uid, {
-            success: function() {
+          }
 
-              // Set the current user.
-              jDrupalSetCurrentUser(account);
+          // Authenticated users.
+          else {
 
-              // Now that we've set some contexts, it's safe to return to the
-              // connect caller, since they'll be able to use our prototypes
-              // and functions to develop.
-              options.success();
+            // Load the user's account from Drupal.
+            var account = jDrupal.userLoad(result.uid, {
+              success: function() {
 
-            }
-          });
+                // Set the current user and continue...
+                console.log('loaded account');
+                console.log(account);
+                jDrupalSetCurrentUser(account);
+                options.success();
 
+              }
+            });
+
+          }
         }
-        catch (error) { console.log('jDrupal.Connect - success - ' + error); }
+        catch (error) { console.log('jDrupal.connect - success - ' + error); }
       },
       error: function(xhr, status, message) {
         try {
           if (options.error) { options.error(xhr, status, message); }
         }
-        catch (error) { console.log('jDrupal.Connect - error - ' + error); }
+        catch (error) { console.log('jDrupal.connect - error - ' + error); }
       }
     };
     jDrupal.services.call(service);
   }
   catch (error) {
-    console.log('jDrupal.Connect - ' + error);
+    console.log('jDrupal.connect - ' + error);
   }
 };
