@@ -4,16 +4,15 @@ function start_my_app() {
     // Connect to Drupal... if the user is anonymous show them the login
     // form, otherwise say hello to them.
     jDrupalConnect({
-      success: function(result) {
+      success: function() {
         console.log('app connected');
-        console.log(result);
-        return;
 
         var account = jDrupal.currentUser();
         if (account.id() != 0) {
-          console.log('Hi, ' + account.getUsername() + '!');
+          console.log('Hi, ' + account.getAccountName() + '!');
         }
         else {
+          console.log('Login you jerk!');
           document.getElementById('user_login_form').style.display = 'inline';
         }
       }
