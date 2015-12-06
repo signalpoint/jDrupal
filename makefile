@@ -24,6 +24,7 @@ files =				 src/core.js\
 				src/services/services.taxonomy_term.js\
 				src/services/services.taxonomy_vocabulary.js\
 				src/services/services.user.js\
+				src/services/services.views.js\
 
 .DEFAULT_GOAL := all
 

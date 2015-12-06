@@ -16,7 +16,8 @@ var jdrupal_grunt_src = [
   'src/services/services.system.js',
   'src/services/services.taxonomy_term.js',
   'src/services/services.taxonomy_vocabulary.js',
-  'src/services/services.user.js'
+  'src/services/services.user.js',
+  'src/services/services.views.js'
 ];
 
 module.exports = function(grunt) {
