@@ -18,8 +18,6 @@
   </head>
 
   <body onload="start_my_app()">
-  
-    <h1>jDrupal</h1>
 
     <form id="user_login_form" style="display: none;">
 
@@ -34,6 +32,11 @@
         <input type="button" value="Login" onclick="login_click()"/>
 
     </form>
+
+  <div id="user_dashboard" style="display: none;">
+      <p>Welcome..</p>
+      <div><a href="#" onclick="logout_click()">Logout</a></div>
+  </div>
     
   </body>
 </html>
