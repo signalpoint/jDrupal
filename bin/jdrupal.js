@@ -611,20 +611,13 @@ function comment_save(comment, options) {
  * @constructor
  */
 jDrupal.Entity = function(entityType, bundle, id) {
+  this.entity = null;
   this.entityType = entityType;
   this.bundle = bundle;
   this.entityID = id;
-  this.entity = null;
 };
-jDrupal.Entity.prototype.load = function(options) {
-  var _entity = this;
-  entity_retrieve(this.getEntityType(), this.id(), {
-    success: function(entity) {
-      _entity.entity = entity;
-      if (options.success) { options.success(); }
-    }
-  });
-};
+
+// Entity properties.
 jDrupal.Entity.prototype.getEntityType = function() {
   return this.entityType;
 };
@@ -634,6 +627,20 @@ jDrupal.Entity.prototype.getBundle = function() {
 jDrupal.Entity.prototype.id = function() {
   return this.entityID;
 };
+
+// Entity functions...
+
+// Entity load.
+jDrupal.Entity.prototype.load = function(options) {
+  var _entity = this;
+  entity_retrieve(this.getEntityType(), this.id(), {
+    success: function(entity) {
+      _entity.entity = entity;
+      if (options.success) { options.success(); }
+    }
+  });
+};
+
 
 /**
  * User
@@ -1167,6 +1174,27 @@ function taxonomy_vocabulary_save(taxonomy_vocabulary, options) {
   catch (error) { console.log('taxonomy_vocabulary_save - ' + error); }
 }
 
+
+function jDrupalUserLoad(uid, options) {
+  var account = new jDrupal.User(uid);
+  account.load({
+    success: function() {
+      if (options.success) { options.success(account); }
+    }
+  });
+}
+
+/**
+ * Gets the current user account object.
+ * @returns {Object}
+ */
+jDrupal.currentUser = function() { return jDrupal._currentUser; };
+
+/**
+ * Sets the current user account object.
+ * @param {Object} account
+ */
+function jDrupalSetCurrentUser(account) { jDrupal._currentUser = account; }
 
 // @see https://api.drupal.org/api/drupal/core!modules!user!src!Entity!User.php/class/User/8
 //jDrupal.user = {
@@ -2106,27 +2134,25 @@ function jDrupalConnect(options) {
       success: function(result) {
         try {
 
-          var account = new jDrupal.User(result.currentUser.uid);
-          account.load({
-            success: function() {
-              console.log('Hello ' + account.getAccountName());
+          console.log('connected');
+
+          // Load the user's account from Drupal and pass along the caller's
+          // options, which should include a success callback.
+          jDrupalUserLoad(result.currentUser.uid, {
+            success: function(account) {
+
+              // Set the current user.
+              jDrupalSetCurrentUser(account);
+
+              // Now that we've set some contexts, it's safe to return to the
+              // connect caller, since they'll be able to use our prototypes
+              // and functions to develop.
+              options.success();
+
             }
           });
-
-          // Parse the connect result from Drupal and build the currentUser
-          // object.
-          //jDrupalConnectExtractUser(result, {
-          //  success: function() {
-          //    if (jDrupal.currentUser) {
-          //
-          //    }
-          //  }
-          //});
-
-          // Load the user's account from Drupal
-          console.log('connected');
-          options.success(result);
           return;
+
           // If the user is authenticated load their user account, otherwise
           // just proceed as an anonymous user.
           if (result.account.uid) {
