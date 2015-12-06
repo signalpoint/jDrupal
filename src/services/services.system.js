@@ -2,7 +2,7 @@
  * System connect call.
  * @param {Object} options
  */
-jDrupal.Connect = function(options) {
+jDrupal.connect = function(options) {
   try {
 
     var service = {
@@ -23,7 +23,7 @@ jDrupal.Connect = function(options) {
           console.log('connected, still');
 
           // Load the user's account from Drupal.
-          var account = new jDrupal.User(result.uid, {
+          var account = jDrupal.userLoad(result.uid, {
             success: function() {
 
               // Set the current user.

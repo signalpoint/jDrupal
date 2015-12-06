@@ -43,16 +43,15 @@ jDrupal.Entity.prototype.load = function(options) {
  * @constructor
  * @see https://api.drupal.org/api/drupal/core!modules!node!src!Entity!Node.php/class/Node/8
  */
-jDrupal.Node = function(nid, options) {
+jDrupal.Node = function(nid) {
   this.entityType = 'node';
   this.entityID = nid;
   var _node = this;
-  this.load({
-    success: function() {
-      _node.bundle = _node.entity.type[0].target_id;
-      if (options.success) { options.success(); }
-    }
-  });
+};
+jDrupal.nodeLoad = function(nid, options) {
+  var node = new jDrupal.Node(nid);
+  node.load(options);
+  return node;
 };
 jDrupal.Node.prototype = new jDrupal.Entity;
 jDrupal.Node.prototype.constructor = jDrupal.Node;
@@ -79,11 +78,15 @@ jDrupal.Node.prototype.isSticky = function() {
  * @constructor
  * @see https://api.drupal.org/api/drupal/core!modules!user!src!Entity!User.php/class/User/8
  */
-jDrupal.User = function(uid, options) {
+jDrupal.User = function(uid) {
   this.entityType = 'user';
   this.bundle = 'user';
   this.entityID = uid;
-  this.load(options);
+};
+jDrupal.userLoad = function(uid, options) {
+  var account = new jDrupal.User(uid);
+  account.load(options);
+  return account;
 };
 jDrupal.User.prototype = new jDrupal.Entity;
 jDrupal.User.prototype.constructor = jDrupal.User;
