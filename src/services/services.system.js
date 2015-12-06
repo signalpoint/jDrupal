@@ -16,12 +16,11 @@ function jDrupalConnect(options) {
       success: function(result) {
         try {
 
-          console.log('connected');
+          console.log('connected, still');
 
-          // Load the user's account from Drupal and pass along the caller's
-          // options, which should include a success callback.
-          jDrupalUserLoad(result.currentUser.uid, {
-            success: function(account) {
+          // Load the user's account from Drupal.
+          var account = new jDrupal.User(result.currentUser.uid, {
+            success: function() {
 
               // Set the current user.
               jDrupalSetCurrentUser(account);
@@ -33,19 +32,7 @@ function jDrupalConnect(options) {
 
             }
           });
-          return;
 
-          // If the user is authenticated load their user account, otherwise
-          // just proceed as an anonymous user.
-          if (result.account.uid) {
-            user_load(result.account.uid, {
-                success: function(account) {
-                  jDrupal.user = account;
-                  if (options.success) { options.success(result); }
-                }
-            });
-          }
-          else if (options.success) { options.success(result); }
         }
         catch (error) { console.log('jDrupalConnect - success - ' + error); }
       },

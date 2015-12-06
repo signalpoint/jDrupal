@@ -36,26 +36,60 @@ jDrupal.Entity.prototype.load = function(options) {
   });
 };
 
+/**
+ * Node
+ * @param {Number} nid
+ * @param {Object} options
+ * @constructor
+ * @see https://api.drupal.org/api/drupal/core!modules!node!src!Entity!Node.php/class/Node/8
+ */
+jDrupal.Node = function(nid, options) {
+  this.entityType = 'node';
+  this.entityID = nid;
+  var _node = this;
+  this.load({
+    success: function(node) {
+      _node.bundle = node.type;
+      if (options.success) { options.success(); }
+    }
+  });
+};
+jDrupal.Node.prototype = new jDrupal.Entity;
+jDrupal.Node.prototype.constructor = jDrupal.Node;
+jDrupal.Node.prototype.getTitle = function() {
+  return this.entity.title[0].value;
+};
+jDrupal.Node.prototype.getType = function() {
+  return this.entity.type[0].target_id;
+};
+jDrupal.Node.prototype.isPromoted = function() {
+  return this.entity.promote[0].value;
+};
+jDrupal.Node.prototype.isPublished = function() {
+  return this.entity.status[0].value;
+};
+jDrupal.Node.prototype.isSticky = function() {
+  return this.entity.sticky[0].value;
+};
+
 
 /**
  * User
- * @param uid
+ * @param {Number} uid
  * @constructor
+ * @see https://api.drupal.org/api/drupal/core!modules!user!src!Entity!User.php/class/User/8
  */
-jDrupal.User = function(uid) {
+jDrupal.User = function(uid, options) {
   this.entityType = 'user';
   this.bundle = 'user';
   this.entityID = uid;
+  this.load(options);
 };
 jDrupal.User.prototype = new jDrupal.Entity;
 jDrupal.User.prototype.constructor = jDrupal.User;
 jDrupal.User.prototype.getAccountName = function() {
   return this.entity.name[0].value;
 };
-
-function jDrupalEntityInit(options) {
-
-}
 
 /**
  * Delete an entity.
