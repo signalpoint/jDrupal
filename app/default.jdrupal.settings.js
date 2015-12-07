@@ -2,8 +2,8 @@
 jDrupal.settings = {
 
   // Drupal site settings.
-  site_path: '',
-  base_path: '/',
+  sitePath: '',
+  basePath: '/',
 
   // Set to true to see debug info printed to the console.log().
   debug: true,
