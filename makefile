@@ -1,11 +1,3 @@
-# To run this makefile, you must have all the necessary tools installed.
-#
-# To install all the necessary tools, simply run the following...
-#
-#		 sudo make -B tools
-#
-
-# Create the list of files
 files =				 src/core.js\
         src/includes/module.inc.js\
 				src/comment.js\
