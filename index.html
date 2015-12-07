@@ -5,14 +5,16 @@
     <title>jDrupal</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    
-    <!-- Download jdrupal.js or jdrupal.min.js and include it here! -->
-    <script src="bin/jdrupal.js"></script>
+
+      <!-- Load jDrupal -->
+      <script src="bin/jdrupal.js"></script>
+
+      <!-- Load Settings for jDrupal -->
+      <script src="app/jdrupal.settings.js"></script>
+
   </head>
 
   <body onload="hello_world()">
-  
-    <h1>jDrupal</h1>
     
     <p id="message">Loading...</p>
     
@@ -20,25 +22,19 @@
     
       function hello_world() {
         
-        // Set the site path (without the trailing slash).
-        jdrupal.settings.site_path = ""; // http://www.example.com
-        
-        // Set the Service Resource endpoint path.
-        jdrupal.settings.endpoint = "";
-        
-        // Perform a jDrupal Connect call.
-        jdrupal_connect({
-            success:function(result){
+        // Connect to Drupal...
+        jDrupal.connect({
+            success:function() {
+
+                // Begin custom application code...
+
+                var msg = 'Hello World';
+
+                var user = jDrupal.currentUser();
+                if (user.id() != 0) { msg = 'Hello ' + user.getAccountName(); }
+
+                document.getElementById("message").innerHTML = msg;
               
-              // Place custom code here...
-              
-              if (jdrupal.user.uid == 0) { message = "Hello World, Visitor!"; }
-              else { message = "Hello World, " + jdrupal.user.name + "!"; }
-              document.getElementById("message").innerHTML = message;
-              
-            },
-            error:function(xhr, status, message) {
-              console.log(message);
             }
         });
         
