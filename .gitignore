@@ -1,5 +1,4 @@
-tools/*
-app/settings.js
+app/jdrupal.settings.js
 app/modules/*
 app/themes/*
 app/libraries/*
