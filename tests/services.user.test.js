@@ -8,9 +8,9 @@ var test_services_user = function(name, pass, callback) {
 
 function test_services_user_new_template() {
   var account = {
-    name: user_password(),
-    mail: user_password() + '@example.com',
-    pass: user_password()
+    name: jDrupal.userPassword(),
+    mail: jDrupal.userPassword() + '@example.com',
+    pass: jDrupal.userPassword()
   };
   account.pass2 = account.pass;
   return account;
@@ -21,20 +21,20 @@ var test_user_crud = function(name, pass, callback) {
   // TODO - need a failed user login test
   
   // User Logout
-  asyncTest("user_logout", function() {
-      user_logout({
-          success:function(result){
+  asyncTest("jDrupal.userLogout", function() {
+      jDrupal.userLogout({
+          success:function(){
             start();
             expect(1);
-            ok(result, "logged out");
+            ok(jDrupal.currentUser().id(), 0);
             
             // Login attempt fail
-            asyncTest("user_login - bad credentials", function() {
-                user_login(user_password(), user_password(), {
-                    error:function(xhr, status, response){
+            asyncTest("jDrupal.userLogin - bad credentials", function() {
+                jDrupal.userLogin(jDrupal.userPassword(), jDrupal.userPassword(), {
+                    success: function() {
                       start();
                       expect(1);
-                      ok(response.message, "Not Acceptable.");
+                      ok(jDrupal.currentUser().id(), 0);
                       
                       // User Register
                       /*asyncTest("user_register", function() {
@@ -46,13 +46,13 @@ var test_user_crud = function(name, pass, callback) {
                                 var new_uid = result.uid;*/
                                 
                                 // Log back in...
-                                asyncTest("user_login - logging back in", function() {
-                                    user_login(name, pass, {
+                                asyncTest("jDrupal.userLogin - logging back in", function() {
+                                    jDrupal.userLogin(name, pass, {
                                         success:function(result){
-                                          var account = Drupal.currentUser();
+                                          var account = jDrupal.currentUser();
                                           start();
                                           expect(1);
-                                          ok(account.getUsername() == name, "name");
+                                          ok(account.getAccountName() == name, "name");
                                           
                                           // Delete newly registered user...
                                           /*asyncTest("user_delete - deleting newly registered user", function() {
@@ -75,14 +75,14 @@ var test_user_crud = function(name, pass, callback) {
                                                               // Retrieve
                                                               asyncTest("user_load", function() {
                                                                   //user_load(user_create_result.uid, {
-                                                                  user_load(result.uid[0]['value'], {
-                                                                      success:function(user_retrieve_result) {
+                                                                  jDrupal.userLoad(account.id(), {
+                                                                      success:function() {
                                                                         start();
                                                                         expect(2);
                                                                         //ok(user_retrieve_result.uid == user_create_result.uid, "uid");
                                                                         //ok(user_retrieve_result.title == user.title, "title");
-                                                                        ok(user_retrieve_result.id() == account.id(), "uid");
-                                                                        ok(user_retrieve_result.getUsername() == account.getUsername(), "name");
+                                                                        ok(jDrupal.currentUser().id() == account.id(), "uid");
+                                                                        ok(jDrupal.currentUser().getAccountName() == account.getAccountName(), "name");
                                                                         
                                                                         // Update
                                                                         /*asyncTest("user_save - update existing", function() {

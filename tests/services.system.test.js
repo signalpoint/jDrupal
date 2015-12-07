@@ -7,12 +7,12 @@ var test_services_system = function(callback) {
 };
 
 var test_connect = function(callback) {
-  asyncTest("jdrupal_connect", function() {
-      jdrupal_connect({
+  asyncTest("jDrupal.connect", function() {
+      jDrupal.connect({
           success:function(result){
             start();
             expect(2);
-            var account = Drupal.currentUser();
+            var account = jDrupal.currentUser();
             ok(!!account, "account");
             ok(!!account.id(), "uid");
             if (callback) {
