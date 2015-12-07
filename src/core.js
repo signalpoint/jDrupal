@@ -1,5 +1,11 @@
 // Initialize the Drupal JSON object and run the bootstrap.
 var jDrupal = {}; jDrupalInit();
+jDrupal.sitePath = function() {
+  return jDrupal.settings.sitePath;
+};
+jDrupal.basePath = function() {
+  return jDrupal.settings.basePath;
+};
 
 /**
  * Initializes the jDrupal JSON object.
@@ -278,7 +284,7 @@ function function_exists(name) {
  */
 function http_status_code_title(status) {
   try {
-    // @todo - this can be replaced by using the statusText propery on the XHR
+    // @todo - this can be replaced by using the statusText property on the XHR
     // object.
     //https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest#Properties
     var title = '';

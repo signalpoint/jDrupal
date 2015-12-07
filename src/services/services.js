@@ -21,11 +21,9 @@ jDrupal.services.call = function(options) {
 
     module_invoke_all('services_preprocess', options);
 
-
     // Build the Request, and its url with a separator and '_format';
     var request = new XMLHttpRequest();
-    var url = jDrupal.settings.site_path +
-              jDrupal.settings.base_path;
+    var url = jDrupal.sitePath() + jDrupal.basePath();
     var separator = options.path.indexOf('?') == -1 ? '?' : '&';
     var format = typeof options._format !== 'undefined' ?
       '&_format=' + options._format : '';
@@ -246,8 +244,8 @@ function services_get_csrf_token(options) {
 
     // Build the Request and URL.
     var token_request = new XMLHttpRequest();
-    var token_url = jDrupal.settings.site_path +
-              '/rest/session/token';
+    var token_url = jDrupal.sitePath() + jDrupal.basePath() +
+      'rest/session/token';
 
     // Token Request Success Handler
     token_request.onload = function(e) {
@@ -296,11 +294,10 @@ function services_get_csrf_token(options) {
  */
 function services_ready() {
   try {
-    console.log(jDrupal);
     var result = true;
-    if (jDrupal.settings.site_path == '') {
+    if (jDrupal.sitePath == '') {
       result = false;
-      console.log('jDrupal\'s jDrupal.settings.site_path is not set!');
+      console.log('jDrupal.settings.sitePath is not set!');
     }
     return result;
   }
