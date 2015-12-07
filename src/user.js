@@ -62,9 +62,9 @@ function user_save(account, options) {
  * Generates a random user password.
  * @return {String}
  */
-function user_password() {
+jDrupal.userPassword = function() {
   try {
-    // credit: http://stackoverflow.com/a/1349426/763010
+    // @credit http://stackoverflow.com/a/1349426/763010
     var length = 10;
     if (arguments[0]) { length = arguments[0]; }
     var password = '';
@@ -75,6 +75,5 @@ function user_password() {
     }
     return password;
   }
-  catch (error) { console.log('user_password - ' + error); }
-}
-
+  catch (error) { console.log('jDrupal.userPassword - ' + error); }
+};

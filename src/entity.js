@@ -130,7 +130,10 @@ jDrupal.Entity.prototype.save = function(options) {
             }
 
             // Move along..
-            if (options.success) { options.success(data); }
+            if (options.success) {
+              if (isNew) { options.success(data); } // 201 - Created
+              else { options.success(); } // 204 - No Content
+            }
 
           },
           error: function(xhr, status, message) {
@@ -180,7 +183,7 @@ jDrupal.Node.prototype.getTitle = function() {
   return this.entity.title[0].value;
 };
 jDrupal.Node.prototype.getType = function() {
-  return this.entity.type[0].target_id;
+  return this.getBundle();
 };
 jDrupal.Node.prototype.isPromoted = function() {
   return this.entity.promote[0].value;
@@ -204,7 +207,6 @@ jDrupal.Node.prototype.setTitle = function(title) {
 
 jDrupal.Node.prototype.preSave = function(options) {
   try {
-    console.log('preSaving node');
 
     // Remove protected fields.
     var protected_fields = [
