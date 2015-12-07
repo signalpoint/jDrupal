@@ -14,6 +14,8 @@
     <!-- include to test binary -->
     <!--<script src="bin/jdrupal.js"></script> -->
     <script src="bin/jdrupal.min.js"></script>
+
+      <script src="app/jdrupal.settings.js"></script>
     
     <!-- include tests -->
     <script src="tests/services.comment.test.js"></script>
@@ -58,30 +60,23 @@
     
     <script type="text/javascript">
       $().ready(function() {
-          
-          jdrupal.settings.debug = true;
-          
-          // Set the site path.
-          jdrupal.settings.site_path = window.location.href.replace(
-            '/libraries/jDrupal/',
-            ''
-          ).replace('tests.html', '');
-          $('#site_path').val(jdrupal.settings.site_path);
+
+          $('#site_path').val(jDrupal.sitePath());
           
           $('#go').on('click', function(){
               set_drupal_settings();
-              if (jdrupal.settings.site_path == '') {
+              if (jDrupal.sitePath() == '') {
                 alert('Enter a site path!');
                 return false;
               }
-              jdrupal_connect({
+              jDrupal.connect({
                   success:function(result){
-                  var account = jdrupal.currentUser();
+                  var account = jDrupal.currentUser();
                   var uid = account.id();
                     $('#login_name_wrapper').show('slow');
                     $('#login_pass_wrapper').show('slow');
                     if (uid != '0') {
-                      $('#login_name').val(account.getUsername());
+                      $('#login_name').val(account.getAccountName());
                       $('#logout').show();
                       $('#go').hide();
                       if (uid == '1') {
@@ -105,7 +100,7 @@
           
           $('#login').on('click', function(){
               set_drupal_settings();
-              user_login($('#login_name').val(), $('#login_pass').val(), {
+              jDrupal.userLogin($('#login_name').val(), $('#login_pass').val(), {
                   success:function(result){
                     $('#login').hide();
                     $('#logout').show('slow');
@@ -119,25 +114,23 @@
           });
           
           $('#logout').on('click', function(){
-              user_logout({
-                  success:function(result){
-                    if (result) {
-                       $('#login').show('slow');
-                       $('#run_tests').hide();
-                       $('#logout').hide();
-                       $('#login_pass').val('');
-                    }
+              jDrupal.userLogout({
+                  success:function() {
+                    $('#login').show('slow');
+                    $('#run_tests').hide();
+                    $('#logout').hide();
+                    $('#login_pass').val('');
                   }
               });
               return false;
           });
           
           function set_drupal_settings() {
-            jdrupal.settings.site_path = $('#site_path').val();
+            jDrupal.settings.sitePath = $('#site_path').val();
           }
           
           $('#run_tests').on('click', function(){
-              var account = jdrupal.currentUser();
+              var account = jDrupal.currentUser();
               if (account.id() != 1) {
                 alert('Only user #1 can run tests!');
                 return;
