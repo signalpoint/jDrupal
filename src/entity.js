@@ -49,84 +49,103 @@ jDrupal.Entity.prototype.load = function(options) {
   });
 };
 
+jDrupal.Entity.prototype.preSave = function(options) {
+  console.log('preSaving entity!');
+  options.success();
+};
+
 /**
  * Entity save.
  * @param options
  */
 jDrupal.Entity.prototype.save = function(options) {
 
-  var entityType = this.getEntityType();
-  var method = null;
-  var resource = null;
-  var path = null;
-  //var _links = {
-  //  type: {
-  //    href: jDrupal.sitePath() + jDrupal.basePath() +
-  //      'rest/type/' + this.getEntityType() + '/' + this.getBundle()
-  //  }
-  //};
-
-  var isNew = !this.id();
-
-  // Save new entity.
-  if (isNew) {
-
-    method = 'POST';
-    resource = 'create';
-    path = 'entity/' + entityType;
-
-  }
-
-  // Update existing entity.
-  else {
-
-    method = 'PATCH';
-    resource = 'update';
-    path = entityType + '/' + this.id();
-
-  }
-
-  // Set hal json links.
-  //this.entity._links = _links;
-
   // Set aside "this" entity.
   var _entity = this;
 
-  jDrupal.services.call({
-    method: method,
-    contentType: 'application/json',
-    path: path,
-    service: entityType,
-    resource: resource,
-    entity_type: entityType,
-    bundle: this.getBundle(),
-    data: JSON.stringify(this.entity),
-    _format: 'json',
-    success: function(data) {
+  // Invoke the pre-save.
+  this.preSave({
+    success: function() {
 
-      // Remove hal json links.
-      //delete this.entity._links;
+      try {
 
-      // For new entities, set their id's value.
-      if (isNew) {
-        var parts = data.split('/');
-        var entityID =
-        _entity.entity[_entity.getEntityKey('id')] = [ {
-          value: parts[parts.length - 1]
-        }];
+        var entityType = _entity.getEntityType();
+        var method = null;
+        var resource = null;
+        var path = null;
+        //var _links = {
+        //  type: {
+        //    href: jDrupal.sitePath() + jDrupal.basePath() +
+        //      'rest/type/' + this.getEntityType() + '/' + this.getBundle()
+        //  }
+        //};
+
+        var isNew = !_entity.id();
+
+        // Save new entity.
+        if (isNew) {
+
+          method = 'POST';
+          resource = 'create';
+          path = 'entity/' + entityType;
+
+        }
+
+        // Update existing entity.
+        else {
+
+          method = 'PATCH';
+          resource = 'update';
+          path = entityType + '/' + _entity.id();
+
+        }
+
+        // Set hal json links.
+        //this.entity._links = _links;
+
+
+
+        jDrupal.services.call({
+          method: method,
+          contentType: 'application/json',
+          path: path,
+          service: entityType,
+          resource: resource,
+          entity_type: entityType,
+          bundle: _entity.getBundle(),
+          data: JSON.stringify(_entity.entity),
+          _format: 'json',
+          success: function(data) {
+
+            // Remove hal json links.
+            //delete this.entity._links;
+
+            // For new entities, set their id's value.
+            if (isNew) {
+              var parts = data.split('/');
+              var entityID =
+                _entity.entity[_entity.getEntityKey('id')] = [ {
+                  value: parts[parts.length - 1]
+                }];
+            }
+
+            // Move along..
+            if (options.success) { options.success(data); }
+
+          },
+          error: function(xhr, status, message) {
+            if (options.error) { options.error(xhr, status, message); }
+          }
+        });
+
+      }
+      catch (error) {
+        console.log('jDrupal.Entity.save - ' + error);
       }
 
-      // Move along..
-      if (options.success) { options.success(data); }
-
-    },
-    error: function(xhr, status, message) {
-       if (options.error) { options.error(xhr, status, message); }
     }
   });
 
-
-  //entity_save(this.getEntityType(), this.getBundle(), this.entity, options);
 };
 
 /**
@@ -140,11 +159,20 @@ jDrupal.Entity.prototype.save = function(options) {
  * @see https://api.drupal.org/api/drupal/core!modules!node!src!Entity!Node.php/class/Node/8
  */
 jDrupal.Node = function(nid_or_node) {
-  //this.entityType = 'node';
+
+  // Set the entity keys.
   this.entityKeys['type'] = 'node';
   this.entityKeys['bundle'] = 'type';
   this.entityKeys['id'] = 'nid';
+
+  // Prep the entity.
   jDrupalEntityConstructorPrep(this, nid_or_node);
+
+  // Set default values.
+  if (!this.entity.title) {
+    this.entity.title = [ { value: '' }];
+  }
+
 };
 jDrupal.Node.prototype = new jDrupal.Entity;
 jDrupal.Node.prototype.constructor = jDrupal.Node;
@@ -164,9 +192,56 @@ jDrupal.Node.prototype.isSticky = function() {
   return this.entity.sticky[0].value;
 };
 jDrupal.Node.prototype.setTitle = function(title) {
-  this.entity.title[0].value = title;
+  try {
+    this.entity.title[0].value = title;
+  }
+  catch (e) { console.log('jDrupal.Node.setTitle - ' + e); }
 };
 
+/**
+ * OVERRIDES
+ */
+
+jDrupal.Node.prototype.preSave = function(options) {
+  try {
+    console.log('preSaving node');
+
+    // Remove protected fields.
+    var protected_fields = [
+      'changed',
+      'revision_timestamp',
+      'revision_uid'
+    ];
+    for (var i = 0; i < protected_fields.length; i++) {
+      delete this.entity[protected_fields[i]];
+    }
+
+    // Continue along...
+    options.success();
+  }
+  catch (error) {
+    console.log('jDrupal.Node.preSave - ' + error);
+  }
+
+};
+
+/**
+ *
+ * @param nid
+ * @param options
+ * @returns {jDrupal.Node}
+ */
+
+/**
+ * PROXIES
+ */
+
+/**
+ *
+ * @param nid
+ * @param options
+ * @returns {jDrupal.Node}
+ */
 jDrupal.nodeLoad = function(nid, options) {
   var node = new jDrupal.Node(nid);
   node.load(options);
@@ -184,12 +259,16 @@ jDrupal.nodeLoad = function(nid, options) {
  * @see https://api.drupal.org/api/drupal/core!modules!user!src!Entity!User.php/class/User/8
  */
 jDrupal.User = function(uid_or_account) {
-  //this.entityType = 'user';
-  //this.bundle = 'user';
+
+  // Set the entity keys.
   this.entityKeys['type'] = 'user';
   this.entityKeys['bundle'] = 'user';
   this.entityKeys['id'] = 'uid';
+
+  // Prep the entity.
   jDrupalEntityConstructorPrep(this, uid_or_account);
+
+  // Set default values.
 
 };
 jDrupal.User.prototype = new jDrupal.Entity;
@@ -204,11 +283,31 @@ jDrupal.User.prototype.isAuthenticated = function() {
   return !this.isAnonymous();
 };
 
+/**
+ * PROXIES
+ */
+
+//jDrupal.userPrepare = function(uid) {
+//  return new jDrupal.User({
+//
+//  });
+//};
+
+/**
+ *
+ * @param uid
+ * @param options
+ * @returns {jDrupal.User}
+ */
 jDrupal.userLoad = function(uid, options) {
   var account = new jDrupal.User(uid);
   account.load(options);
   return account;
 };
+
+/**
+ * HELPERS
+ */
 
 /**
  *
@@ -231,8 +330,6 @@ function jDrupalEntityConstructorPrep(obj, entityID_or_entity) {
   }
   catch (error) { console.log('jDrupalEntityConstructorPrep - ' + error); }
 }
-
-
 
 
 
