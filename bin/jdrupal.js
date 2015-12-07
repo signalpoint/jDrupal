@@ -1,5 +1,11 @@
 // Initialize the Drupal JSON object and run the bootstrap.
 var jDrupal = {}; jDrupalInit();
+jDrupal.sitePath = function() {
+  return jDrupal.settings.sitePath;
+};
+jDrupal.basePath = function() {
+  return jDrupal.settings.basePath;
+};
 
 /**
  * Initializes the jDrupal JSON object.
@@ -278,7 +284,7 @@ function function_exists(name) {
  */
 function http_status_code_title(status) {
   try {
-    // @todo - this can be replaced by using the statusText propery on the XHR
+    // @todo - this can be replaced by using the statusText property on the XHR
     // object.
     //https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest#Properties
     var title = '';
@@ -611,30 +617,39 @@ function comment_save(comment, options) {
  * @constructor
  */
 jDrupal.Entity = function(entityType, bundle, id) {
+
   this.entity = null;
-  this.entityType = entityType;
+
+  // @TODO these flat values need to be turned into arrays, e.g.
+  // [ { value: 'foo'} ]
   this.bundle = bundle;
   this.entityID = id;
+
   this.entityKeys = {};
 };
 
-// Entity properties.
-jDrupal.Entity.prototype.getEntityType = function() {
-  return this.entityType;
-};
 jDrupal.Entity.prototype.getEntityKey = function(key) {
-  return this.entityKeys[key];
+  return typeof this.entityKeys[key] !== 'undefined' ?
+    this.entityKeys[key] : null;
+};
+jDrupal.Entity.prototype.getEntityType = function() {
+  return this.entityKeys['type'];
 };
 jDrupal.Entity.prototype.getBundle = function() {
-  return this.bundle;
+  var bundle = this.getEntityKey('bundle');
+  return typeof this.entity[bundle] !== 'undefined' ?
+    this.entity[bundle][0].target_id : null;
 };
 jDrupal.Entity.prototype.id = function() {
-  return this.entityID;
+  var id = this.getEntityKey('id');
+  return typeof this.entity[id] !== 'undefined' ?
+    this.entity[id][0].value : null;
 };
 
-// Entity functions...
-
-// Entity load.
+/**
+ * Entity load.
+ * @param options
+ */
 jDrupal.Entity.prototype.load = function(options) {
   var _entity = this;
   entity_retrieve(this.getEntityType(), this.id(), {
@@ -646,15 +661,99 @@ jDrupal.Entity.prototype.load = function(options) {
 };
 
 /**
+ * Entity save.
+ * @param options
+ */
+jDrupal.Entity.prototype.save = function(options) {
+
+  var entityType = this.getEntityType();
+  var method = null;
+  var resource = null;
+  var path = null;
+  //var _links = {
+  //  type: {
+  //    href: jDrupal.sitePath() + jDrupal.basePath() +
+  //      'rest/type/' + this.getEntityType() + '/' + this.getBundle()
+  //  }
+  //};
+
+  var isNew = !this.id();
+
+  // Save new entity.
+  if (isNew) {
+
+    method = 'POST';
+    resource = 'create';
+    path = 'entity/' + entityType;
+
+  }
+
+  // Update existing entity.
+  else {
+
+    method = 'PATCH';
+    resource = 'update';
+    path = entityType + '/' + this.id();
+
+  }
+
+  // Set hal json links.
+  //this.entity._links = _links;
+
+  // Set aside "this" entity.
+  var _entity = this;
+
+  jDrupal.services.call({
+    method: method,
+    contentType: 'application/json',
+    path: path,
+    service: entityType,
+    resource: resource,
+    entity_type: entityType,
+    bundle: this.getBundle(),
+    data: JSON.stringify(this.entity),
+    _format: 'json',
+    success: function(data) {
+
+      // Remove hal json links.
+      //delete this.entity._links;
+
+      // For new entities, set their id's value.
+      if (isNew) {
+        var parts = data.split('/');
+        var entityID =
+        _entity.entity[_entity.getEntityKey('id')] = [ {
+          value: parts[parts.length - 1]
+        }];
+      }
+
+      // Move along..
+      if (options.success) { options.success(data); }
+
+    },
+    error: function(xhr, status, message) {
+       if (options.error) { options.error(xhr, status, message); }
+    }
+  });
+
+
+  //entity_save(this.getEntityType(), this.getBundle(), this.entity, options);
+};
+
+/**
+ * NODES
+ */
+
+/**
  * Node
  * @param {Number|Object} nid_or_node
  * @constructor
  * @see https://api.drupal.org/api/drupal/core!modules!node!src!Entity!Node.php/class/Node/8
  */
 jDrupal.Node = function(nid_or_node) {
-  this.entityType = 'node';
+  //this.entityType = 'node';
   this.entityKeys['type'] = 'node';
-  this.entityKeys['bundle'] = null;
+  this.entityKeys['bundle'] = 'type';
   this.entityKeys['id'] = 'nid';
   jDrupalEntityConstructorPrep(this, nid_or_node);
 };
@@ -675,6 +774,9 @@ jDrupal.Node.prototype.isPublished = function() {
 jDrupal.Node.prototype.isSticky = function() {
   return this.entity.sticky[0].value;
 };
+jDrupal.Node.prototype.setTitle = function(title) {
+  this.entity.title[0].value = title;
+};
 
 jDrupal.nodeLoad = function(nid, options) {
   var node = new jDrupal.Node(nid);
@@ -683,14 +785,18 @@ jDrupal.nodeLoad = function(nid, options) {
 };
 
 /**
+ * USERS
+ */
+
+/**
  * User
  * @param {Number|Object} uid_or_account
  * @constructor
  * @see https://api.drupal.org/api/drupal/core!modules!user!src!Entity!User.php/class/User/8
  */
 jDrupal.User = function(uid_or_account) {
-  this.entityType = 'user';
-  this.bundle = 'user';
+  //this.entityType = 'user';
+  //this.bundle = 'user';
   this.entityKeys['type'] = 'user';
   this.entityKeys['bundle'] = 'user';
   this.entityKeys['id'] = 'uid';
@@ -723,12 +829,18 @@ jDrupal.userLoad = function(uid, options) {
 
 // @TODO every function should live in the jDrupal namespace!
 function jDrupalEntityConstructorPrep(obj, entityID_or_entity) {
-  if (typeof entityID_or_entity === 'object') {
-    var entity = entityID_or_entity;
-    obj.entity = entity;
-    obj.entityID = entity[obj.getEntityKey('id')][0].value;
+  try {
+    if (typeof entityID_or_entity === 'object') {
+      obj.entity = entityID_or_entity;
+    }
+    else {
+      var id = obj.getEntityKey('id');
+      var entity = {};
+      entity[id]= [ { value: entityID_or_entity } ];
+      obj.entity = entity;
+    }
   }
-  else { obj.entityID = entityID_or_entity; }
+  catch (error) { console.log('jDrupalEntityConstructorPrep - ' + error); }
 }
 
 
@@ -1344,11 +1456,9 @@ jDrupal.services.call = function(options) {
 
     module_invoke_all('services_preprocess', options);
 
-
     // Build the Request, and its url with a separator and '_format';
     var request = new XMLHttpRequest();
-    var url = jDrupal.settings.site_path +
-              jDrupal.settings.base_path;
+    var url = jDrupal.sitePath() + jDrupal.basePath();
     var separator = options.path.indexOf('?') == -1 ? '?' : '&';
     var format = typeof options._format !== 'undefined' ?
       '&_format=' + options._format : '';
@@ -1569,8 +1679,8 @@ function services_get_csrf_token(options) {
 
     // Build the Request and URL.
     var token_request = new XMLHttpRequest();
-    var token_url = jDrupal.settings.site_path +
-              '/rest/session/token';
+    var token_url = jDrupal.sitePath() + jDrupal.basePath() +
+      'rest/session/token';
 
     // Token Request Success Handler
     token_request.onload = function(e) {
@@ -1619,11 +1729,10 @@ function services_get_csrf_token(options) {
  */
 function services_ready() {
   try {
-    console.log(jDrupal);
     var result = true;
-    if (jDrupal.settings.site_path == '') {
+    if (jDrupal.sitePath == '') {
       result = false;
-      console.log('jDrupal\'s jDrupal.settings.site_path is not set!');
+      console.log('jDrupal.settings.sitePath is not set!');
     }
     return result;
   }
