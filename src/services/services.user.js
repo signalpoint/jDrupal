@@ -1,47 +1,4 @@
 /**
- * Perform a user index.
- * @param {Object} query
- * @param {Object} options
- */
-function user_index(query, options) {
-  try {
-    services_resource_defaults(options, 'user', 'create');
-    entity_index('user', query, options);
-  }
-  catch (error) { console.log('user_index - ' + error); }
-}
-
-/**
- * Registers a user.
- * @param {Object} account
- * @param {Object} options
- */
-function user_register(account, options) {
-  try {
-    jDrupal.services.call({
-        service: 'user',
-        resource: 'register',
-        method: 'POST',
-        path: 'user/register',
-        data: JSON.stringify(account),
-        success: function(data) {
-          try {
-            if (options.success) { options.success(data); }
-          }
-          catch (error) { console.log('user_register - success - ' + error); }
-        },
-        error: function(xhr, status, message) {
-          try {
-            if (options.error) { options.error(xhr, status, message); }
-          }
-          catch (error) { console.log('user_register - error - ' + error); }
-        }
-    });
-  }
-  catch (error) { console.log('user_retrieve - ' + error); }
-}
-
-/**
  * Login user.
  * @param {String} name
  * @param {String} pass
@@ -171,3 +128,46 @@ jDrupal.userLogout = function(options) {
     console.log('jDrupal.userLogout - ' + error);
   }
 };
+
+/**
+ * Perform a user index.
+ * @param {Object} query
+ * @param {Object} options
+ */
+function user_index(query, options) {
+  try {
+    services_resource_defaults(options, 'user', 'create');
+    entity_index('user', query, options);
+  }
+  catch (error) { console.log('user_index - ' + error); }
+}
+
+/**
+ * Registers a user.
+ * @param {Object} account
+ * @param {Object} options
+ */
+function user_register(account, options) {
+  try {
+    jDrupal.services.call({
+      service: 'user',
+      resource: 'register',
+      method: 'POST',
+      path: 'user/register',
+      data: JSON.stringify(account),
+      success: function(data) {
+        try {
+          if (options.success) { options.success(data); }
+        }
+        catch (error) { console.log('user_register - success - ' + error); }
+      },
+      error: function(xhr, status, message) {
+        try {
+          if (options.error) { options.error(xhr, status, message); }
+        }
+        catch (error) { console.log('user_register - error - ' + error); }
+      }
+    });
+  }
+  catch (error) { console.log('user_retrieve - ' + error); }
+}
