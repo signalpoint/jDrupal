@@ -645,6 +645,9 @@ jDrupal.Entity.prototype.id = function() {
   return typeof this.entity[id] !== 'undefined' ?
     this.entity[id][0].value : null;
 };
+jDrupal.Entity.prototype.isNew = function() {
+  return !this.id();
+};
 
 /**
  * Entity load.
@@ -660,8 +663,15 @@ jDrupal.Entity.prototype.load = function(options) {
   });
 };
 
+/**
+ * ENTITY SAVING...
+ */
+
+/**
+ * Entity pre save.
+ * @param options
+ */
 jDrupal.Entity.prototype.preSave = function(options) {
-  console.log('preSaving entity!');
   options.success();
 };
 
@@ -684,14 +694,8 @@ jDrupal.Entity.prototype.save = function(options) {
         var method = null;
         var resource = null;
         var path = null;
-        //var _links = {
-        //  type: {
-        //    href: jDrupal.sitePath() + jDrupal.basePath() +
-        //      'rest/type/' + this.getEntityType() + '/' + this.getBundle()
-        //  }
-        //};
 
-        var isNew = !_entity.id();
+        var isNew = _entity.isNew();
 
         // Save new entity.
         if (isNew) {
@@ -711,11 +715,7 @@ jDrupal.Entity.prototype.save = function(options) {
 
         }
 
-        // Set hal json links.
-        //this.entity._links = _links;
-
-
-
+        // Make the call...
         jDrupal.services.call({
           method: method,
           contentType: 'application/json',
@@ -728,17 +728,13 @@ jDrupal.Entity.prototype.save = function(options) {
           _format: 'json',
           success: function(data) {
 
-            // Remove hal json links.
-            //delete this.entity._links;
+            _entity.postSave(data, {
+              success: function() {
 
-            // For new entities, set their id's value.
-            if (isNew) {
-              var parts = data.split('/');
-              var entityID =
-                _entity.entity[_entity.getEntityKey('id')] = [ {
-                  value: parts[parts.length - 1]
-                }];
-            }
+              }
+            });
+
+
 
             // Move along..
             if (options.success) {
@@ -760,6 +756,108 @@ jDrupal.Entity.prototype.save = function(options) {
     }
   });
 
+};
+
+/**
+ * Entity post save.
+ * @param data
+ * @param options
+ */
+jDrupal.Entity.prototype.postSave = function(data, options) {
+  // For new entities, set their id's value.
+  if (this.isNew()) {
+    var parts = data.split('/');
+    var entityID =
+      this.entity[this.getEntityKey('id')] = [ {
+        value: parts[parts.length - 1]
+      }];
+  }
+  options.success();
+};
+
+/**
+ * ENTITY DELETING...
+ */
+
+/**
+ * Entity pre delete.
+ * @param options
+ */
+jDrupal.Entity.prototype.preDelete = function(options) {
+  options.success();
+};
+
+/**
+ * Entity delete.
+ * @param options
+ */
+jDrupal.Entity.prototype.delete = function(options) {
+
+  // Set aside "this" entity.
+  var _entity = this;
+
+  // Invoke the pre-delete.
+  this.preDelete({
+    success: function() {
+
+      try {
+
+        var entityType = _entity.getEntityType();
+
+        // Build the necessary data to send along with the DELETE request.
+        var data = {};
+        data[_entity.getEntityKey('bundle')] = [ {
+          target_id: _entity.getBundle()
+        }];
+
+        jDrupal.services.call({
+          method: 'DELETE',
+          contentType: 'application/json',
+          path: entityType + '/' + _entity.id(),
+          service: entityType,
+          resource: 'delete',
+          entity_type: entityType,
+          bundle: _entity.getBundle(),
+          data: JSON.stringify(data),
+          _format: 'json',
+          success: function() {
+
+            // Invoke the post-delete.
+            _entity.postDelete({
+              success: function() {
+
+                // Move along...
+                if (options.success) {
+                  options.success(); // 204 - No Content
+                }
+
+              }
+            });
+
+          },
+          error: function(xhr, status, message) {
+            if (options.error) { options.error(xhr, status, message); }
+          }
+        });
+
+      }
+      catch (error) {
+        console.log('jDrupal.Entity.delete - ' + error);
+      }
+
+    }
+  });
+
+};
+
+/**
+ * Entity post delete.
+ * @param options
+ */
+jDrupal.Entity.prototype.postDelete = function(options) {
+  // Clear out the entity and succeed.
+  this.entity = null;
+  options.success();
 };
 
 /**
