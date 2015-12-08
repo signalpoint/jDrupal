@@ -20,23 +20,55 @@ jDrupal.Node = function(nid_or_node) {
   }
 
 };
+
+// Extend the entity prototype.
 jDrupal.Node.prototype = new jDrupal.Entity;
 jDrupal.Node.prototype.constructor = jDrupal.Node;
+
+/**
+ *
+ * @returns {*}
+ */
 jDrupal.Node.prototype.getTitle = function() {
   return this.entity.title[0].value;
 };
+
+/**
+ *
+ * @returns {*}
+ */
 jDrupal.Node.prototype.getType = function() {
   return this.getBundle();
 };
+
+/**
+ *
+ * @returns {*}
+ */
 jDrupal.Node.prototype.isPromoted = function() {
   return this.entity.promote[0].value;
 };
+
+/**
+ *
+ * @returns {*}
+ */
 jDrupal.Node.prototype.isPublished = function() {
   return this.entity.status[0].value;
 };
+
+/**
+ *
+ * @returns {*}
+ */
 jDrupal.Node.prototype.isSticky = function() {
   return this.entity.sticky[0].value;
 };
+
+/**
+ *
+ * @returns {*}
+ */
 jDrupal.Node.prototype.setTitle = function(title) {
   try {
     this.entity.title[0].value = title;

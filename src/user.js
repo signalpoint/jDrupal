@@ -17,14 +17,31 @@ jDrupal.User = function(uid_or_account) {
   // Set default values.
 
 };
+
+// Extend the entity prototype.
 jDrupal.User.prototype = new jDrupal.Entity;
 jDrupal.User.prototype.constructor = jDrupal.User;
+
+/**
+ *
+ * @returns {*}
+ */
 jDrupal.User.prototype.getAccountName = function() {
   return this.entity.name[0].value;
 };
+
+/**
+ *
+ * @returns {boolean}
+ */
 jDrupal.User.prototype.isAnonymous = function() {
   return this.id() == 0;
 };
+
+/**
+ *
+ * @returns {boolean}
+ */
 jDrupal.User.prototype.isAuthenticated = function() {
   return !this.isAnonymous();
 };
