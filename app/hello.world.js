@@ -58,6 +58,24 @@ function start_my_app() {
             //  }
             //});
 
+            // Delete an existing node..
+
+            // First, load the node...
+            //var node = $.nodeLoad(14, {
+            //  success: function() {
+            //
+            //    // then delete it.
+            //    node.delete({
+            //      success: function() {
+            //
+            //        console.log('Node deleted!');
+            //
+            //      }
+            //    });
+            //
+            //  }
+            //});
+
           }
 
           // Load a node.
