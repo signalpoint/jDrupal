@@ -1,10 +1,67 @@
 /**
+ * User
+ * @param {Number|Object} uid_or_account
+ * @constructor
+ * @see https://api.drupal.org/api/drupal/core!modules!user!src!Entity!User.php/class/User/8
+ */
+jDrupal.User = function(uid_or_account) {
+
+  // Set the entity keys.
+  this.entityKeys['type'] = 'user';
+  this.entityKeys['bundle'] = 'user';
+  this.entityKeys['id'] = 'uid';
+
+  // Prep the entity.
+  jDrupalEntityConstructorPrep(this, uid_or_account);
+
+  // Set default values.
+
+};
+jDrupal.User.prototype = new jDrupal.Entity;
+jDrupal.User.prototype.constructor = jDrupal.User;
+jDrupal.User.prototype.getAccountName = function() {
+  return this.entity.name[0].value;
+};
+jDrupal.User.prototype.isAnonymous = function() {
+  return this.id() == 0;
+};
+jDrupal.User.prototype.isAuthenticated = function() {
+  return !this.isAnonymous();
+};
+
+/**
+ * PROXIES
+ */
+
+//jDrupal.userPrepare = function(uid) {
+//  return new jDrupal.User({
+//
+//  });
+//};
+
+/**
  * Gets the current user account object.
  * @returns {Object}
  */
 jDrupal.currentUser = function() {
   return jDrupal._currentUser;
 };
+
+/**
+ *
+ * @param uid
+ * @param options
+ * @returns {jDrupal.User}
+ */
+jDrupal.userLoad = function(uid, options) {
+  var account = new jDrupal.User(uid);
+  account.load(options);
+  return account;
+};
+
+/**
+ * HELPERS
+ */
 
 /**
  *
