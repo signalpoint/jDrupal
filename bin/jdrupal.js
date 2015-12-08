@@ -205,37 +205,6 @@ function date(format) {
 }
 
 /**
- * Given a JSON object or string, this will print it to the console. It accepts
- * an optional boolean as second argument, if it is false the output sent to the
- * console will not use pretty printing in a Chrome/Ripple environment.
- * @param {Object} data
- */
-function dpm(data) {
-  try {
-    // Show the caller name.
-    //var caller = arguments.callee.caller.name + '()';
-    //console.log(caller);
-    if (data) {
-      if (typeof parent.window.ripple === 'function') {
-        if (typeof arguments[1] !== 'undefined' && arguments[1] == false) {
-          console.log(JSON.stringify(data));
-        }
-        else {
-          console.log(data);
-        }
-      }
-      else if (typeof data === 'object') { console.log(JSON.stringify(data)); }
-      else { console.log(data); }
-    }
-    else {
-      if (data == '') { console.log('<empty-string>'); }
-      else { console.log('<null>'); }
-    }
-  }
-  catch (error) { console.log('dpm - ' + error); }
-}
-
-/**
  * Returns a default JSON object representing an anonymous jDrupal user account.
  * @return {Object}
  */
@@ -361,7 +330,7 @@ function language_default() {
  * @param {String} name The name of the module
  * @return {Boolean}
  */
-function module_exists(name) {
+jDrupal.moduleExists = function (name) {
   try {
     var exists = false;
     if (typeof jDrupal.modules.core[name] !== 'undefined') {
@@ -375,8 +344,8 @@ function module_exists(name) {
     }
     return exists;
   }
-  catch (error) { console.log('module_exists - ' + error); }
-}
+  catch (error) { console.log('jDrupal.moduleExists - ' + error); }
+};
 
 /**
  * Shuffle an array.
@@ -384,27 +353,24 @@ function module_exists(name) {
  * @param {Array} array
  * @return {Array}
  */
-function shuffle(array) {
-  try {
-    for (var i = array.length - 1; i > 0; i--) {
-      var j = Math.floor(Math.random() * (i + 1));
-      var temp = array[i];
-      array[i] = array[j];
-      array[j] = temp;
-    }
-    return array;
+jDrupal.shuffle = function(array) {
+  for (var i = array.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1));
+    var temp = array[i];
+    array[i] = array[j];
+    array[j] = temp;
   }
-  catch (error) { console.log('shuffle - ' + error); }
-}
+  return array;
+};
 
 /**
  * Javascript equivalent of php's time() function.
- * @return {Number}
+ * @returns {number}
  */
-function time() {
+jDrupal.time = function() {
   var d = new Date();
   return Math.floor(d / 1000);
-}
+};
 
 /**
  * Given a string, this will change the first character to upper case and return
@@ -412,18 +378,12 @@ function time() {
  * @param {String} str
  * @return {String}
  */
-function ucfirst(str) {
-  // http://kevin.vanzonneveld.net
-  // +   original by: Kevin van Zonneveld (http://kevin.vanzonneveld.net)
-  // +   bugfixed by: Onno Marsman
-  // +   improved by: Brett Zamir (http://brett-zamir.me)
-  // *     example 1: ucfirst('kevin van zonneveld');
-  // *     returns 1: 'Kevin van zonneveld'
+jDrupal.ucfirst = function(str) {
+  // @credit http://kevin.vanzonneveld.net
   str += '';
   var f = str.charAt(0).toUpperCase();
   return f + str.substr(1);
-}
-
+};
 
 /**
  * Determines which modules are implementing a hook. Returns an array with the
@@ -583,30 +543,6 @@ function module_types() {
   catch (error) { console.log('module_types - ' + error); }
 }
 
-
-/**
- * Loads a comment.
- * @param {Number} cid
- * @param {Object} options
- */
-function comment_load(cid, options) {
-  try {
-    entity_load('comment', cid, options);
-  }
-  catch (error) { console.log('comment_load - ' + error); }
-}
-
-/**
- * Saves a comment.
- * @param {Object} comment
- * @param {Object} options
- */
-function comment_save(comment, options) {
-  try {
-    entity_save('comment', null, comment, options);
-  }
-  catch (error) { console.log('comment_save - ' + error); }
-}
 
 
 /**
@@ -882,162 +818,6 @@ jDrupal.Entity.prototype.postDelete = function(options) {
 };
 
 /**
- * NODES
- */
-
-/**
- * Node
- * @param {Number|Object} nid_or_node
- * @constructor
- * @see https://api.drupal.org/api/drupal/core!modules!node!src!Entity!Node.php/class/Node/8
- */
-jDrupal.Node = function(nid_or_node) {
-
-  // Set the entity keys.
-  this.entityKeys['type'] = 'node';
-  this.entityKeys['bundle'] = 'type';
-  this.entityKeys['id'] = 'nid';
-
-  // Prep the entity.
-  jDrupalEntityConstructorPrep(this, nid_or_node);
-
-  // Set default values.
-  if (!this.entity.title) {
-    this.entity.title = [ { value: '' }];
-  }
-
-};
-jDrupal.Node.prototype = new jDrupal.Entity;
-jDrupal.Node.prototype.constructor = jDrupal.Node;
-jDrupal.Node.prototype.getTitle = function() {
-  return this.entity.title[0].value;
-};
-jDrupal.Node.prototype.getType = function() {
-  return this.getBundle();
-};
-jDrupal.Node.prototype.isPromoted = function() {
-  return this.entity.promote[0].value;
-};
-jDrupal.Node.prototype.isPublished = function() {
-  return this.entity.status[0].value;
-};
-jDrupal.Node.prototype.isSticky = function() {
-  return this.entity.sticky[0].value;
-};
-jDrupal.Node.prototype.setTitle = function(title) {
-  try {
-    this.entity.title[0].value = title;
-  }
-  catch (e) { console.log('jDrupal.Node.setTitle - ' + e); }
-};
-
-/**
- * OVERRIDES
- */
-
-jDrupal.Node.prototype.preSave = function(options) {
-  try {
-
-    // Remove protected fields.
-    var protected_fields = [
-      'changed',
-      'revision_timestamp',
-      'revision_uid'
-    ];
-    for (var i = 0; i < protected_fields.length; i++) {
-      delete this.entity[protected_fields[i]];
-    }
-
-    // Continue along...
-    options.success();
-  }
-  catch (error) {
-    console.log('jDrupal.Node.preSave - ' + error);
-  }
-
-};
-
-/**
- *
- * @param nid
- * @param options
- * @returns {jDrupal.Node}
- */
-
-/**
- * PROXIES
- */
-
-/**
- *
- * @param nid
- * @param options
- * @returns {jDrupal.Node}
- */
-jDrupal.nodeLoad = function(nid, options) {
-  var node = new jDrupal.Node(nid);
-  node.load(options);
-  return node;
-};
-
-/**
- * USERS
- */
-
-/**
- * User
- * @param {Number|Object} uid_or_account
- * @constructor
- * @see https://api.drupal.org/api/drupal/core!modules!user!src!Entity!User.php/class/User/8
- */
-jDrupal.User = function(uid_or_account) {
-
-  // Set the entity keys.
-  this.entityKeys['type'] = 'user';
-  this.entityKeys['bundle'] = 'user';
-  this.entityKeys['id'] = 'uid';
-
-  // Prep the entity.
-  jDrupalEntityConstructorPrep(this, uid_or_account);
-
-  // Set default values.
-
-};
-jDrupal.User.prototype = new jDrupal.Entity;
-jDrupal.User.prototype.constructor = jDrupal.User;
-jDrupal.User.prototype.getAccountName = function() {
-  return this.entity.name[0].value;
-};
-jDrupal.User.prototype.isAnonymous = function() {
-  return this.id() == 0;
-};
-jDrupal.User.prototype.isAuthenticated = function() {
-  return !this.isAnonymous();
-};
-
-/**
- * PROXIES
- */
-
-//jDrupal.userPrepare = function(uid) {
-//  return new jDrupal.User({
-//
-//  });
-//};
-
-/**
- *
- * @param uid
- * @param options
- * @returns {jDrupal.User}
- */
-jDrupal.userLoad = function(uid, options) {
-  var account = new jDrupal.User(uid);
-  account.load(options);
-  return account;
-};
-
-/**
  * HELPERS
  */
 
@@ -1071,25 +851,7 @@ function jDrupalEntityConstructorPrep(obj, entityID_or_entity) {
 
 
 
-/**
- * Delete an entity.
- * @param {String} entity_type
- * @param {Number} ids
- * @param {Object} options
- */
-function entity_delete(entity_type, ids, options) {
-  try {
-    var function_name = entity_type + '_delete';
-    if (function_exists(function_name)) {
-      var fn = window[function_name];
-      fn(ids, options);
-    }
-    else {
-      console.log('WARNING: entity_delete - unsupported type: ' + entity_type);
-    }
-  }
-  catch (error) { console.log('entity_delete - ' + error); }
-}
+
 
 /**
  * Parses an entity id and returns it as an integer (not a string).
@@ -1217,7 +979,7 @@ function entity_load(entity_type, ids, options) {
             // Set the expiration time as a property on the entity that can be
             // used later.
             if (jDrupal.settings.cache.entity.expiration !== 'undefined') {
-              var expiration = time() + jDrupal.settings.cache.entity.expiration;
+              var expiration = jDrupal.time() + jDrupal.settings.cache.entity.expiration;
               if (jDrupal.settings.cache.entity.expiration == 0) {
                 expiration = 0;
               }
@@ -1292,7 +1054,7 @@ function _entity_local_storage_load(entity_type, entity_id, options) {
       // retrieval from jDrupal. Otherwise return the local storage entity copy.
       if (typeof entity.expiration !== 'undefined' &&
           entity.expiration != 0 &&
-          time() > entity.expiration) {
+          jDrupal.time() > entity.expiration) {
         _entity_local_storage_delete(entity_type, entity_id);
         entity = false;
       }
@@ -1372,55 +1134,6 @@ function entity_primary_key(entity_type) {
 }
 
 /**
- * Saves an entity.
- * @param {String} entity_type
- * @param {String} bundle
- * @param {Object} entity
- * @param {Object} options
- */
-function entity_save(entity_type, bundle, entity, options) {
-  try {
-    var function_name;
-    switch (entity_type) {
-      case 'comment':
-        if (!entity.cid) { function_name = 'comment_create'; }
-        else { function_name = 'comment_update'; }
-        break;
-      case 'file':
-        function_name = 'file_create';
-        break;
-      case 'node':
-        if (!entity.langcode) {
-          entity.langcode = [{ value: language_default() }];
-        }
-        if (!entity.id()) { function_name = 'node_create'; }
-        else { function_name = 'node_update'; }
-        break;
-      case 'user':
-        if (!entity.id()) { function_name = 'user_create'; }
-        else { function_name = 'user_update'; }
-        break;
-      case 'taxonomy_term':
-        if (!entity.tid) { function_name = 'taxonomy_term_create'; }
-        else { function_name = 'taxonomy_term_update'; }
-        break;
-      case 'taxonomy_vocabulary':
-        if (!entity.vid) { function_name = 'taxonomy_vocabulary_create'; }
-        else { function_name = 'taxonomy_vocabulary_update'; }
-        break;
-    }
-    if (function_name && function_exists(function_name)) {
-      var fn = window[function_name];
-      fn(entity, options);
-    }
-    else {
-      console.log('WARNING: entity_save - unsupported type: ' + entity_type);
-    }
-  }
-  catch (error) { console.log('entity_save - ' + error); }
-}
-
-/**
  * Returns an array of entity type names.
  * @return {Array}
  */
@@ -1452,123 +1165,186 @@ function entity_id_from_location(location) {
 }
 
 
-/**
- * Loads a file, given a file id.
- * @param {Number} fid
- * @param {Object} options
- */
-function file_load(fid, options) {
-  try {
-    entity_load('file', fid, options);
-  }
-  catch (error) { console.log('file_load - ' + error); }
-}
 
 /**
- * Saves a file.
- * @param {Object} file
- * @param {Object} options
+ * Node
+ * @param {Number|Object} nid_or_node
+ * @constructor
+ * @see https://api.drupal.org/api/drupal/core!modules!node!src!Entity!Node.php/class/Node/8
  */
-function file_save(file, options) {
-  try {
-    entity_save('file', null, file, options);
+jDrupal.Node = function(nid_or_node) {
+
+  // Set the entity keys.
+  this.entityKeys['type'] = 'node';
+  this.entityKeys['bundle'] = 'type';
+  this.entityKeys['id'] = 'nid';
+
+  // Prep the entity.
+  jDrupalEntityConstructorPrep(this, nid_or_node);
+
+  // Set default values.
+  if (!this.entity.title) {
+    this.entity.title = [ { value: '' }];
   }
-  catch (error) { console.log('file_save - ' + error); }
-}
+
+};
+
+// Extend the entity prototype.
+jDrupal.Node.prototype = new jDrupal.Entity;
+jDrupal.Node.prototype.constructor = jDrupal.Node;
+
+/**
+ *
+ * @returns {*}
+ */
+jDrupal.Node.prototype.getTitle = function() {
+  return this.entity.title[0].value;
+};
+
+/**
+ *
+ * @returns {*}
+ */
+jDrupal.Node.prototype.getType = function() {
+  return this.getBundle();
+};
+
+/**
+ *
+ * @returns {*}
+ */
+jDrupal.Node.prototype.isPromoted = function() {
+  return this.entity.promote[0].value;
+};
+
+/**
+ *
+ * @returns {*}
+ */
+jDrupal.Node.prototype.isPublished = function() {
+  return this.entity.status[0].value;
+};
+
+/**
+ *
+ * @returns {*}
+ */
+jDrupal.Node.prototype.isSticky = function() {
+  return this.entity.sticky[0].value;
+};
+
+/**
+ *
+ * @returns {*}
+ */
+jDrupal.Node.prototype.setTitle = function(title) {
+  try {
+    this.entity.title[0].value = title;
+  }
+  catch (e) { console.log('jDrupal.Node.setTitle - ' + e); }
+};
+
+/**
+ * OVERRIDES
+ */
+
+jDrupal.Node.prototype.preSave = function(options) {
+  try {
+
+    // Remove protected fields.
+    var protected_fields = [
+      'changed',
+      'revision_timestamp',
+      'revision_uid'
+    ];
+    for (var i = 0; i < protected_fields.length; i++) {
+      delete this.entity[protected_fields[i]];
+    }
+
+    // Continue along...
+    options.success();
+  }
+  catch (error) {
+    console.log('jDrupal.Node.preSave - ' + error);
+  }
+
+};
+
+/**
+ * PROXIES
+ */
+
+/**
+ *
+ * @param nid
+ * @param options
+ * @returns {jDrupal.Node}
+ */
+jDrupal.nodeLoad = function(nid, options) {
+  var node = new jDrupal.Node(nid);
+  node.load(options);
+  return node;
+};
 
 
 
-//jDrupal.node = {
-//  Entity: {}
-//};
-//jDrupal.node.Entity.Node = function(node) {
-//  try {
-//    this.entity = node;
-//    this.id = function() {
-//      return this.entity.nid ? this.entity.nid[0].value : null;
-//    };
+/**
+ * User
+ * @param {Number|Object} uid_or_account
+ * @constructor
+ * @see https://api.drupal.org/api/drupal/core!modules!user!src!Entity!User.php/class/User/8
+ */
+jDrupal.User = function(uid_or_account) {
+
+  // Set the entity keys.
+  this.entityKeys['type'] = 'user';
+  this.entityKeys['bundle'] = 'user';
+  this.entityKeys['id'] = 'uid';
+
+  // Prep the entity.
+  jDrupalEntityConstructorPrep(this, uid_or_account);
+
+  // Set default values.
+
+};
+
+// Extend the entity prototype.
+jDrupal.User.prototype = new jDrupal.Entity;
+jDrupal.User.prototype.constructor = jDrupal.User;
+
+/**
+ *
+ * @returns {*}
+ */
+jDrupal.User.prototype.getAccountName = function() {
+  return this.entity.name[0].value;
+};
+
+/**
+ *
+ * @returns {boolean}
+ */
+jDrupal.User.prototype.isAnonymous = function() {
+  return this.id() == 0;
+};
+
+/**
+ *
+ * @returns {boolean}
+ */
+jDrupal.User.prototype.isAuthenticated = function() {
+  return !this.isAnonymous();
+};
+
+/**
+ * PROXIES
+ */
+
+//jDrupal.userPrepare = function(uid) {
+//  return new jDrupal.User({
 //
-//    this.setTitle = function(title) {
-//      this.entity.title[0].value = title;
-//    };
-//  }
-//  catch (error) { console.log('jDrupal.Entity.Node - ' + error); }
+//  });
 //};
-
-/**
- * Loads a node.
- * @param {Number} nid
- * @param {Object} options
- */
-function node_load(nid, options) {
-  try {
-    entity_load('node', nid, options);
-  }
-  catch (error) { console.log('node_load - ' + error); }
-}
-
-/**
- * Saves a node.
- * @param {Object} node
- * @param {Object} options
- */
-function node_save(node, options) {
-  try {
-    entity_save('node', node.getType(), node, options);
-  }
-  catch (error) { console.log('node_save - ' + error); }
-}
-
-
-/**
- * Loads a taxonomy term.
- * @param {Number} tid
- * @param {Object} options
- */
-function taxonomy_term_load(tid, options) {
-  try {
-    entity_load('taxonomy_term', tid, options);
-  }
-  catch (error) { console.log('taxonomy_term_load - ' + error); }
-}
-
-/**
- * Saves a taxonomy term.
- * @param {Object} taxonomy_term
- * @param {Object} options
- */
-function taxonomy_term_save(taxonomy_term, options) {
-  try {
-    entity_save('taxonomy_term', null, taxonomy_term, options);
-  }
-  catch (error) { console.log('taxonomy_term_save - ' + error); }
-}
-
-
-/**
- * Loads a taxonomy vocabulary.
- * @param {Number} vid
- * @param {Object} options
- */
-function taxonomy_vocabulary_load(vid, options) {
-  try {
-    entity_load('taxonomy_vocabulary', vid, options);
-  }
-  catch (error) { console.log('taxonomy_vocabulary_load - ' + error); }
-}
-
-/**
- * Saves a taxonomy vocabulary.
- * @param {Object} taxonomy_vocabulary
- * @param {Object} options
- */
-function taxonomy_vocabulary_save(taxonomy_vocabulary, options) {
-  try {
-    entity_save('taxonomy_vocabulary', null, taxonomy_vocabulary, options);
-  }
-  catch (error) { console.log('taxonomy_vocabulary_save - ' + error); }
-}
-
 
 /**
  * Gets the current user account object.
@@ -1577,6 +1353,22 @@ function taxonomy_vocabulary_save(taxonomy_vocabulary, options) {
 jDrupal.currentUser = function() {
   return jDrupal._currentUser;
 };
+
+/**
+ *
+ * @param uid
+ * @param options
+ * @returns {jDrupal.User}
+ */
+jDrupal.userLoad = function(uid, options) {
+  var account = new jDrupal.User(uid);
+  account.load(options);
+  return account;
+};
+
+/**
+ * HELPERS
+ */
 
 /**
  *
@@ -1595,39 +1387,6 @@ function jDrupalUserDefaults() {
  */
 function jDrupalSetCurrentUser(account) {
   jDrupal._currentUser = account;
-}
-
-
-
-
-
-
-
-
-
-/**
- * Loads a user account.
- * @param {Number} uid
- * @param {Object} options
- */
-function user_load(uid, options) {
-  try {
-    console.log('DEPRECATED - user_load() | use jDrupal.user.Entity.User.load() instead');
-    jDrupal.user.Entity.User.load(uid, options);
-  }
-  catch (error) { console.log('user_load - ' + error); }
-}
-
-/**
- * Saves a user account.
- * @param {Object} account
- * @param {Object} options
- */
-function user_save(account, options) {
-  try {
-    entity_save('user', null, account, options);
-  }
-  catch (error) { console.log('user_save - ' + error); }
 }
 
 /**
@@ -2066,58 +1825,6 @@ function _services_queue_callback_count(service, resource, entity_id,
 
 
 /**
- * Creates a comment.
- * @param {Object} comment
- * @param {Object} options
- */
-function comment_create(comment, options) {
-  try {
-    services_resource_defaults(options, 'comment', 'create');
-    entity_create('comment', null, comment, options);
-  }
-  catch (error) { console.log('comment_create - ' + error); }
-}
-
-/**
- * Retrieves a comment.
- * @param {Number} ids
- * @param {Object} options
- */
-function comment_retrieve(ids, options) {
-  try {
-    services_resource_defaults(options, 'comment', 'retrieve');
-    entity_retrieve('comment', ids, options);
-  }
-  catch (error) { console.log('comment_retrieve - ' + error); }
-}
-
-/**
- * Update a comment.
- * @param {Object} comment
- * @param {Object} options
- */
-function comment_update(comment, options) {
-  try {
-    services_resource_defaults(options, 'comment', 'update');
-    entity_update('comment', null, comment, options);
-  }
-  catch (error) { console.log('comment_update - ' + error); }
-}
-
-/**
- * Delete a comment.
- * @param {Number} cid
- * @param {Object} options
- */
-function comment_delete(cid, options) {
-  try {
-    services_resource_defaults(options, 'comment', 'delete');
-    entity_delete('comment', cid, options);
-  }
-  catch (error) { console.log('comment_delete - ' + error); }
-}
-
-/**
  * Perform a comment index.
  * @param {Object} query
  * @param {Object} options
@@ -2236,84 +1943,6 @@ function _entity_wrap(entity_type, entity) {
 }
 
 
-/**
- * Creates a file.
- * @param {Object} file
- * @param {Object} options
- */
-function file_create(file, options) {
-  try {
-    services_resource_defaults(options, 'file', 'create');
-    entity_create('file', null, file, options);
-  }
-  catch (error) { console.log('file_create - ' + error); }
-}
-
-/**
- * Retrieves a file.
- * @param {Number} ids
- * @param {Object} options
- */
-function file_retrieve(ids, options) {
-  try {
-    services_resource_defaults(options, 'file', 'retrieve');
-    entity_retrieve('file', ids, options);
-  }
-  catch (error) { console.log('file_retrieve - ' + error); }
-}
-
-
-/**
- * Creates a node.
- * @param {Object} node
- * @param {Object} options
- */
-function node_create(node, options) {
-  try {
-    services_resource_defaults(options, 'node', 'create');
-    entity_create('node', node.getType(), node, options);
-  }
-  catch (error) { console.log('node_create - ' + error); }
-}
-
-/**
- * Retrieves a node.
- * @param {Number} ids
- * @param {Object} options
- */
-function node_retrieve(ids, options) {
-  try {
-    services_resource_defaults(options, 'node', 'retrieve');
-    entity_retrieve('node', ids, options);
-  }
-  catch (error) { console.log('node_retrieve - ' + error); }
-}
-
-/**
- * Update a node.
- * @param {Object} node
- * @param {Object} options
- */
-function node_update(node, options) {
-  try {
-    services_resource_defaults(options, 'node', 'update');
-    entity_update('node', node.getType(), node, options);
-  }
-  catch (error) { console.log('node_update - ' + error); }
-}
-
-/**
- * Delete a node.
- * @param {Number} nid
- * @param {Object} options
- */
-function node_delete(nid, options) {
-  try {
-    services_resource_defaults(options, 'node', 'delete');
-    entity_delete('node', nid, options);
-  }
-  catch (error) { console.log('node_delete - ' + error); }
-}
 
 /**
  * Perform a node index.
@@ -2327,7 +1956,6 @@ function node_index(query, options) {
   }
   catch (error) { console.log('node_index - ' + error); }
 }
-
 
 /**
  * System connect call.
@@ -2390,58 +2018,6 @@ jDrupal.connect = function(options) {
   }
 };
 /**
- * Creates a taxonomy term.
- * @param {Object} taxonomy_term
- * @param {Object} options
- */
-function taxonomy_term_create(taxonomy_term, options) {
-  try {
-    services_resource_defaults(options, 'taxonomy_term', 'create');
-    entity_create('taxonomy_term', null, taxonomy_term, options);
-  }
-  catch (error) { console.log('taxonomy_term_create - ' + error); }
-}
-
-/**
- * Retrieves a taxonomy term.
- * @param {Number} ids
- * @param {Object} options
- */
-function taxonomy_term_retrieve(ids, options) {
-  try {
-    services_resource_defaults(options, 'taxonomy_term', 'retrieve');
-    entity_retrieve('taxonomy_term', ids, options);
-  }
-  catch (error) { console.log('taxonomy_term_retrieve - ' + error); }
-}
-
-/**
- * Update a taxonomy term.
- * @param {Object} taxonomy_term
- * @param {Object} options
- */
-function taxonomy_term_update(taxonomy_term, options) {
-  try {
-    services_resource_defaults(options, 'taxonomy_term', 'update');
-    entity_update('taxonomy_term', null, taxonomy_term, options);
-  }
-  catch (error) { console.log('taxonomy_term_update - ' + error); }
-}
-
-/**
- * Delete a taxonomy term.
- * @param {Number} tid
- * @param {Object} options
- */
-function taxonomy_term_delete(tid, options) {
-  try {
-    services_resource_defaults(options, 'taxonomy_term', 'delete');
-    entity_delete('taxonomy_term', tid, options);
-  }
-  catch (error) { console.log('taxonomy_term_delete - ' + error); }
-}
-
-/**
  * Perform a taxonomy_term index.
  * @param {Object} query
  * @param {Object} options
@@ -2452,76 +2028,6 @@ function taxonomy_term_index(query, options) {
     entity_index('taxonomy_term', query, options);
   }
   catch (error) { console.log('taxonomy_term_index - ' + error); }
-}
-
-
-/**
- * Creates a taxonomy vocabulary.
- * @param {Object} taxonomy_vocabulary
- * @param {Object} options
- */
-function taxonomy_vocabulary_create(taxonomy_vocabulary, options) {
-  try {
-    // Set a default machine name if one wasn't provided.
-    if (!taxonomy_vocabulary.machine_name && taxonomy_vocabulary.name) {
-      taxonomy_vocabulary.machine_name =
-        taxonomy_vocabulary.name.toLowerCase().replace(' ', '_');
-    }
-    services_resource_defaults(options, 'taxonomy_vocabulary', 'create');
-    entity_create('taxonomy_vocabulary', null, taxonomy_vocabulary, options);
-  }
-  catch (error) { console.log('taxonomy_vocabulary_create - ' + error); }
-}
-
-/**
- * Retrieves a comment.
- * @param {Number} ids
- * @param {Object} options
- */
-function taxonomy_vocabulary_retrieve(ids, options) {
-  try {
-    services_resource_defaults(options, 'taxonomy_vocabulary', 'retrieve');
-    entity_retrieve('taxonomy_vocabulary', ids, options);
-  }
-  catch (error) { console.log('taxonomy_vocabulary_retrieve - ' + error); }
-}
-
-/**
- * Update a taxonomy vocabulary.
- * @param {Object} taxonomy_vocabulary
- * @param {Object} options
- */
-function taxonomy_vocabulary_update(taxonomy_vocabulary, options) {
-  try {
-    // We need to make sure a machine_name was provided, otherwise it seems the
-    // Services module will update a vocabulary and clear out its machine_name
-    // if we don't provide it.
-    if (!taxonomy_vocabulary.machine_name ||
-      taxonomy_vocabulary.machine_name == '') {
-      var message = 'taxonomy_vocabulary_update - missing machine_name';
-      console.log(message);
-      if (options.error) {
-        options.error(null, 406, message);
-      }
-      return;
-    }
-    services_resource_defaults(options, 'taxonomy_vocabulary', 'update');
-    entity_update('taxonomy_vocabulary', null, taxonomy_vocabulary, options);
-  }
-  catch (error) { console.log('taxonomy_vocabulary_update - ' + error); }
-}
-
-/**
- * Delete a taxonomy vocabulary.
- * @param {Number} vid
- * @param {Object} options
- */
-function taxonomy_vocabulary_delete(vid, options) {
-  try {
-    services_resource_defaults(options, 'taxonomy_vocabulary', 'delete');
-    entity_delete('taxonomy_vocabulary', vid, options);
-  }
-  catch (error) { console.log('taxonomy_vocabulary_delete - ' + error); }
 }
 
 /**
@@ -2535,104 +2041,6 @@ function taxonomy_vocabulary_index(query, options) {
     entity_index('taxonomy_vocabulary', query, options);
   }
   catch (error) { console.log('taxonomy_vocabulary_index - ' + error); }
-}
-
-
-/**
- * Creates a user.
- * @param {Object} account
- * @param {Object} options
- */
-function user_create(account, options) {
-  try {
-    services_resource_defaults(options, 'user', 'create');
-    entity_create('user', null, account, options);
-  }
-  catch (error) { console.log('user_create - ' + error); }
-}
-
-/**
- * Retrieves a user.
- * @param {Number} ids
- * @param {Object} options
- */
-function user_retrieve(ids, options) {
-  try {
-    services_resource_defaults(options, 'user', 'retrieve');
-    entity_retrieve('user', ids, options);
-  }
-  catch (error) { console.log('user_retrieve - ' + error); }
-}
-
-/**
- * Updates a user.
- * @param {Object} account
- * @param {Object} options
- */
-function user_update(account, options) {
-  try {
-    var mode = 'create';
-    if (account.uid) { mode = 'update'; }
-    services_resource_defaults(options, 'user', mode);
-    entity_update('user', null, account, options);
-  }
-  catch (error) { console.log('user_update - ' + error); }
-}
-
-/**
- * Delete a user.
- * @param {Number} uid
- * @param {Object} options
- */
-function user_delete(uid, options) {
-  try {
-    services_resource_defaults(options, 'user', 'create');
-    entity_delete('user', uid, options);
-  }
-  catch (error) { console.log('user_delete - ' + error); }
-}
-
-/**
- * Perform a user index.
- * @param {Object} query
- * @param {Object} options
- */
-function user_index(query, options) {
-  try {
-    services_resource_defaults(options, 'user', 'create');
-    entity_index('user', query, options);
-  }
-  catch (error) { console.log('user_index - ' + error); }
-}
-
-/**
- * Registers a user.
- * @param {Object} account
- * @param {Object} options
- */
-function user_register(account, options) {
-  try {
-    jDrupal.services.call({
-        service: 'user',
-        resource: 'register',
-        method: 'POST',
-        path: 'user/register',
-        data: JSON.stringify(account),
-        success: function(data) {
-          try {
-            if (options.success) { options.success(data); }
-          }
-          catch (error) { console.log('user_register - success - ' + error); }
-        },
-        error: function(xhr, status, message) {
-          try {
-            if (options.error) { options.error(xhr, status, message); }
-          }
-          catch (error) { console.log('user_register - error - ' + error); }
-        }
-    });
-  }
-  catch (error) { console.log('user_retrieve - ' + error); }
 }
 
 /**
@@ -2765,6 +2173,50 @@ jDrupal.userLogout = function(options) {
     console.log('jDrupal.userLogout - ' + error);
   }
 };
+
+/**
+ * Perform a user index.
+ * @param {Object} query
+ * @param {Object} options
+ */
+function user_index(query, options) {
+  try {
+    services_resource_defaults(options, 'user', 'create');
+    entity_index('user', query, options);
+  }
+  catch (error) { console.log('user_index - ' + error); }
+}
+
+/**
+ * Registers a user.
+ * @param {Object} account
+ * @param {Object} options
+ */
+function user_register(account, options) {
+  try {
+    jDrupal.services.call({
+      service: 'user',
+      resource: 'register',
+      method: 'POST',
+      path: 'user/register',
+      data: JSON.stringify(account),
+      success: function(data) {
+        try {
+          if (options.success) { options.success(data); }
+        }
+        catch (error) { console.log('user_register - success - ' + error); }
+      },
+      error: function(xhr, status, message) {
+        try {
+          if (options.error) { options.error(xhr, status, message); }
+        }
+        catch (error) { console.log('user_register - error - ' + error); }
+      }
+    });
+  }
+  catch (error) { console.log('user_retrieve - ' + error); }
+}
+
 /**
  * Entity
  * @param {String} path
