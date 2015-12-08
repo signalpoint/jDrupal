@@ -13,7 +13,7 @@ jDrupal.services.call = function(options) {
     options.debug = false;
 
     // Make sure the settings have been provided for Services.
-    if (!services_ready()) {
+    if (!jDrupal.isReady()) {
       var error = 'Set the site_path property on the jDrupal.settings object!';
       options.error(null, null, error);
       return;
@@ -289,37 +289,6 @@ function services_get_csrf_token(options) {
 }
 
 /**
- * Checks if we're ready to make a Services call.
- * @return {Boolean}
- */
-function services_ready() {
-  try {
-    var result = true;
-    if (jDrupal.sitePath == '') {
-      result = false;
-      console.log('jDrupal.settings.sitePath is not set!');
-    }
-    return result;
-  }
-  catch (error) { console.log('services_ready - ' + error); }
-}
-
-/**
- * Given the options for a service call, the service name and the resource name,
- * this will attach the names and their values as properties on the options.
- * @param {Object} options
- * @param {String} service
- * @param {String} resource
- */
-function services_resource_defaults(options, service, resource) {
-  try {
-    if (!options.service) { options.service = service; }
-    if (!options.resource) { options.resource = resource; }
-  }
-  catch (error) { console.log('services_resource_defaults - ' + error); }
-}
-
-/**
  * Returns true if the entity_id is already queued for the service resource,
  * false otherwise.
  * @param {String} service
@@ -411,4 +380,3 @@ function _services_queue_callback_count(service, resource, entity_id,
   }
   catch (error) { console.log('_services_queue_callback_count - ' + error); }
 }
-

@@ -7,23 +7,6 @@
 jDrupal.userLogin = function(name, pass, options) {
   try {
 
-    // Validate input.
-    var valid = true;
-    if (!name || typeof name !== 'string') {
-      valid = false;
-      console.log('jDrupal.userLogin - invalid name');
-    }
-    if (!pass || typeof pass !== 'string') {
-      valid = false;
-      console.log('jDrupal.userLogin - invalid pass');
-    }
-    if (!valid) {
-      var msg = 'jDrupal.userLogin - bad input';
-      if (options.error) { options.error(null, 406, msg); }
-      return;
-    }
-
-    // Make the call...
     jDrupal.services.call({
       service: 'user',
       resource: 'login',
@@ -61,6 +44,7 @@ jDrupal.userLogin = function(name, pass, options) {
         catch (error) { console.log('jDrupal.userLogin - error - ' + error); }
       }
     });
+
   }
   catch (error) {
     console.log('jDrupal.userLogin - ' + error);
@@ -128,46 +112,3 @@ jDrupal.userLogout = function(options) {
     console.log('jDrupal.userLogout - ' + error);
   }
 };
-
-/**
- * Perform a user index.
- * @param {Object} query
- * @param {Object} options
- */
-function user_index(query, options) {
-  try {
-    services_resource_defaults(options, 'user', 'create');
-    entity_index('user', query, options);
-  }
-  catch (error) { console.log('user_index - ' + error); }
-}
-
-/**
- * Registers a user.
- * @param {Object} account
- * @param {Object} options
- */
-function user_register(account, options) {
-  try {
-    jDrupal.services.call({
-      service: 'user',
-      resource: 'register',
-      method: 'POST',
-      path: 'user/register',
-      data: JSON.stringify(account),
-      success: function(data) {
-        try {
-          if (options.success) { options.success(data); }
-        }
-        catch (error) { console.log('user_register - success - ' + error); }
-      },
-      error: function(xhr, status, message) {
-        try {
-          if (options.error) { options.error(xhr, status, message); }
-        }
-        catch (error) { console.log('user_register - error - ' + error); }
-      }
-    });
-  }
-  catch (error) { console.log('user_retrieve - ' + error); }
-}

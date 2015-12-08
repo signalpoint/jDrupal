@@ -8,6 +8,22 @@ jDrupal.basePath = function() {
 };
 
 /**
+ * Checks if we're ready to make a Services call.
+ * @return {Boolean}
+ */
+jDrupal.isReady = function() {
+  try {
+    var result = true;
+    if (jDrupal.isEmpty(jDrupal.sitePath())) {
+      result = false;
+      console.log('sitePath not set in jdrupal.settings.js');
+    }
+    return result;
+  }
+  catch (error) { console.log('jDrupal.isReady - ' + error); }
+};
+
+/**
  * Initializes the jDrupal JSON object.
  */
 function jDrupalInit() {
