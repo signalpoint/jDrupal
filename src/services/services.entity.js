@@ -63,39 +63,6 @@ function entity_create(entity_type, bundle, entity, options) {
 }
 
 /**
- * Retrieves an entity.
- * @param {String} entity_type
- * @param {Number} ids
- * @param {Object} options
- */
-function entity_retrieve(entity_type, ids, options) {
-  try {
-    jDrupal.services.call({
-        method: 'GET',
-        path: entity_type + '/' + ids,
-        service: options.service,
-        resource: options.resource,
-        entity_type: entity_type,
-        entity_id: ids,
-        _format: 'json',
-        success: function(data) {
-          try {
-            if (options.success) { options.success(data); }
-          }
-          catch (error) { console.log('entity_retrieve - success - ' + error); }
-        },
-        error: function(xhr, status, message) {
-          try {
-            if (options.error) { options.error(xhr, status, message); }
-          }
-          catch (error) { console.log('entity_retrieve - error - ' + error); }
-        }
-    });
-  }
-  catch (error) { console.log('entity_retrieve - ' + error); }
-}
-
-/**
  * Updates an entity.
  * @param {String} entity_type
  * @param {String} bundle

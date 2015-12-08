@@ -39,17 +39,36 @@ jDrupal.Entity.prototype.isNew = function() {
 };
 
 /**
+ * ENTITY LOADING...
+ */
+
+/**
  * Entity load.
  * @param options
  */
 jDrupal.Entity.prototype.load = function(options) {
-  var _entity = this;
-  entity_retrieve(this.getEntityType(), this.id(), {
-    success: function(entity) {
-      _entity.entity = entity;
-      if (options.success) { options.success(); }
-    }
-  });
+  try {
+    var _entity = this;
+    var entityType = this.getEntityType();
+    jDrupal.services.call({
+      method: 'GET',
+      path: entityType + '/' + this.id(),
+      service: entityType,
+      resource: 'retrieve',
+      _format: 'json',
+      success: function(data) {
+        _entity.entity = data;
+        if (options.success) { options.success(data); }
+      },
+      error: function(xhr, status, message) {
+        if (options.error) { options.error(xhr, status, message); }
+      }
+    });
+
+  }
+  catch (error) {
+    console.log('jDrupal.Entity.load - ' + error);
+  }
 };
 
 /**
