@@ -650,17 +650,36 @@ jDrupal.Entity.prototype.isNew = function() {
 };
 
 /**
+ * ENTITY LOADING...
+ */
+
+/**
  * Entity load.
  * @param options
  */
 jDrupal.Entity.prototype.load = function(options) {
-  var _entity = this;
-  entity_retrieve(this.getEntityType(), this.id(), {
-    success: function(entity) {
-      _entity.entity = entity;
-      if (options.success) { options.success(); }
-    }
-  });
+  try {
+    var _entity = this;
+    var entityType = this.getEntityType();
+    jDrupal.services.call({
+      method: 'GET',
+      path: entityType + '/' + this.id(),
+      service: entityType,
+      resource: 'retrieve',
+      _format: 'json',
+      success: function(data) {
+        _entity.entity = data;
+        if (options.success) { options.success(data); }
+      },
+      error: function(xhr, status, message) {
+        if (options.error) { options.error(xhr, status, message); }
+      }
+    });
+
+  }
+  catch (error) {
+    console.log('jDrupal.Entity.load - ' + error);
+  }
 };
 
 /**
@@ -722,8 +741,6 @@ jDrupal.Entity.prototype.save = function(options) {
           path: path,
           service: entityType,
           resource: resource,
-          entity_type: entityType,
-          bundle: _entity.getBundle(),
           data: JSON.stringify(_entity.entity),
           _format: 'json',
           success: function(data) {
@@ -731,16 +748,18 @@ jDrupal.Entity.prototype.save = function(options) {
             _entity.postSave(data, {
               success: function() {
 
+                //if (!isNew) {
+                //  _entity_local_storage_delete(entityType, entity.id());
+                //}
+
+                // Move along..
+                if (options.success) {
+                  if (isNew) { options.success(data); } // 201 - Created
+                  else { options.success(); } // 204 - No Content
+                }
+
               }
             });
-
-
-
-            // Move along..
-            if (options.success) {
-              if (isNew) { options.success(data); } // 201 - Created
-              else { options.success(); } // 204 - No Content
-            }
 
           },
           error: function(xhr, status, message) {
@@ -821,6 +840,8 @@ jDrupal.Entity.prototype.delete = function(options) {
           data: JSON.stringify(data),
           _format: 'json',
           success: function() {
+
+            //_entity_local_storage_delete(entity_type, entity_id);
 
             // Invoke the post-delete.
             _entity.postDelete({
@@ -2109,176 +2130,6 @@ function comment_index(query, options) {
   catch (error) { console.log('comment_index - ' + error); }
 }
 
-
-/**
- * Adds hal json "_links" to the entity.
- * @param {String} entity_type
- * @param {String} bundle
- * @param {Object} entity
- * @param {Object} options
- */
-function entity_hal_links(entity_type, bundle, entity, options) {
-  try {
-    // D8 currently supports only hal json for POST calls, so let's build the
-    // _links object if someone hasn't already.
-    if (typeof entity.entity['_links'] === 'undefined') {
-      entity.entity['_links'] = {
-        type: {
-          href: jDrupal.settings.site_path +
-            '/rest/type/' + entity_type + '/' + bundle
-        }
-      };
-    }
-  }
-  catch (error) { console.log('entity_hal_links - ' + error); }
-}
-
-/**
- * Creates an entity.
- * @param {String} entity_type
- * @param {String} bundle
- * @param {Object} entity
- * @param {Object} options
- */
-function entity_create(entity_type, bundle, entity, options) {
-  try {
-
-    // @TODO this function's name collides with D8.
-    // @see https://api.drupal.org/api/drupal/core!includes!entity.inc/function/entity_create/8
-
-    entity_hal_links(entity_type, bundle, entity, options);
-    jDrupal.services.call({
-        method: 'POST',
-        contentType: 'application/hal+json',
-        async: options.async,
-        path: 'entity/' + entity_type,
-        service: options.service,
-        resource: options.resource,
-        entity_type: entity_type,
-        bundle: bundle,
-        data: JSON.stringify(entity.entity),
-        success: function(data) {
-          try {
-            if (options.success) { options.success(data); }
-          }
-          catch (error) { console.log('entity_create - success - ' + error); }
-        },
-        error: function(xhr, status, message) {
-          try {
-            if (options.error) { options.error(xhr, status, message); }
-          }
-          catch (error) { console.log('entity_create - error - ' + error); }
-        }
-    });
-  }
-  catch (error) { console.log('entity_create - ' + error); }
-}
-
-/**
- * Retrieves an entity.
- * @param {String} entity_type
- * @param {Number} ids
- * @param {Object} options
- */
-function entity_retrieve(entity_type, ids, options) {
-  try {
-    jDrupal.services.call({
-        method: 'GET',
-        path: entity_type + '/' + ids,
-        service: options.service,
-        resource: options.resource,
-        entity_type: entity_type,
-        entity_id: ids,
-        _format: 'json',
-        success: function(data) {
-          try {
-            if (options.success) { options.success(data); }
-          }
-          catch (error) { console.log('entity_retrieve - success - ' + error); }
-        },
-        error: function(xhr, status, message) {
-          try {
-            if (options.error) { options.error(xhr, status, message); }
-          }
-          catch (error) { console.log('entity_retrieve - error - ' + error); }
-        }
-    });
-  }
-  catch (error) { console.log('entity_retrieve - ' + error); }
-}
-
-/**
- * Updates an entity.
- * @param {String} entity_type
- * @param {String} bundle
- * @param {Object} entity
- * @param {Object} options
- */
-function entity_update(entity_type, bundle, entity, options) {
-  try {
-    entity_hal_links(entity_type, bundle, entity, options);
-    jDrupal.services.call({
-        method: 'PATCH',
-        contentType: 'application/hal+json',
-        path: entity_type + '/' + entity.id(),
-        service: options.service,
-        resource: options.resource,
-        entity_type: entity_type,
-        entity_id: entity.id(),
-        bundle: bundle,
-        data: JSON.stringify(entity.entity),
-        success: function() {
-          try {
-            // Since we get a 204 response (No Content), there is nothing to
-            // send the success callback.
-            _entity_local_storage_delete(entity_type, entity.id());
-            if (options.success) { options.success(); }
-          }
-          catch (error) { console.log('entity_update - success - ' + error); }
-        },
-        error: function(xhr, status, message) {
-          try {
-            if (options.error) { options.error(xhr, status, message); }
-          }
-          catch (error) { console.log('entity_update - error - ' + error); }
-        }
-    });
-  }
-  catch (error) { console.log('entity_update - ' + error); }
-}
-
-/**
- * Deletes an entity.
- * @param {String} entity_type
- * @param {Number} entity_id
- * @param {Object} options
- */
-function entity_delete(entity_type, entity_id, options) {
-  try {
-    jDrupal.services.call({
-        method: 'DELETE',
-        path: entity_type + '/' + entity_id,
-        service: options.service,
-        resource: options.resource,
-        entity_type: entity_type,
-        entity_id: entity_id,
-        success: function(data) {
-          try {
-            _entity_local_storage_delete(entity_type, entity_id);
-            if (options.success) { options.success(); }
-          }
-          catch (error) { console.log('entity_delete - success - ' + error); }
-        },
-        error: function(xhr, status, message) {
-          try {
-            if (options.error) { options.error(xhr, status, message); }
-          }
-          catch (error) { console.log('entity_delete - error - ' + error); }
-        }
-    });
-  }
-  catch (error) { console.log('entity_delete - ' + error); }
-}
 
 /**
  * Performs an entity index.
