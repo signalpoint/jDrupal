@@ -63,6 +63,10 @@ function jDrupalInit() {
 }
 
 /**
+ * @TODO This should be a jDrupal module.
+ */
+
+/**
  * Equivalent to PHP's date function. You may optionally pass in a second int
  * timestamp argument (number of milliseconds since epoch, not the number of
  * seconds since the epoch) to format that particular time, otherwise it'll
@@ -205,31 +209,17 @@ function date(format) {
 }
 
 /**
- * Returns a default JSON object representing an anonymous jDrupal user account.
- * @return {Object}
- */
-function drupal_user_defaults() {
-  try {
-    return {
-      uid: [{ value: '0' }],
-      roles: [{ target_id: 'anonymous' }]
-    };
-  }
-  catch (error) { console.log('drupal_user_defaults - ' + error); }
-}
-
-/**
  * Returns true if given value is empty. A generic way to test for emptiness.
  * @param {*} value
  * @return {Boolean}
  */
-function empty(value) {
+jDrupal.isEmpty = function(value) {
   try {
     if (typeof value === 'object') { return Object.keys(value).length === 0; }
     return (typeof value === 'undefined' || value === null || value == '');
   }
-  catch (error) { console.log('empty - ' + error); }
-}
+  catch (error) { console.log('jDrupal.isEmpty - ' + error); }
+};
 
 /**
  * Given a JS function name, this returns true if the function exists in the
@@ -237,14 +227,14 @@ function empty(value) {
  * @param {String} name
  * @return {Boolean}
  */
-function function_exists(name) {
+jDrupal.functionExists = function(name) {
   try {
     return (eval('typeof ' + name) == 'function');
   }
   catch (error) {
-    alert('function_exists - ' + error);
+    alert('jDrupal.functionExists - ' + error);
   }
-}
+};
 
 /**
  * Given an integer http status code, this will return the title of it.
@@ -280,7 +270,7 @@ function http_status_code_title(status) {
  * @param {Array} haystack
  * @return {Boolean}
  */
-function in_array(needle, haystack) {
+jDrupal.inArray = function (needle, haystack) {
   try {
     if (typeof haystack === 'undefined') { return false; }
     if (typeof needle === 'string') { return (haystack.indexOf(needle) > -1); }
@@ -295,7 +285,7 @@ function in_array(needle, haystack) {
       return found;
     }
   }
-  catch (error) { console.log('in_array - ' + error); }
+  catch (error) { console.log('jDrupal.inArray - ' + error); }
 }
 
 /**
@@ -303,26 +293,11 @@ function in_array(needle, haystack) {
  * @param {Number} n
  * @return {Boolean}
  */
-function is_int(n) {
-  // Credit: http://stackoverflow.com/a/3886106/763010
+jDrupal.isInt = function(n) {
+  // @credit: http://stackoverflow.com/a/3886106/763010
   if (typeof n === 'string') { n = parseInt(n); }
   return typeof n === 'number' && n % 1 == 0;
-}
-
-/**
- * Get the default language from jDrupal.settings.
- * @return {String}
- */
-function language_default() {
-  try {
-    if (jDrupal.settings.language_default &&
-      jDrupal.settings.language_default != '') {
-      return jDrupal.settings.language_default;
-    }
-    return 'en';
-  }
-  catch (error) { console.log('language_default - ' + error); }
-}
+};
 
 /**
  * Given a module name, this returns true if the module is enabled, false

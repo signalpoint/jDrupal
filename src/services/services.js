@@ -41,7 +41,7 @@ jDrupal.services.call = function(options) {
           var title = request.status + ' - ' +
             http_status_code_title(request.status);
           // 200 OK, 201 Created, 204 No Content
-          if (in_array(request.status, [200, 201, 204])) {
+          if (jDrupal.inArray(request.status, [200, 201, 204])) {
             if (jDrupal.settings.debug) { console.log(title); }
             // Extract the JSON result, or throw an error if the response wasn't
             // JSON.
@@ -160,7 +160,7 @@ jDrupal.services.call = function(options) {
               if (jDrupal.settings.debug) {
                 var show = true;
                 if (options.service == 'user' &&
-                  in_array(options.resource, ['login', 'create', 'update'])) {
+                  jDrupal.inArray(options.resource, ['login', 'create', 'update'])) {
                   show = false;
                 }
                 if (show) {

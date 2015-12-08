@@ -14,7 +14,7 @@ function module_implements(hook) {
         var bundle = bundles[i];
         for (var module in jDrupal.modules[bundle]) {
           if (jDrupal.modules[bundle].hasOwnProperty(module)) {
-            if (function_exists(module + '_' + hook)) {
+            if (jDrupal.functionExists(module + '_' + hook)) {
               modules_that_implement.push(module);
             }
           }
@@ -39,7 +39,7 @@ function module_invoke(module, hook) {
     if (drupalgap_module_load(module)) {
       var module_arguments = Array.prototype.slice.call(arguments);
       var function_name = module + '_' + hook;
-      if (function_exists(function_name)) {
+      if (jDrupal.functionExists(function_name)) {
         // Get the hook function.
         var fn = window[function_name];
         // Remove the module name and hook from the arguments.
@@ -85,7 +85,7 @@ function module_invoke_all(hook) {
       for (var module in jDrupal.modules[bundle]) {
         if (jDrupal.modules[bundle].hasOwnProperty(module)) {
           var function_name = module + '_' + hook;
-          if (function_exists(function_name)) {
+          if (jDrupal.functionExists(function_name)) {
             // If there are no arguments, just call the hook directly,
             // otherwise call the hook and pass along all the arguments.
             var invocation_results = null;

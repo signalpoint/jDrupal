@@ -342,7 +342,7 @@ function entity_local_storage_key(entity_type, id) {
  */
 function entity_load(entity_type, ids, options) {
   try {
-    if (!is_int(ids)) {
+    if (!jDrupal.isInt(ids)) {
       // @TODO - if an array of ints is sent in, call entity_index() instead.
       var msg = 'entity_load(' + entity_type + ') - only single ids supported!';
       console.log(msg);
@@ -467,7 +467,7 @@ function entity_load(entity_type, ids, options) {
 
     // Finally, determine the entity's retrieve function and call it.
     var function_name = entity_type + '_retrieve';
-    if (function_exists(function_name)) {
+    if (jDrupal.functionExists(function_name)) {
       call_options[primary_key] = entity_id;
       var fn = window[function_name];
       fn(ids, call_options);
@@ -569,7 +569,7 @@ function entity_primary_key(entity_type) {
       default:
         // Is anyone declaring the primary key for this entity type?
         var function_name = entity_type + '_primary_key';
-        if (drupalgap_function_exists(function_name)) {
+        if (jDrupal.functionExists(function_name)) {
           var fn = window[function_name];
           key = fn(entity_type);
         }
