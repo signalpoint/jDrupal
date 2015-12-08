@@ -33,46 +33,7 @@ function jDrupalInit() {
     // General properties.
     jDrupal.csrf_token = false;
     jDrupal.sessid = null;
-
-    // Includes. Although we no longer dynamically load the includes, we want
-    // to place them each in their own JSON object, so we have an easy way to
-    // access them.
-    jDrupal.includes = {};
-    jDrupal.includes['module'] = {};
-
-    // Modules. Although we no longer dynamically load the core modules, we want
-    // to place them each in their own JSON object, so we have an easy way to
-    // access them.
-    jDrupal.modules = {
-      core: {},
-      contrib: {},
-      custom: {}
-    };
-
-    // Build a JSON object to house the entity service request queues. This is
-    // used to prevent async calls to the same resource from piling up and
-    // making duplicate requests.
-    // @TODO - this needs to be dynamic, what about custom entity types?
-    jDrupal.services_queue = {
-      comment: {
-        retrieve: {}
-      },
-      file: {
-        retrieve: {}
-      },
-      node: {
-        retrieve: {}
-      },
-      taxonomy_term: {
-        retrieve: {}
-      },
-      taxonomy_vocabulary: {
-        retrieve: {}
-      },
-      user: {
-        retrieve: {}
-      }
-    };
+    jDrupal.modules = {};
 
   }
   catch (error) { console.log('jDrupalInit - ' + error); }

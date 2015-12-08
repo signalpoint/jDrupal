@@ -1,8 +1,9 @@
+// @see https://api.drupal.org/api/drupal/core!modules!node!src!Entity!Node.php/class/Node/8
+
 /**
  * Node
  * @param {Number|Object} nid_or_node
  * @constructor
- * @see https://api.drupal.org/api/drupal/core!modules!node!src!Entity!Node.php/class/Node/8
  */
 jDrupal.Node = function(nid_or_node) {
 

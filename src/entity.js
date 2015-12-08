@@ -58,6 +58,9 @@ jDrupal.Entity.prototype.load = function(options) {
       _format: 'json',
       success: function(data) {
         _entity.entity = data;
+        var invocationParams = {};
+        invocationParams[_entity.id()] = _entity;
+        //jDrupal.moduleInvokeAll('entity_load', invocationParams, options);
         if (options.success) { options.success(data); }
       },
       error: function(xhr, status, message) {
