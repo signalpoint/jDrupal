@@ -25,39 +25,6 @@ function jDrupalSetCurrentUser(account) {
   jDrupal._currentUser = account;
 }
 
-
-
-
-
-
-
-
-
-/**
- * Loads a user account.
- * @param {Number} uid
- * @param {Object} options
- */
-function user_load(uid, options) {
-  try {
-    console.log('DEPRECATED - user_load() | use jDrupal.user.Entity.User.load() instead');
-    jDrupal.user.Entity.User.load(uid, options);
-  }
-  catch (error) { console.log('user_load - ' + error); }
-}
-
-/**
- * Saves a user account.
- * @param {Object} account
- * @param {Object} options
- */
-function user_save(account, options) {
-  try {
-    entity_save('user', null, account, options);
-  }
-  catch (error) { console.log('user_save - ' + error); }
-}
-
 /**
  * Generates a random user password.
  * @return {String}
