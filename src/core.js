@@ -205,37 +205,6 @@ function date(format) {
 }
 
 /**
- * Given a JSON object or string, this will print it to the console. It accepts
- * an optional boolean as second argument, if it is false the output sent to the
- * console will not use pretty printing in a Chrome/Ripple environment.
- * @param {Object} data
- */
-function dpm(data) {
-  try {
-    // Show the caller name.
-    //var caller = arguments.callee.caller.name + '()';
-    //console.log(caller);
-    if (data) {
-      if (typeof parent.window.ripple === 'function') {
-        if (typeof arguments[1] !== 'undefined' && arguments[1] == false) {
-          console.log(JSON.stringify(data));
-        }
-        else {
-          console.log(data);
-        }
-      }
-      else if (typeof data === 'object') { console.log(JSON.stringify(data)); }
-      else { console.log(data); }
-    }
-    else {
-      if (data == '') { console.log('<empty-string>'); }
-      else { console.log('<null>'); }
-    }
-  }
-  catch (error) { console.log('dpm - ' + error); }
-}
-
-/**
  * Returns a default JSON object representing an anonymous jDrupal user account.
  * @return {Object}
  */
@@ -361,7 +330,7 @@ function language_default() {
  * @param {String} name The name of the module
  * @return {Boolean}
  */
-function module_exists(name) {
+jDrupal.moduleExists = function (name) {
   try {
     var exists = false;
     if (typeof jDrupal.modules.core[name] !== 'undefined') {
@@ -375,8 +344,8 @@ function module_exists(name) {
     }
     return exists;
   }
-  catch (error) { console.log('module_exists - ' + error); }
-}
+  catch (error) { console.log('jDrupal.moduleExists - ' + error); }
+};
 
 /**
  * Shuffle an array.
@@ -384,27 +353,24 @@ function module_exists(name) {
  * @param {Array} array
  * @return {Array}
  */
-function shuffle(array) {
-  try {
-    for (var i = array.length - 1; i > 0; i--) {
-      var j = Math.floor(Math.random() * (i + 1));
-      var temp = array[i];
-      array[i] = array[j];
-      array[j] = temp;
-    }
-    return array;
+jDrupal.shuffle = function(array) {
+  for (var i = array.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1));
+    var temp = array[i];
+    array[i] = array[j];
+    array[j] = temp;
   }
-  catch (error) { console.log('shuffle - ' + error); }
-}
+  return array;
+};
 
 /**
  * Javascript equivalent of php's time() function.
- * @return {Number}
+ * @returns {number}
  */
-function time() {
+jDrupal.time = function() {
   var d = new Date();
   return Math.floor(d / 1000);
-}
+};
 
 /**
  * Given a string, this will change the first character to upper case and return
@@ -412,15 +378,9 @@ function time() {
  * @param {String} str
  * @return {String}
  */
-function ucfirst(str) {
-  // http://kevin.vanzonneveld.net
-  // +   original by: Kevin van Zonneveld (http://kevin.vanzonneveld.net)
-  // +   bugfixed by: Onno Marsman
-  // +   improved by: Brett Zamir (http://brett-zamir.me)
-  // *     example 1: ucfirst('kevin van zonneveld');
-  // *     returns 1: 'Kevin van zonneveld'
+jDrupal.ucfirst = function(str) {
+  // @credit http://kevin.vanzonneveld.net
   str += '';
   var f = str.charAt(0).toUpperCase();
   return f + str.substr(1);
-}
-
+};

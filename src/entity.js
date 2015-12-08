@@ -432,7 +432,7 @@ function entity_load(entity_type, ids, options) {
             // Set the expiration time as a property on the entity that can be
             // used later.
             if (jDrupal.settings.cache.entity.expiration !== 'undefined') {
-              var expiration = time() + jDrupal.settings.cache.entity.expiration;
+              var expiration = jDrupal.time() + jDrupal.settings.cache.entity.expiration;
               if (jDrupal.settings.cache.entity.expiration == 0) {
                 expiration = 0;
               }
@@ -507,7 +507,7 @@ function _entity_local_storage_load(entity_type, entity_id, options) {
       // retrieval from jDrupal. Otherwise return the local storage entity copy.
       if (typeof entity.expiration !== 'undefined' &&
           entity.expiration != 0 &&
-          time() > entity.expiration) {
+          jDrupal.time() > entity.expiration) {
         _entity_local_storage_delete(entity_type, entity_id);
         entity = false;
       }
