@@ -63,173 +63,17 @@ function jDrupalInit() {
 }
 
 /**
- * Equivalent to PHP's date function. You may optionally pass in a second int
- * timestamp argument (number of milliseconds since epoch, not the number of
- * seconds since the epoch) to format that particular time, otherwise it'll
- * default to the current time.
- * @param {String} format The format of the outputted date string.
- * @return {String}
- * @see http://php.net/manual/en/function.date.php
- */
-function date(format) {
-  try {
-    // @TODO - create a github repo for this function.
-    // Let's figure out the timestamp and date.
-    var d = null;
-    var timestamp = null;
-    if (arguments[1]) {
-      timestamp = arguments[1];
-      if (typeof timestamp === 'string') { timestamp = parseInt(timestamp); }
-      d = new Date(timestamp);
-    }
-    else {
-      d = new Date();
-      timestamp = d.getTime();
-    }
-    var result = '';
-    for (var i = 0; i < format.length; i++) {
-      var character = format.charAt(i);
-      switch (character) {
-
-        /* DAY */
-
-        // Day of the month, 2 digits with leading zeros: 01 to 31
-        case 'd':
-          var day = '' + d.getDate();
-          if (day.length == 1) { day = '0' + day; }
-          result += day;
-          break;
-
-        // A textual representation of a day, three letters: Mon through Sun
-        case 'D':
-          var day = d.getDay();
-          switch (day) {
-            case 0: result += 'Sun'; break;
-            case 1: result += 'Mon'; break;
-            case 2: result += 'Tue'; break;
-            case 3: result += 'Wed'; break;
-            case 4: result += 'Thu'; break;
-            case 5: result += 'Fri'; break;
-            case 6: result += 'Sat'; break;
-          }
-          break;
-
-        // Day of the month without leading zeros: 1 to 31
-        case 'j': result += d.getDate(); break;
-
-        // A full textual representation of the day of the week: Sunday through
-        // Saturday
-        case 'l':
-          var day = d.getDay();
-          switch (day) {
-            case 0: result += 'Sunday'; break;
-            case 1: result += 'Monday'; break;
-            case 2: result += 'Tuesday'; break;
-            case 3: result += 'Wednesday'; break;
-            case 4: result += 'Thursday'; break;
-            case 5: result += 'Friday'; break;
-            case 6: result += 'Saturday'; break;
-          }
-          break;
-
-        /* WEEK */
-
-        /* MONTH */
-
-        // A full textual representation of a month, such as January or March:
-        // January through December
-        case 'F':
-          switch (d.getMonth()) {
-            case 0: result += 'January'; break;
-            case 1: result += 'February'; break;
-            case 2: result += 'March'; break;
-            case 3: result += 'April'; break;
-            case 4: result += 'May'; break;
-            case 5: result += 'June'; break;
-            case 6: result += 'July'; break;
-            case 7: result += 'August'; break;
-            case 8: result += 'September'; break;
-            case 9: result += 'October'; break;
-            case 10: result += 'November'; break;
-            case 11: result += 'December'; break;
-          }
-          break;
-
-        // Numeric representation of a month, with leading zeros: 01 through 12
-        case 'm':
-          var month = '' + (d.getMonth() + 1);
-          if (month.length == 1) { month = '0' + month; }
-          result += month;
-          break;
-
-        /* YEAR */
-
-        // A full numeric representation of a year, 4 digits.
-        // Examples: 1999 or 2003
-        case 'Y':
-          result += d.getFullYear();
-          break;
-
-        /* TIME */
-
-        // 24-hour format of an hour without leading zeros: 0 through 23
-        case 'G':
-          var hours = '' + d.getHours();
-          result += hours;
-          break;
-
-        // 24-hour format of an hour with leading zeros: 00 through 23
-        case 'H':
-          var hours = '' + d.getHours();
-          if (hours.length == 1) { hours = '0' + hours; }
-          result += hours;
-          break;
-
-        // Minutes with leading zeros: 00 to 59
-        case 'i':
-          var minutes = '' + d.getMinutes();
-          if (minutes.length == 1) { minutes = '0' + minutes; }
-          result += minutes;
-          break;
-
-        default:
-          // Any characters that we don't know how to process, just place them
-          // onto the result.
-          result += character;
-          break;
-      }
-    }
-    return result;
-  }
-  catch (error) { console.log('date - ' + error); }
-}
-
-/**
- * Returns a default JSON object representing an anonymous jDrupal user account.
- * @return {Object}
- */
-function drupal_user_defaults() {
-  try {
-    return {
-      uid: [{ value: '0' }],
-      roles: [{ target_id: 'anonymous' }]
-    };
-  }
-  catch (error) { console.log('drupal_user_defaults - ' + error); }
-}
-
-/**
  * Returns true if given value is empty. A generic way to test for emptiness.
  * @param {*} value
  * @return {Boolean}
  */
-function empty(value) {
+jDrupal.isEmpty = function(value) {
   try {
     if (typeof value === 'object') { return Object.keys(value).length === 0; }
     return (typeof value === 'undefined' || value === null || value == '');
   }
-  catch (error) { console.log('empty - ' + error); }
-}
+  catch (error) { console.log('jDrupal.isEmpty - ' + error); }
+};
 
 /**
  * Given a JS function name, this returns true if the function exists in the
@@ -237,14 +81,14 @@ function empty(value) {
  * @param {String} name
  * @return {Boolean}
  */
-function function_exists(name) {
+jDrupal.functionExists = function(name) {
   try {
     return (eval('typeof ' + name) == 'function');
   }
   catch (error) {
-    alert('function_exists - ' + error);
+    alert('jDrupal.functionExists - ' + error);
   }
-}
+};
 
 /**
  * Given an integer http status code, this will return the title of it.
@@ -280,7 +124,7 @@ function http_status_code_title(status) {
  * @param {Array} haystack
  * @return {Boolean}
  */
-function in_array(needle, haystack) {
+jDrupal.inArray = function (needle, haystack) {
   try {
     if (typeof haystack === 'undefined') { return false; }
     if (typeof needle === 'string') { return (haystack.indexOf(needle) > -1); }
@@ -295,7 +139,7 @@ function in_array(needle, haystack) {
       return found;
     }
   }
-  catch (error) { console.log('in_array - ' + error); }
+  catch (error) { console.log('jDrupal.inArray - ' + error); }
 }
 
 /**
@@ -303,26 +147,11 @@ function in_array(needle, haystack) {
  * @param {Number} n
  * @return {Boolean}
  */
-function is_int(n) {
-  // Credit: http://stackoverflow.com/a/3886106/763010
+jDrupal.isInt = function(n) {
+  // @credit: http://stackoverflow.com/a/3886106/763010
   if (typeof n === 'string') { n = parseInt(n); }
   return typeof n === 'number' && n % 1 == 0;
-}
-
-/**
- * Get the default language from jDrupal.settings.
- * @return {String}
- */
-function language_default() {
-  try {
-    if (jDrupal.settings.language_default &&
-      jDrupal.settings.language_default != '') {
-      return jDrupal.settings.language_default;
-    }
-    return 'en';
-  }
-  catch (error) { console.log('language_default - ' + error); }
-}
+};
 
 /**
  * Given a module name, this returns true if the module is enabled, false
@@ -401,7 +230,7 @@ function module_implements(hook) {
         var bundle = bundles[i];
         for (var module in jDrupal.modules[bundle]) {
           if (jDrupal.modules[bundle].hasOwnProperty(module)) {
-            if (function_exists(module + '_' + hook)) {
+            if (jDrupal.functionExists(module + '_' + hook)) {
               modules_that_implement.push(module);
             }
           }
@@ -426,7 +255,7 @@ function module_invoke(module, hook) {
     if (drupalgap_module_load(module)) {
       var module_arguments = Array.prototype.slice.call(arguments);
       var function_name = module + '_' + hook;
-      if (function_exists(function_name)) {
+      if (jDrupal.functionExists(function_name)) {
         // Get the hook function.
         var fn = window[function_name];
         // Remove the module name and hook from the arguments.
@@ -472,7 +301,7 @@ function module_invoke_all(hook) {
       for (var module in jDrupal.modules[bundle]) {
         if (jDrupal.modules[bundle].hasOwnProperty(module)) {
           var function_name = module + '_' + hook;
-          if (function_exists(function_name)) {
+          if (jDrupal.functionExists(function_name)) {
             // If there are no arguments, just call the hook directly,
             // otherwise call the hook and pass along all the arguments.
             var invocation_results = null;
@@ -889,7 +718,7 @@ function entity_local_storage_key(entity_type, id) {
  */
 function entity_load(entity_type, ids, options) {
   try {
-    if (!is_int(ids)) {
+    if (!jDrupal.isInt(ids)) {
       // @TODO - if an array of ints is sent in, call entity_index() instead.
       var msg = 'entity_load(' + entity_type + ') - only single ids supported!';
       console.log(msg);
@@ -1014,7 +843,7 @@ function entity_load(entity_type, ids, options) {
 
     // Finally, determine the entity's retrieve function and call it.
     var function_name = entity_type + '_retrieve';
-    if (function_exists(function_name)) {
+    if (jDrupal.functionExists(function_name)) {
       call_options[primary_key] = entity_id;
       var fn = window[function_name];
       fn(ids, call_options);
@@ -1116,7 +945,7 @@ function entity_primary_key(entity_type) {
       default:
         // Is anyone declaring the primary key for this entity type?
         var function_name = entity_type + '_primary_key';
-        if (drupalgap_function_exists(function_name)) {
+        if (jDrupal.functionExists(function_name)) {
           var fn = window[function_name];
           key = fn(entity_type);
         }
@@ -1452,7 +1281,7 @@ jDrupal.services.call = function(options) {
           var title = request.status + ' - ' +
             http_status_code_title(request.status);
           // 200 OK, 201 Created, 204 No Content
-          if (in_array(request.status, [200, 201, 204])) {
+          if (jDrupal.inArray(request.status, [200, 201, 204])) {
             if (jDrupal.settings.debug) { console.log(title); }
             // Extract the JSON result, or throw an error if the response wasn't
             // JSON.
@@ -1571,7 +1400,7 @@ jDrupal.services.call = function(options) {
               if (jDrupal.settings.debug) {
                 var show = true;
                 if (options.service == 'user' &&
-                  in_array(options.resource, ['login', 'create', 'update'])) {
+                  jDrupal.inArray(options.resource, ['login', 'create', 'update'])) {
                   show = false;
                 }
                 if (show) {

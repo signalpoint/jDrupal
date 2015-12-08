@@ -13,7 +13,7 @@
     
     <!-- include to test binary -->
     <!--<script src="bin/jdrupal.js"></script> -->
-    <script src="bin/jdrupal.min.js"></script>
+    <script src="bin/jdrupal.bin.js"></script>
 
       <script src="app/jdrupal.settings.js"></script>
     
@@ -135,7 +135,7 @@
                 alert('Only user #1 can run tests!');
                 return;
               }
-              if (empty($('#login_pass').val())) {
+              if (jDrupal.isEmpty($('#login_pass').val())) {
                 alert('Enter password to run tests!');
                 return;
               }
