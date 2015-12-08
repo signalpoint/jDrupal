@@ -1,4 +1,27 @@
 /**
+ * Given a module name, this returns true if the module is enabled, false
+ * otherwise.
+ * @param {String} name The name of the module
+ * @return {Boolean}
+ */
+jDrupal.moduleExists = function (name) {
+  try {
+    var exists = false;
+    if (typeof jDrupal.modules.core[name] !== 'undefined') {
+      exists = true;
+    }
+    else if (typeof jDrupal.modules.contrib[name] !== 'undefined') {
+      exists = true;
+    }
+    else if (typeof jDrupal.modules.custom[name] !== 'undefined') {
+      exists = true;
+    }
+    return exists;
+  }
+  catch (error) { console.log('jDrupal.moduleExists - ' + error); }
+};
+
+/**
  * Determines which modules are implementing a hook. Returns an array with the
  * names of the modules which are implementing this hook. If no modules
  * implement the hook, it returns false.
