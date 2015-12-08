@@ -8,6 +8,22 @@ jDrupal.basePath = function() {
 };
 
 /**
+ * Checks if we're ready to make a Services call.
+ * @return {Boolean}
+ */
+jDrupal.isReady = function() {
+  try {
+    var result = true;
+    if (jDrupal.isEmpty(jDrupal.sitePath())) {
+      result = false;
+      console.log('sitePath not set in jdrupal.settings.js');
+    }
+    return result;
+  }
+  catch (error) { console.log('jDrupal.isReady - ' + error); }
+};
+
+/**
  * Initializes the jDrupal JSON object.
  */
 function jDrupalInit() {
@@ -154,29 +170,6 @@ jDrupal.isInt = function(n) {
 };
 
 /**
- * Given a module name, this returns true if the module is enabled, false
- * otherwise.
- * @param {String} name The name of the module
- * @return {Boolean}
- */
-jDrupal.moduleExists = function (name) {
-  try {
-    var exists = false;
-    if (typeof jDrupal.modules.core[name] !== 'undefined') {
-      exists = true;
-    }
-    else if (typeof jDrupal.modules.contrib[name] !== 'undefined') {
-      exists = true;
-    }
-    else if (typeof jDrupal.modules.custom[name] !== 'undefined') {
-      exists = true;
-    }
-    return exists;
-  }
-  catch (error) { console.log('jDrupal.moduleExists - ' + error); }
-};
-
-/**
  * Shuffle an array.
  * @see http://stackoverflow.com/a/12646864/763010
  * @param {Array} array
@@ -212,6 +205,29 @@ jDrupal.ucfirst = function(str) {
   str += '';
   var f = str.charAt(0).toUpperCase();
   return f + str.substr(1);
+};
+
+/**
+ * Given a module name, this returns true if the module is enabled, false
+ * otherwise.
+ * @param {String} name The name of the module
+ * @return {Boolean}
+ */
+jDrupal.moduleExists = function (name) {
+  try {
+    var exists = false;
+    if (typeof jDrupal.modules.core[name] !== 'undefined') {
+      exists = true;
+    }
+    else if (typeof jDrupal.modules.contrib[name] !== 'undefined') {
+      exists = true;
+    }
+    else if (typeof jDrupal.modules.custom[name] !== 'undefined') {
+      exists = true;
+    }
+    return exists;
+  }
+  catch (error) { console.log('jDrupal.moduleExists - ' + error); }
 };
 
 /**
@@ -1253,7 +1269,7 @@ jDrupal.services.call = function(options) {
     options.debug = false;
 
     // Make sure the settings have been provided for Services.
-    if (!services_ready()) {
+    if (!jDrupal.isReady()) {
       var error = 'Set the site_path property on the jDrupal.settings object!';
       options.error(null, null, error);
       return;
@@ -1529,37 +1545,6 @@ function services_get_csrf_token(options) {
 }
 
 /**
- * Checks if we're ready to make a Services call.
- * @return {Boolean}
- */
-function services_ready() {
-  try {
-    var result = true;
-    if (jDrupal.sitePath == '') {
-      result = false;
-      console.log('jDrupal.settings.sitePath is not set!');
-    }
-    return result;
-  }
-  catch (error) { console.log('services_ready - ' + error); }
-}
-
-/**
- * Given the options for a service call, the service name and the resource name,
- * this will attach the names and their values as properties on the options.
- * @param {Object} options
- * @param {String} service
- * @param {String} resource
- */
-function services_resource_defaults(options, service, resource) {
-  try {
-    if (!options.service) { options.service = service; }
-    if (!options.resource) { options.resource = resource; }
-  }
-  catch (error) { console.log('services_resource_defaults - ' + error); }
-}
-
-/**
  * Returns true if the entity_id is already queued for the service resource,
  * false otherwise.
  * @param {String} service
@@ -1653,138 +1638,8 @@ function _services_queue_callback_count(service, resource, entity_id,
 }
 
 
-/**
- * Perform a comment index.
- * @param {Object} query
- * @param {Object} options
- */
-function comment_index(query, options) {
-  try {
-    services_resource_defaults(options, 'comment', 'index');
-    entity_index('comment', query, options);
-  }
-  catch (error) { console.log('comment_index - ' + error); }
-}
 
 
-/**
- * Performs an entity index.
- * @param {String} entity_type
- * @param {String} query
- * @param {Object} options
- */
-function entity_index(entity_type, query, options) {
-  try {
-    var query_string;
-    if (typeof query === 'object') {
-      query_string = entity_index_build_query_string(query);
-    }
-    else if (typeof query === 'string') {
-      query_string = query;
-    }
-    if (query_string) { query_string = '&' + query_string; }
-    else { query_string = ''; }
-    jDrupal.services.call({
-        method: 'GET',
-        path: entity_type + '.json' + query_string,
-        service: options.service,
-        resource: options.resource,
-        entity_type: entity_type,
-        success: function(result) {
-          try {
-            if (options.success) { options.success(result); }
-          }
-          catch (error) { console.log('entity_index - success - ' + error); }
-        },
-        error: function(xhr, status, message) {
-          try {
-            if (options.error) { options.error(xhr, status, message); }
-          }
-          catch (error) { console.log('entity_index - error - ' + error); }
-        }
-    });
-  }
-  catch (error) { console.log('entity_index - ' + error); }
-}
-/**
- * Builds a query string from a query object for an entity index resource.
- * @param {Object} query
- * @return {String}
- */
-function entity_index_build_query_string(query) {
-  try {
-    var result = '';
-    if (!query) { return result; }
-    if (query.fields) { // array
-      var fields = '';
-      for (var i = 0; i < query.fields.length; i++) {
-        fields += encodeURIComponent(query.fields[i]) + ',';
-      }
-      if (fields != '') {
-        fields = 'fields=' + fields.substring(0, fields.length - 1);
-        result += fields + '&';
-      }
-    }
-    if (query.parameters) { // object
-      var parameters = '';
-      for (var parameter in query.parameters) {
-          if (query.parameters.hasOwnProperty(parameter)) {
-            var key = encodeURIComponent(parameter);
-            var value = encodeURIComponent(query.parameters[parameter]);
-            parameters += 'parameters[' + key + ']=' + value + '&';
-          }
-      }
-      if (parameters != '') {
-        parameters = parameters.substring(0, parameters.length - 1);
-        result += parameters + '&';
-      }
-    }
-    if (typeof query.page !== 'undefined') { // int
-      result += 'page=' + encodeURIComponent(query.page) + '&';
-    }
-    if (typeof query.page_size !== 'undefined') { // int
-      result += 'page_size=' + encodeURIComponent(query.page_size) + '&';
-    }
-    return result.substring(0, result.length - 1);
-  }
-  catch (error) { console.log('entity_index_build_query_string - ' + error); }
-}
-
-/**
- * Wraps an entity in a JSON object, keyed by its type.
- * @param {String} entity_type
- * @param {Object} entity
- * @return {String}
- */
-function _entity_wrap(entity_type, entity) {
-  try {
-    // We don't wrap taxonomy, users or commerce entities.
-    var entity_wrapper = {};
-    if (entity_type == 'taxonomy_term' ||
-      entity_type == 'taxonomy_vocabulary' ||
-      entity_type == 'user' || entity_type.indexOf('commerce') != -1) {
-      entity_wrapper = entity;
-    }
-    else { entity_wrapper[entity_type] = entity; }
-    return entity_wrapper;
-  }
-  catch (error) { console.log('_entity_wrap - ' + error); }
-}
-
-
-
-/**
- * Perform a node index.
- * @param {Object} query
- * @param {Object} options
- */
-function node_index(query, options) {
-  try {
-    services_resource_defaults(options, 'node', 'index');
-    entity_index('node', query, options);
-  }
-  catch (error) { console.log('node_index - ' + error); }
-}
 
 /**
  * System connect call.
@@ -1846,31 +1701,7 @@ jDrupal.connect = function(options) {
     console.log('jDrupal.connect - ' + error);
   }
 };
-/**
- * Perform a taxonomy_term index.
- * @param {Object} query
- * @param {Object} options
- */
-function taxonomy_term_index(query, options) {
-  try {
-    services_resource_defaults(options, 'taxonomy_term', 'index');
-    entity_index('taxonomy_term', query, options);
-  }
-  catch (error) { console.log('taxonomy_term_index - ' + error); }
-}
 
-/**
- * Perform a taxonomy_vocabulary index.
- * @param {Object} query
- * @param {Object} options
- */
-function taxonomy_vocabulary_index(query, options) {
-  try {
-    services_resource_defaults(options, 'taxonomy_vocabulary', 'index');
-    entity_index('taxonomy_vocabulary', query, options);
-  }
-  catch (error) { console.log('taxonomy_vocabulary_index - ' + error); }
-}
 
 /**
  * Login user.
@@ -1881,23 +1712,6 @@ function taxonomy_vocabulary_index(query, options) {
 jDrupal.userLogin = function(name, pass, options) {
   try {
 
-    // Validate input.
-    var valid = true;
-    if (!name || typeof name !== 'string') {
-      valid = false;
-      console.log('jDrupal.userLogin - invalid name');
-    }
-    if (!pass || typeof pass !== 'string') {
-      valid = false;
-      console.log('jDrupal.userLogin - invalid pass');
-    }
-    if (!valid) {
-      var msg = 'jDrupal.userLogin - bad input';
-      if (options.error) { options.error(null, 406, msg); }
-      return;
-    }
-
-    // Make the call...
     jDrupal.services.call({
       service: 'user',
       resource: 'login',
@@ -1935,6 +1749,7 @@ jDrupal.userLogin = function(name, pass, options) {
         catch (error) { console.log('jDrupal.userLogin - error - ' + error); }
       }
     });
+
   }
   catch (error) {
     console.log('jDrupal.userLogin - ' + error);
@@ -2002,49 +1817,6 @@ jDrupal.userLogout = function(options) {
     console.log('jDrupal.userLogout - ' + error);
   }
 };
-
-/**
- * Perform a user index.
- * @param {Object} query
- * @param {Object} options
- */
-function user_index(query, options) {
-  try {
-    services_resource_defaults(options, 'user', 'create');
-    entity_index('user', query, options);
-  }
-  catch (error) { console.log('user_index - ' + error); }
-}
-
-/**
- * Registers a user.
- * @param {Object} account
- * @param {Object} options
- */
-function user_register(account, options) {
-  try {
-    jDrupal.services.call({
-      service: 'user',
-      resource: 'register',
-      method: 'POST',
-      path: 'user/register',
-      data: JSON.stringify(account),
-      success: function(data) {
-        try {
-          if (options.success) { options.success(data); }
-        }
-        catch (error) { console.log('user_register - success - ' + error); }
-      },
-      error: function(xhr, status, message) {
-        try {
-          if (options.error) { options.error(xhr, status, message); }
-        }
-        catch (error) { console.log('user_register - error - ' + error); }
-      }
-    });
-  }
-  catch (error) { console.log('user_retrieve - ' + error); }
-}
 
 /**
  * Entity
