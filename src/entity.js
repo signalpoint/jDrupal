@@ -304,25 +304,7 @@ function jDrupalEntityConstructorPrep(obj, entityID_or_entity) {
 
 
 
-/**
- * Delete an entity.
- * @param {String} entity_type
- * @param {Number} ids
- * @param {Object} options
- */
-function entity_delete(entity_type, ids, options) {
-  try {
-    var function_name = entity_type + '_delete';
-    if (function_exists(function_name)) {
-      var fn = window[function_name];
-      fn(ids, options);
-    }
-    else {
-      console.log('WARNING: entity_delete - unsupported type: ' + entity_type);
-    }
-  }
-  catch (error) { console.log('entity_delete - ' + error); }
-}
+
 
 /**
  * Parses an entity id and returns it as an integer (not a string).
@@ -602,55 +584,6 @@ function entity_primary_key(entity_type) {
     return key;
   }
   catch (error) { console.log('entity_primary_key - ' + error); }
-}
-
-/**
- * Saves an entity.
- * @param {String} entity_type
- * @param {String} bundle
- * @param {Object} entity
- * @param {Object} options
- */
-function entity_save(entity_type, bundle, entity, options) {
-  try {
-    var function_name;
-    switch (entity_type) {
-      case 'comment':
-        if (!entity.cid) { function_name = 'comment_create'; }
-        else { function_name = 'comment_update'; }
-        break;
-      case 'file':
-        function_name = 'file_create';
-        break;
-      case 'node':
-        if (!entity.langcode) {
-          entity.langcode = [{ value: language_default() }];
-        }
-        if (!entity.id()) { function_name = 'node_create'; }
-        else { function_name = 'node_update'; }
-        break;
-      case 'user':
-        if (!entity.id()) { function_name = 'user_create'; }
-        else { function_name = 'user_update'; }
-        break;
-      case 'taxonomy_term':
-        if (!entity.tid) { function_name = 'taxonomy_term_create'; }
-        else { function_name = 'taxonomy_term_update'; }
-        break;
-      case 'taxonomy_vocabulary':
-        if (!entity.vid) { function_name = 'taxonomy_vocabulary_create'; }
-        else { function_name = 'taxonomy_vocabulary_update'; }
-        break;
-    }
-    if (function_name && function_exists(function_name)) {
-      var fn = window[function_name];
-      fn(entity, options);
-    }
-    else {
-      console.log('WARNING: entity_save - unsupported type: ' + entity_type);
-    }
-  }
-  catch (error) { console.log('entity_save - ' + error); }
 }
 
 /**
