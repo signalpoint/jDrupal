@@ -57,16 +57,15 @@ var test_node_crud = function(callback) {
                                           ok(node_retrieve_result.getTitle() == updated_node.getTitle(), "title");
                                           ok(node.getTitle() != updated_node.getTitle(), "title changed (" + node.getTitle() + " != " + updated_node.getTitle() + ")");
 
-                                          //test_services_comment(callback);
-                                          return;
-
                                           // Delete
-                                          asyncTest("node_delete", function() {
-                                              node_delete(updated_node.id(), {
+                                          asyncTest("jDrupal.Node.delete", function() {
+                                            updated_node.delete({
                                                   success:function(){
                                                     start();
                                                     expect(1);
                                                     ok(arguments.length == 0, "204 - No Content");
+
+                                                    return;
                                                     
                                                     // Index
                                                     /*asyncTest("node_index", function() {
@@ -80,7 +79,7 @@ var test_node_crud = function(callback) {
                                                               ok(node_index_results[0].nid, "nid");*/
                                                               
                                                               if (callback) {
-                                                                test_services_comment(callback);
+                                                                //test_services_comment(callback);
                                                                 //callback();
                                                               }
                                                             //}
