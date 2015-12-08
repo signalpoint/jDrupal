@@ -130,8 +130,6 @@ jDrupal.Entity.prototype.save = function(options) {
           path: path,
           service: entityType,
           resource: resource,
-          entity_type: entityType,
-          bundle: _entity.getBundle(),
           data: JSON.stringify(_entity.entity),
           _format: 'json',
           success: function(data) {
@@ -139,16 +137,18 @@ jDrupal.Entity.prototype.save = function(options) {
             _entity.postSave(data, {
               success: function() {
 
+                //if (!isNew) {
+                //  _entity_local_storage_delete(entityType, entity.id());
+                //}
+
+                // Move along..
+                if (options.success) {
+                  if (isNew) { options.success(data); } // 201 - Created
+                  else { options.success(); } // 204 - No Content
+                }
+
               }
             });
-
-
-
-            // Move along..
-            if (options.success) {
-              if (isNew) { options.success(data); } // 201 - Created
-              else { options.success(); } // 204 - No Content
-            }
 
           },
           error: function(xhr, status, message) {
@@ -229,6 +229,8 @@ jDrupal.Entity.prototype.delete = function(options) {
           data: JSON.stringify(data),
           _format: 'json',
           success: function() {
+
+            //_entity_local_storage_delete(entity_type, entity_id);
 
             // Invoke the post-delete.
             _entity.postDelete({
