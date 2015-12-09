@@ -9,7 +9,7 @@ jDrupal.Comment = function(cid_or_comment) {
 
   // Set the entity keys.
   this.entityKeys['type'] = 'comment';
-  this.entityKeys['bundle'] = 'type';
+  this.entityKeys['bundle'] = 'comment_type';
   this.entityKeys['id'] = 'cid';
 
   // Prep the entity.
