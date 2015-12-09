@@ -19,7 +19,7 @@ jDrupal.services.call = function(options) {
       return;
     }
 
-    //jDrupal.moduleInvokeAll('services_preprocess', options);
+    jDrupal.moduleInvokeAll('services_preprocess', options);
 
     // Build the Request, and its url with a separator and '_format';
     var request = new XMLHttpRequest();
@@ -57,18 +57,18 @@ jDrupal.services.call = function(options) {
             // Give modules a chance to pre post process the results, send the
             // results to the success callback, then give modules a chance to
             // post process the results.
-            //jDrupal.moduleInvokeAll(
-            //  'services_request_pre_postprocess_alter',
-            //  options,
-            //  result
-            //);
+            jDrupal.moduleInvokeAll(
+              'services_request_pre_postprocess_alter',
+              options,
+              result
+            );
             options.success(result);
-            //jDrupal.moduleInvokeAll(
-            //  'services_request_postprocess_alter',
-            //  options,
-            //  result
-            //);
-            //jDrupal.moduleInvokeAll('services_postprocess', options, result);
+            jDrupal.moduleInvokeAll(
+              'services_request_postprocess_alter',
+              options,
+              result
+            );
+            jDrupal.moduleInvokeAll('services_postprocess', options, result);
           }
           else {
             // Not OK...
@@ -84,7 +84,7 @@ jDrupal.services.call = function(options) {
               if (!message || message == '') { message = title; }
               options.error(request, request.status, JSON.parse(message));
             }
-            //jDrupal.moduleInvokeAll('services_postprocess', options, request);
+            jDrupal.moduleInvokeAll('services_postprocess', options, request);
           }
         }
         else {

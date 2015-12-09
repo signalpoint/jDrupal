@@ -81,6 +81,7 @@ jDrupal._moduleInvokeResults = null;
  */
 jDrupal.moduleInvokeAll = function(hook) {
   try {
+
     // Prepare the invocation results.
     jDrupal._moduleInvokeResults = [];
 
@@ -88,15 +89,6 @@ jDrupal.moduleInvokeAll = function(hook) {
     // rest can be passed along to the hook.
     var module_arguments = Array.prototype.slice.call(arguments);
     module_arguments.splice(0, 1);
-    var options = module_arguments[module_arguments.length - 1];
-    module_arguments.splice(module_arguments.length - 1, 1);
-
-    // Make sure the options have a success handler defined.
-    if (typeof options.success === 'undefined') {
-      var msg = 'jDrupal.moduleInvokeAll - no success handler provided for ' + hook;
-      console.log(msg);
-      return;
-    }
 
     // Figure out which modules are implementing this hook.
     var modules = [];
@@ -105,10 +97,7 @@ jDrupal.moduleInvokeAll = function(hook) {
       if (!jDrupal.functionExists(module + '_' + hook)) { continue; }
       modules.push(module);
     }
-    if (jDrupal.isEmpty(modules)) {
-      options.success();
-      return;
-    }
+    if (jDrupal.isEmpty(modules)) { return; }
 
     for (var i = 0; i < modules.length; i++) {
       // If there are no arguments, just call the hook directly,

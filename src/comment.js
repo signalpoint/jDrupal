@@ -109,9 +109,9 @@ jDrupal.Comment.prototype.stringify = function() {
 
 
         //'status',
-        'name',
+        'name', // @TODO we could probably send these fields if they weren't empty
         'mail',
-        'homepage',
+        'homepage'
 
       ];
       for (var i = 0; i < protected_fields.length; i++) {
