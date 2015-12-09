@@ -28,6 +28,17 @@ function start_my_app() {
             var msg = 'Hello, ' + account.getAccountName();
             console.log(msg);
 
+            // Load a view.
+            //var view = $.viewsLoad('rest/content', {
+            //  success: function() {
+            //    var results = view.getResults();
+            //    for (var i = 0; i < results.length; i ++) {
+            //      var node = new $.Node(results[i]);
+            //      console.log('from a view: ' + node.getTitle());
+            //    }
+            //  }
+            //});
+
             // Create a new node.
             //var node = new $.Node({
             //  type: [ { target_id: 'article' } ],
@@ -76,76 +87,83 @@ function start_my_app() {
             //  }
             //});
 
+            // Load a node.
+            //var node = $.nodeLoad(1, {
+            //  success: function() {
+            //    console.log('Loaded node: ' + node.getTitle());
+            //  }
+            //});
+
+            //// Load a user.
+            //var account = $.userLoad(1, {
+            //  success: function() {
+            //    console.log('Loaded user: ' + account.getAccountName());
+            //  }
+            //});
+
+            // Load a comment.
+            //var comment = $.commentLoad(1, {
+            //  success: function() {
+            //    console.log('Loaded comment: ' + comment.getSubject());
+            //  }
+            //});
+
+            // Create a new comment.
+            //var comment = new $.Comment({
+            //  uid: [ { target_id: 1 } ],
+            //  entity_id: [ { target_id: 33 } ],
+            //  entity_type: [ { value: 'node' } ],
+            //  comment_type:[ { target_id: "comment" } ],
+            //  subject: [ { value: jDrupal.userPassword() } ],
+            //  comment_body: [{
+            //    "value": "<p>See you later!</p>",
+            //    "format": "basic_html"
+            //  }]
+            //});
+            //comment.save({
+            //  success: function() {
+            //    console.log('Saved new comment # ' + comment.id());
+            //  }
+            //});
+
+            // Update an existing comment...
+
+            // First, load the comment...
+            //var comment = $.commentLoad(6, {
+            //  success: function() {
+            //
+            //    // then change its title...
+            //    comment.setSubject('Woah buddy...');
+            //
+            //    // and then save the changes.
+            //    comment.save({
+            //      success: function() {
+            //        console.log('Saved ' + comment.getTitle());
+            //      }
+            //    });
+            //
+            //  }
+            //});
+
+            // Delete an existing comment..
+
+            // First, load the comment...
+            //var comment = $.commentLoad(2, {
+            //  success: function() {
+            //
+            //    // then delete it.
+            //    comment.delete({
+            //      success: function() {
+            //
+            //        console.log('Comment deleted!');
+            //
+            //      }
+            //    });
+            //
+            //  }
+            //});
+
           }
-
-          // Load a node.
-          //var node = $.nodeLoad(1, {
-          //  success: function() {
-          //    console.log('Loaded node: ' + node.getTitle());
-          //  }
-          //});
-          //
-          //// Load a user.
-          //var account = $.userLoad(1, {
-          //  success: function() {
-          //    console.log('Loaded user: ' + account.getAccountName());
-          //  }
-          //});
-          //
-          //// Load a view.
-          //var view = $.viewsLoad('rest/content', {
-          //  success: function() {
-          //    var results = view.getResults();
-          //    for (var i = 0; i < results.length; i ++) {
-          //      var node = new $.Node(results[i]);
-          //      console.log('from a view: ' + node.getTitle());
-          //    }
-          //  }
-          //});
-
-          // Load a comment.
-          //var comment = $.commentLoad(1, {
-          //  success: function() {
-          //    console.log('Loaded comment: ' + comment.getSubject());
-          //  }
-          //});
-
-          // Create a new comment.
-          //var comment = new $.Comment({
-          //  uid: [ { target_id: 1 } ],
-          //  entity_id: [ { target_id: 33 } ],
-          //  entity_type: [ { value: 'node' } ],
-          //  comment_type:[ { target_id: "comment" } ],
-          //  subject: [ { value: 'Goodbye World' } ],
-          //  comment_body: [{
-          //    "value": "<p>See you later!</p>",
-          //    "format": "basic_html"
-          //  }]
-          //});
-          //comment.save({
-          //  success: function() {
-          //    console.log('Saved new comment # ' + comment.id());
-          //  }
-          //});
-
-          // Update an existing comment...
-
-          // First, load the comment...
-          //var comment = $.commentLoad(5, {
-          //  success: function() {
-          //
-          //    // then change its title...
-          //    comment.setSubject('I am back!');
-          //
-          //    // and then save the changes.
-          //    comment.save({
-          //      success: function() {
-          //        console.log('Saved ' + comment.getTitle());
-          //      }
-          //    });
-          //
-          //  }
-          //});
 
         }
         catch (error) { console.log('start_my_app - ' + error); }
