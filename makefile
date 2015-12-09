@@ -1,7 +1,7 @@
 files =				 src/core.js\
         src/includes/module.inc.js\
+        src/entity.js\
 				src/comment.js\
-				src/entity.js\
 				src/file.js\
 				src/node.js\
 				src/taxonomy_term.js\
