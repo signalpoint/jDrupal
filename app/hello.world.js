@@ -103,6 +103,50 @@ function start_my_app() {
           //  }
           //});
 
+          // Load a comment.
+          //var comment = $.commentLoad(1, {
+          //  success: function() {
+          //    console.log('Loaded comment: ' + comment.getSubject());
+          //  }
+          //});
+
+          // Create a new comment.
+          //var comment = new $.Comment({
+          //  uid: [ { target_id: 1 } ],
+          //  entity_id: [ { target_id: 33 } ],
+          //  entity_type: [ { value: 'node' } ],
+          //  comment_type:[ { target_id: "comment" } ],
+          //  subject: [ { value: 'Goodbye World' } ],
+          //  comment_body: [{
+          //    "value": "<p>See you later!</p>",
+          //    "format": "basic_html"
+          //  }]
+          //});
+          //comment.save({
+          //  success: function() {
+          //    console.log('Saved new comment # ' + comment.id());
+          //  }
+          //});
+
+          // Update an existing comment...
+
+          // First, load the comment...
+          //var comment = $.commentLoad(5, {
+          //  success: function() {
+          //
+          //    // then change its title...
+          //    comment.setSubject('I am back!');
+          //
+          //    // and then save the changes.
+          //    comment.save({
+          //      success: function() {
+          //        console.log('Saved ' + comment.getTitle());
+          //      }
+          //    });
+          //
+          //  }
+          //});
+
         }
         catch (error) { console.log('start_my_app - ' + error); }
 
