@@ -62,10 +62,9 @@ var test_node_crud = function(callback) {
                                             updated_node.delete({
                                                   success:function(){
                                                     start();
-                                                    expect(1);
+                                                    expect(2);
                                                     ok(arguments.length == 0, "204 - No Content");
-
-                                                    return;
+                                                    ok(updated_node.entity === null, "null entity");
                                                     
                                                     // Index
                                                     /*asyncTest("node_index", function() {
@@ -79,8 +78,8 @@ var test_node_crud = function(callback) {
                                                               ok(node_index_results[0].nid, "nid");*/
                                                               
                                                               if (callback) {
-                                                                //test_services_comment(callback);
-                                                                //callback();
+                                                                test_services_comment(callback);
+                                                                callback();
                                                               }
                                                             //}
                                                         //});
