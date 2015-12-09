@@ -251,6 +251,7 @@ jDrupal._moduleInvokeResults = null;
  */
 jDrupal.moduleInvokeAll = function(hook) {
   try {
+
     // Prepare the invocation results.
     jDrupal._moduleInvokeResults = [];
 
@@ -258,15 +259,6 @@ jDrupal.moduleInvokeAll = function(hook) {
     // rest can be passed along to the hook.
     var module_arguments = Array.prototype.slice.call(arguments);
     module_arguments.splice(0, 1);
-    var options = module_arguments[module_arguments.length - 1];
-    module_arguments.splice(module_arguments.length - 1, 1);
-
-    // Make sure the options have a success handler defined.
-    if (typeof options.success === 'undefined') {
-      var msg = 'jDrupal.moduleInvokeAll - no success handler provided for ' + hook;
-      console.log(msg);
-      return;
-    }
 
     // Figure out which modules are implementing this hook.
     var modules = [];
@@ -275,10 +267,7 @@ jDrupal.moduleInvokeAll = function(hook) {
       if (!jDrupal.functionExists(module + '_' + hook)) { continue; }
       modules.push(module);
     }
-    if (jDrupal.isEmpty(modules)) {
-      options.success();
-      return;
-    }
+    if (jDrupal.isEmpty(modules)) { return; }
 
     for (var i = 0; i < modules.length; i++) {
       // If there are no arguments, just call the hook directly,
@@ -1054,9 +1043,9 @@ jDrupal.Comment.prototype.stringify = function() {
 
 
         //'status',
-        'name',
+        'name', // @TODO we could probably send these fields if they weren't empty
         'mail',
-        'homepage',
+        'homepage'
 
       ];
       for (var i = 0; i < protected_fields.length; i++) {
@@ -1357,7 +1346,7 @@ jDrupal.services.call = function(options) {
       return;
     }
 
-    //jDrupal.moduleInvokeAll('services_preprocess', options);
+    jDrupal.moduleInvokeAll('services_preprocess', options);
 
     // Build the Request, and its url with a separator and '_format';
     var request = new XMLHttpRequest();
@@ -1395,18 +1384,18 @@ jDrupal.services.call = function(options) {
             // Give modules a chance to pre post process the results, send the
             // results to the success callback, then give modules a chance to
             // post process the results.
-            //jDrupal.moduleInvokeAll(
-            //  'services_request_pre_postprocess_alter',
-            //  options,
-            //  result
-            //);
+            jDrupal.moduleInvokeAll(
+              'services_request_pre_postprocess_alter',
+              options,
+              result
+            );
             options.success(result);
-            //jDrupal.moduleInvokeAll(
-            //  'services_request_postprocess_alter',
-            //  options,
-            //  result
-            //);
-            //jDrupal.moduleInvokeAll('services_postprocess', options, result);
+            jDrupal.moduleInvokeAll(
+              'services_request_postprocess_alter',
+              options,
+              result
+            );
+            jDrupal.moduleInvokeAll('services_postprocess', options, result);
           }
           else {
             // Not OK...
@@ -1422,7 +1411,7 @@ jDrupal.services.call = function(options) {
               if (!message || message == '') { message = title; }
               options.error(request, request.status, JSON.parse(message));
             }
-            //jDrupal.moduleInvokeAll('services_postprocess', options, request);
+            jDrupal.moduleInvokeAll('services_postprocess', options, request);
           }
         }
         else {
