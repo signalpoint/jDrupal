@@ -38,6 +38,17 @@ jDrupal.Node.prototype.getTitle = function() {
  *
  * @returns {*}
  */
+jDrupal.Node.prototype.setTitle = function(title) {
+  try {
+    this.entity.title[0].value = title;
+  }
+  catch (e) { console.log('jDrupal.Node.setTitle - ' + e); }
+};
+
+/**
+ *
+ * @returns {*}
+ */
 jDrupal.Node.prototype.getType = function() {
   return this.getBundle();
 };
@@ -64,17 +75,6 @@ jDrupal.Node.prototype.isPublished = function() {
  */
 jDrupal.Node.prototype.isSticky = function() {
   return this.entity.sticky[0].value;
-};
-
-/**
- *
- * @returns {*}
- */
-jDrupal.Node.prototype.setTitle = function(title) {
-  try {
-    this.entity.title[0].value = title;
-  }
-  catch (e) { console.log('jDrupal.Node.setTitle - ' + e); }
 };
 
 /**

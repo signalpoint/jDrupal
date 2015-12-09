@@ -37,6 +37,9 @@ jDrupal.Entity.prototype.id = function() {
 jDrupal.Entity.prototype.isNew = function() {
   return !this.id();
 };
+jDrupal.Entity.prototype.stringify = function() {
+  return JSON.stringify(this.entity);
+};
 
 /**
  * ENTITY LOADING...
@@ -133,8 +136,7 @@ jDrupal.Entity.prototype.save = function(options) {
           path: path,
           service: entityType,
           resource: resource,
-          data: JSON.stringify(_entity.entity),
-          _format: 'json',
+          data: _entity.stringify(),
           success: function(data) {
 
             _entity.postSave(data, {
