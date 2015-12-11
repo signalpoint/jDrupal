@@ -23,7 +23,7 @@ jDrupal.connect = function(options) {
 
             // Create a default user account object and set it, then continue...
             jDrupalSetCurrentUser(jDrupalUserDefaults());
-            options.success();
+            options.success(result);
 
           }
 
@@ -36,7 +36,7 @@ jDrupal.connect = function(options) {
 
                 // Set the current user and continue...
                 jDrupalSetCurrentUser(account);
-                options.success();
+                options.success(result);
 
               }
             });
