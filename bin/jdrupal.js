@@ -1,4 +1,4 @@
-// Initialize the Drupal JSON object and run the bootstrap.
+// Initialize the jDrupal JSON object and run the bootstrap.
 var jDrupal = {}; jDrupalInit();
 jDrupal.sitePath = function() {
   return jDrupal.settings.sitePath;
@@ -156,6 +156,18 @@ jDrupal.time = function() {
 };
 
 /**
+ * Given a string, this will change the first character to lower case and return
+ * the new string.
+ * @param {String} str
+ * @return {String}
+ */
+jDrupal.lcfirst = function(str) {
+  str += '';
+  var f = str.charAt(0).toLowerCase();
+  return f + str.substr(1);
+};
+
+/**
  * Given a string, this will change the first character to upper case and return
  * the new string.
  * @param {String} str
@@ -166,6 +178,12 @@ jDrupal.ucfirst = function(str) {
   str += '';
   var f = str.charAt(0).toUpperCase();
   return f + str.substr(1);
+};
+
+jDrupal.Module = function() {
+
+  this.name = null;
+
 };
 
 /**
@@ -305,6 +323,10 @@ jDrupal.moduleLoad = function(name) {
     return jDrupal.modules[name];
   }
   catch (error) { console.log('jDrupal.moduleLoad - ' + error); }
+};
+
+jDrupal.modulesLoad = function() {
+  return jDrupal.modules;
 };
 
 /**
