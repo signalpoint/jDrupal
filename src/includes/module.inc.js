@@ -1,3 +1,9 @@
+jDrupal.Module = function() {
+
+  this.name = null;
+
+};
+
 /**
  * Given a module name, this returns true if the module is enabled, false
  * otherwise.
@@ -135,4 +141,8 @@ jDrupal.moduleLoad = function(name) {
     return jDrupal.modules[name];
   }
   catch (error) { console.log('jDrupal.moduleLoad - ' + error); }
+};
+
+jDrupal.modulesLoad = function() {
+  return jDrupal.modules;
 };
