@@ -6,6 +6,9 @@ jDrupal.sitePath = function() {
 jDrupal.basePath = function() {
   return jDrupal.settings.basePath;
 };
+jDrupal.restPath = function() {
+  return this.sitePath() + this.basePath();
+};
 
 /**
  * Checks if we're ready to make a Services call.
@@ -327,6 +330,130 @@ jDrupal.moduleLoad = function(name) {
 
 jDrupal.modulesLoad = function() {
   return jDrupal.modules;
+};
+
+jDrupal.token = function() {
+  return new Promise(function(resolve, reject) {
+    var req = new XMLHttpRequest();
+    req.open('GET', jDrupal.restPath() + 'rest/session/token');
+    req.onload = function() {
+      if (req.status == 200) { resolve(req.response); }
+      else { reject(Error(req.statusText)); }
+    };
+    req.onerror = function() { reject(Error("Network Error")); };
+    req.send();
+  });
+};
+jDrupal.connect = function() {
+  return new Promise(function(resolve, reject) {
+    var req = new XMLHttpRequest();
+    req.open('GET', jDrupal.restPath() + 'jdrupal/connect?_format=json');
+    req.onload = function() {
+      if (req.status != 200) { reject(Error(req.statusText)); return; }
+      var result = JSON.parse(req.response);
+      if (result.uid == 0) {
+        jDrupalSetCurrentUser(jDrupalUserDefaults());
+        resolve(result);
+      }
+      else {
+        jDrupal.userLoad(result.uid).then(function(account) {
+          jDrupalSetCurrentUser(account);
+          resolve(result);
+        });
+      }
+    };
+    req.onerror = function() { reject(Error("Network Error")); };
+    req.send();
+  });
+};
+jDrupal.userLogin = function(name, pass) {
+  return new Promise(function(resolve, reject) {
+    var req = new XMLHttpRequest();
+    req.open('POST', jDrupal.restPath() + 'user/login');
+    req.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+    req.onload = function() {
+      if (req.status == 200 || req.status == 303) {
+        jDrupal.connect().then(resolve);
+      }
+      else { reject(Error(req.statusText)); }
+    };
+    req.onerror = function() { reject(Error("Network Error")); };
+    var data = 'name=' + encodeURIComponent(name) +
+      '&pass=' + encodeURIComponent(pass) +
+      '&form_id=user_login_form';
+    req.send(data);
+  });
+};
+jDrupal.entityLoad = function(entity_type, entity_id) {
+  return new Promise(function(resolve, reject) {
+    var req = new XMLHttpRequest();
+    req.open('GET', jDrupal.restPath() + entity_type + '/' + entity_id + '?_format=json');
+    req.onload = function() {
+      if (req.status == 200) {
+        resolve(new jDrupal[jDrupal.ucfirst(entity_type)](JSON.parse(req.response)));
+      }
+      else { reject(Error(req.statusText)); }
+    };
+    req.onerror = function() { reject(Error("Network Error")); };
+    req.send();
+  });
+};
+jDrupal.commentLoad = function(cid) { return this.entityLoad('comment', cid); };
+jDrupal.nodeLoad = function(nid) { return this.entityLoad('node', nid); };
+jDrupal.userLoad = function(uid) { return this.entityLoad('user', uid); };
+/**
+ * Entity
+ * @param {String} path
+ * @constructor
+ */
+jDrupal.Views = function(path) {
+  this.path = path;
+  this.results = null;
+};
+
+/**
+ *
+ * @returns {String|*}
+ */
+jDrupal.Views.prototype.getPath = function() {
+  return this.path;
+};
+
+jDrupal.Views.prototype.getResults = function() {
+  return this.results;
+};
+
+/**
+ *
+ */
+jDrupal.Views.prototype.getView = function() {
+  var self = this;
+  return new Promise(function(resolve, reject) {
+    var req = new XMLHttpRequest();
+    req.open('GET', jDrupal.restPath() + self.getPath() + '?_format=json');
+    req.onload = function() {
+      if (req.status == 200) {
+        self.results = JSON.parse(req.response);
+        resolve();
+      }
+      else { reject(Error(req.statusText)); }
+    };
+    req.onerror = function() { reject(Error("Network Error")); };
+    req.send();
+  });
+};
+
+/**
+ * @param {String} path
+ * @param {Object} options
+ */
+jDrupal.viewsLoad = function(path) {
+  return new Promise(function(resolve, reject) {
+    var view = new jDrupal.Views(path);
+    view.getView().then(function() {
+      resolve(view);
+    });
+  });
 };
 
 /**
@@ -1096,11 +1223,11 @@ jDrupal.Comment.prototype.stringify = function() {
  * @param options
  * @returns {jDrupal.Comment}
  */
-jDrupal.commentLoad = function(cid, options) {
-  var comment = new jDrupal.Comment(cid);
-  comment.load(options);
-  return comment;
-};
+//jDrupal.commentLoad = function(cid, options) {
+//  var comment = new jDrupal.Comment(cid);
+//  comment.load(options);
+//  return comment;
+//};
 
 
 // @see https://api.drupal.org/api/drupal/core!modules!node!src!Entity!Node.php/class/Node/8
@@ -1218,11 +1345,11 @@ jDrupal.Node.prototype.preSave = function(options) {
  * @param options
  * @returns {jDrupal.Node}
  */
-jDrupal.nodeLoad = function(nid, options) {
-  var node = new jDrupal.Node(nid);
-  node.load(options);
-  return node;
-};
+//jDrupal.nodeLoad = function(nid, options) {
+//  var node = new jDrupal.Node(nid);
+//  node.load(options);
+//  return node;
+//};
 
 
 
@@ -1298,11 +1425,11 @@ jDrupal.currentUser = function() {
  * @param options
  * @returns {jDrupal.User}
  */
-jDrupal.userLoad = function(uid, options) {
-  var account = new jDrupal.User(uid);
-  account.load(options);
-  return account;
-};
+//jDrupal.userLoad = function(uid, options) {
+//  var account = new jDrupal.User(uid);
+//  account.load(options);
+//  return account;
+//};
 
 /**
  * HELPERS
@@ -1345,630 +1472,4 @@ jDrupal.userPassword = function() {
     return password;
   }
   catch (error) { console.log('jDrupal.userPassword - ' + error); }
-};
-
-/**
- * The Drupal services JSON object.
- */
-jDrupal.services = {};
-
-/**
- * Drupal Services XMLHttpRequest Object.
- * @param {Object} options
- */
-jDrupal.services.call = function(options) {
-  try {
-
-    options.debug = false;
-
-    // Make sure the settings have been provided for Services.
-    if (!jDrupal.isReady()) {
-      var error = 'Set the site_path property on the jDrupal.settings object!';
-      options.error(null, null, error);
-      return;
-    }
-
-    jDrupal.moduleInvokeAll('services_preprocess', options);
-
-    // Build the Request, and its url with a separator and '_format';
-    var request = new XMLHttpRequest();
-    var url = jDrupal.sitePath() + jDrupal.basePath();
-    var separator = options.path.indexOf('?') == -1 ? '?' : '&';
-    var format = typeof options._format !== 'undefined' ?
-      '&_format=' + options._format : '';
-    url += /*'?q=' + */ options.path + separator + format;
-
-    // Extract the method, then print out some debug info if enabled.
-    var method = options.method.toUpperCase();
-    if (jDrupal.settings.debug) { console.log(method + ': ' + url); }
-
-    // Request Success Handler
-    request.onload = function(e) {
-      try {
-        if (request.readyState == 4) {
-          // Build a human readable response title.
-          var title = request.status + ' - ' +
-            http_status_code_title(request.status);
-          // 200 OK, 201 Created, 204 No Content
-          if (jDrupal.inArray(request.status, [200, 201, 204])) {
-            if (jDrupal.settings.debug) { console.log(title); }
-            // Extract the JSON result, or throw an error if the response wasn't
-            // JSON.
-            var result = null;
-            var response_header = request.getResponseHeader('Content-Type');
-            if (request.status == 201) {
-              result = request.getResponseHeader('Location');
-            }
-            else if (response_header.indexOf('application/json') != -1) {
-              result = JSON.parse(request.responseText);
-            }
-            else { result = request.responseText; }
-            // Give modules a chance to pre post process the results, send the
-            // results to the success callback, then give modules a chance to
-            // post process the results.
-            jDrupal.moduleInvokeAll(
-              'services_request_pre_postprocess_alter',
-              options,
-              result
-            );
-            options.success(result);
-            jDrupal.moduleInvokeAll(
-              'services_request_postprocess_alter',
-              options,
-              result
-            );
-            jDrupal.moduleInvokeAll('services_postprocess', options, result);
-          }
-          else {
-            // Not OK...
-            if (jDrupal.settings.debug) {
-              console.log(method + ': ' + url + ' - ' + title);
-              console.log(request.responseText);
-              console.log(request.getAllResponseHeaders());
-            }
-            if (request.responseText) { console.log(request.responseText); }
-            else { console.log(request); }
-            if (typeof options.error !== 'undefined') {
-              var message = request.responseText || '';
-              if (!message || message == '') { message = title; }
-              options.error(request, request.status, JSON.parse(message));
-            }
-            jDrupal.moduleInvokeAll('services_postprocess', options, request);
-          }
-        }
-        else {
-          console.log(
-            'jDrupal.services.call - request.readyState = ' + request.readyState
-          );
-        }
-      }
-      catch (error) {
-        // Not OK...
-        if (jDrupal.settings.debug) {
-          console.log(method + ' (ERROR): ' + url + ' - ' + title);
-          console.log(request.responseText);
-          console.log(request.getAllResponseHeaders());
-        }
-        console.log('jDrupal.services.call - onload - ' + error);
-      }
-    };
-
-    // Get the CSRF Token and Make the Request.
-    services_get_csrf_token({
-        service: options.service,
-        resource: options.resource,
-        debug: options.debug,
-        method: method,
-        success: function(token) {
-          try {
-            // Async, or sync? By default we'll use async if none is provided.
-            var async = true;
-            if (typeof options.async !== 'undefined' &&
-              options.async === false) { async = false; }
-
-            // Open the request.
-            request.open(method, url, async);
-
-            // Determine content type header, if necessary.
-            var contentType = null;
-            if (method == 'POST') {
-              contentType = 'application/json';
-              // The user login resource needs a url encoded data string.
-              if (
-                options.service == 'user' &&
-                options.resource == 'login'
-              ) {
-                contentType = 'application/x-www-form-urlencoded';
-              }
-            }
-            else if (method == 'PUT') { contentType = 'application/json'; }
-
-            // Anyone overriding the content type?
-            if (options.contentType) { contentType = options.contentType; }
-
-            // Set the content type on the header, if we have one.
-            if (contentType) {
-              request.setRequestHeader('Content-type', contentType);
-            }
-
-            // Add the token to the header if we have one.
-            if (token) { request.setRequestHeader('X-CSRF-Token', token); }
-
-            // Unless someone specifically set the Accept header, we'll default
-            // to application/json.
-            var accept = 'application/json';
-            if (typeof options.Accept !== 'undefined') {
-              accept = options.Accept;
-            }
-            request.setRequestHeader('Accept', accept);
-
-            // Send the request with or without data.
-            if (typeof options.data !== 'undefined') {
-              // Print out debug information if debug is enabled. Don't print
-              // out any sensitive debug data containing passwords.
-              if (jDrupal.settings.debug) {
-                var show = true;
-                if (options.service == 'user' &&
-                  jDrupal.inArray(options.resource, ['login', 'create', 'update'])) {
-                  show = false;
-                }
-                if (show) {
-                  if (typeof options.data === 'object') {
-                    console.log(JSON.stringify(options.data));
-                  }
-                  else { console.log(options.data); }
-                }
-              }
-              request.send(options.data);
-            }
-            else { request.send(null); }
-
-          }
-          catch (error) {
-            console.log(
-              'jDrupal.services.call - services_get_csrf_token - success - ' +
-              error
-            );
-          }
-        },
-        error: function(xhr, status, message) {
-          try {
-            console.log(
-              'jDrupal.services.call - services_get_csrf_token - ' + message
-            );
-            if (options.error) { options.error(xhr, status, message); }
-          }
-          catch (error) {
-            console.log(
-              'jDrupal.services.call - services_get_csrf_token - error - ' +
-              error
-            );
-          }
-        }
-    });
-
-  }
-  catch (error) {
-    console.log('jDrupal.services.call - error - ' + error);
-  }
-};
-
-/**
- * Gets the CSRF token from Services.
- * @param {Object} options
- */
-function services_get_csrf_token(options) {
-  try {
-
-    var token = null;
-
-    // It's OK to skip GET requests token retrieval, since we don't need one.
-    if (
-      typeof options.method !== 'undefined' &&
-      options.method == 'GET' &&
-      options.success)
-    { options.success(token); return; }
-
-    // Are we resetting the token?
-    if (options.reset) { jDrupal.sessid = null; }
-
-    // On some calls we don't need a token, so skip it.
-    // @TODO turn this into bool that the caller can specify to skip the token
-    // retrieval.
-    if (
-      (options.service == 'user' && options.resource == 'login')
-    ) {
-      if (options.success) { options.success(token); }
-      return;
-    }
-
-    // Do we already have a token? If we do, return it the success callback.
-    if (jDrupal.sessid) { token = jDrupal.sessid; }
-    if (token) {
-      if (options.success) { options.success(token); }
-      return;
-    }
-
-    // We don't have a token, let's get it from jDrupal...
-
-    // Build the Request and URL.
-    var token_request = new XMLHttpRequest();
-    var token_url = jDrupal.sitePath() + jDrupal.basePath() +
-      'rest/session/token';
-
-    // Token Request Success Handler
-    token_request.onload = function(e) {
-      try {
-        if (token_request.readyState == 4) {
-          var title = token_request.status + ' - ' +
-            http_status_code_title(token_request.status);
-          if (token_request.status != 200) { // Not OK
-            console.log(token_url + ' - ' + title);
-            console.log(token_request.responseText);
-          }
-          else { // OK
-            // Set jDrupal.sessid with the token, then return the token to the
-            // success function.
-            token = token_request.responseText;
-            jDrupal.sessid = token;
-            console.log('Grabbed a token from the server: ' + token);
-            if (options.success) { options.success(token); }
-          }
-        }
-        else {
-          console.log(
-            'services_get_csrf_token - readyState - ' + token_request.readyState
-          );
-        }
-      }
-      catch (error) {
-        console.log(
-          'services_get_csrf_token - token_request. onload - ' + error
-        );
-      }
-    };
-
-    // Open the token request.
-    token_request.open('GET', token_url, true);
-
-    // Send the token request.
-    token_request.send(null);
-  }
-  catch (error) { console.log('services_get_csrf_token - ' + error); }
-}
-
-/**
- * Returns true if the entity_id is already queued for the service resource,
- * false otherwise.
- * @param {String} service
- * @param {String} resource
- * @param {Number} entity_id
- * @param {String} callback_type
- * @return {Boolean}
- */
-function _services_queue_already_queued(service, resource, entity_id,
-  callback_type) {
-  try {
-    var queued = false;
-    if (
-      typeof jDrupal.services_queue[service][resource][entity_id] !== 'undefined'
-    ) {
-      //queued = true;
-      var queue = jDrupal.services_queue[service][resource][entity_id];
-      if (queue[callback_type].length != 0) { queued = true; }
-    }
-    return queued;
-  }
-  catch (error) { console.log('_services_queue_already_queued - ' + error); }
-}
-
-/**
- * Adds an entity id to the service resource queue.
- * @param {String} service
- * @param {String} resource
- * @param {Number} entity_id
- */
-function _services_queue_add_to_queue(service, resource, entity_id) {
-  try {
-    jDrupal.services_queue[service][resource][entity_id] = {
-      entity_id: entity_id,
-      success: [],
-      error: []
-    };
-  }
-  catch (error) { console.log('_services_queue_add_to_queue - ' + error); }
-}
-
-/**
- * Removes an entity id from the service resource queue.
- * @param {String} service
- * @param {String} resource
- * @param {Number} entity_id
- */
-function _services_queue_remove_from_queue(service, resource, entity_id) {
-  try {
-    console.log('WARNING: services_queue_remove_from_queue() not done yet!');
-  }
-  catch (error) {
-    console.log('_services_queue_remove_from_queue - ' + error);
-  }
-}
-
-/**
- * Adds a callback function to the service resource queue.
- * @param {String} service
- * @param {String} resource
- * @param {Number} entity_id
- * @param {String} callback_type
- * @param {Function} callback
- */
-function _services_queue_callback_add(service, resource, entity_id,
-  callback_type, callback) {
-  try {
-    jDrupal.services_queue[service][resource][entity_id][callback_type].push(
-      callback
-    );
-  }
-  catch (error) { console.log('_services_queue_callback_add - ' + error); }
-}
-
-/**
- * Returns the number of callback functions for the service resource queue.
- * @param {String} service
- * @param {String} resource
- * @param {Number} entity_id
- * @param {String} callback_type
- * @return {Number}
- */
-function _services_queue_callback_count(service, resource, entity_id,
-  callback_type) {
-  try {
-    var length =
-      jDrupal.services_queue[service][resource][entity_id][callback_type].length;
-    return length;
-  }
-  catch (error) { console.log('_services_queue_callback_count - ' + error); }
-}
-
-
-
-
-
-/**
- * System connect call.
- * @param {Object} options
- */
-jDrupal.connect = function(options) {
-  try {
-
-    var service = {
-
-      service: 'jdrupal',
-      resource: 'connect',
-      method: 'get',
-      path: 'jdrupal/connect',
-      _format: 'json',
-
-      success: function(result) {
-        try {
-
-          // Set the current user...
-
-          // Anonymous users.
-          if (result.uid == 0) {
-
-            // Create a default user account object and set it, then continue...
-            jDrupalSetCurrentUser(jDrupalUserDefaults());
-            options.success(result);
-
-          }
-
-          // Authenticated users.
-          else {
-
-            // Load the user's account from Drupal.
-            var account = jDrupal.userLoad(result.uid, {
-              success: function() {
-
-                // Set the current user and continue...
-                jDrupalSetCurrentUser(account);
-                options.success(result);
-
-              }
-            });
-
-          }
-        }
-        catch (error) { console.log('jDrupal.connect - success - ' + error); }
-      },
-      error: function(xhr, status, message) {
-        try {
-          if (options.error) { options.error(xhr, status, message); }
-        }
-        catch (error) { console.log('jDrupal.connect - error - ' + error); }
-      }
-    };
-    jDrupal.services.call(service);
-  }
-  catch (error) {
-    console.log('jDrupal.connect - ' + error);
-  }
-};
-
-
-/**
- * Login user.
- * @param {String} name
- * @param {String} pass
- * @param {Object} options
- */
-jDrupal.userLogin = function(name, pass, options) {
-  try {
-
-    jDrupal.services.call({
-      service: 'user',
-      resource: 'login',
-      method: 'POST',
-      path: 'user/login',
-      data: 'name=' + encodeURIComponent(name) +
-      '&pass=' + encodeURIComponent(pass) +
-      '&form_id=user_login_form',
-      success: function(account) {
-        try {
-
-          // Since Drupal only returns a 200 OK to us, we don't have much
-          // opportunity to make a decision here yet. So let's do a connect
-          // call to get the current user id, then load the user's account.
-
-          jDrupal.connect({
-            success: function() {
-              if (options.success) { options.success(); }
-            },
-            error: function(xhr, status, message) {
-              console.log('jDrupalUserLogin -> jDrupalConnect | error');
-              console.log(arguments);
-            }
-          });
-
-          // Now that we are logged in, we need to get a new CSRF token...
-
-        }
-        catch (error) { console.log('jDrupal.userLogin - success - ' + error); }
-      },
-      error: function(xhr, status, message) {
-        try {
-          if (options.error) { options.error(xhr, status, message); }
-        }
-        catch (error) { console.log('jDrupal.userLogin - error - ' + error); }
-      }
-    });
-
-  }
-  catch (error) {
-    console.log('jDrupal.userLogin - ' + error);
-  }
-};
-
-/**
- * Logout current user.
- * @param {Object} options
- */
-jDrupal.userLogout = function(options) {
-  try {
-    jDrupal.services.call({
-      service: 'user',
-      resource: 'logout',
-      method: 'GET',
-      path: 'user/logout',
-      Accept: 'text/html',
-      success: function(data) {
-        try {
-
-          // Now that we logged out, clear the user and sessid, then make a
-          // fresh connection.
-
-          jDrupalSetCurrentUser(jDrupalUserDefaults());
-
-          //jDrupal.sessid = null;
-
-          jDrupal.connect({
-            success: function() {
-              try {
-                if (options.success) { options.success(); }
-              }
-              catch (error) {
-                console.log(
-                  'jDrupal.userLogout - connect - success - ' +
-                  error
-                );
-              }
-            },
-            error: function(xhr, status, message) {
-              try {
-                if (options.error) { options.error(xhr, status, message); }
-              }
-              catch (error) {
-                console.log(
-                  'jDrupal.userLogout - connect - error - ' +
-                  error
-                );
-              }
-            }
-          });
-        }
-        catch (error) { console.log('jDrupal.userLogout - success - ' + error); }
-      },
-      error: function(xhr, status, message) {
-        try {
-          if (options.error) { options.error(xhr, status, message); }
-        }
-        catch (error) { console.log('jDrupal.userLogout - error - ' + error); }
-      }
-    });
-  }
-  catch (error) {
-    console.log('jDrupal.userLogout - ' + error);
-  }
-};
-
-/**
- * Entity
- * @param {String} path
- * @constructor
- */
-jDrupal.Views = function(path) {
-  this.path = path;
-  this.results = null;
-};
-
-/**
- *
- * @returns {String|*}
- */
-jDrupal.Views.prototype.getPath = function() {
-  return this.path;
-};
-
-jDrupal.Views.prototype.getResults = function() {
-  return this.results;
-};
-
-/**
- *
- * @param options
- */
-jDrupal.Views.prototype.getView = function(options) {
-  try {
-    var _view = this;
-    jDrupal.services.call({
-      resource: 'views',
-      method: 'GET',
-      path: this.getPath(),
-      success: function(results) {
-        _view.results = results;
-        if (options.success) { options.success(); }
-      },
-      error: function(xhr, status, message) {
-        if (options.error) { options.error(xhr, status, message); }
-      }
-    });
-  }
-  catch (error) {
-    console.log('jDrupal.Views.getView - ' + error);
-  }
-};
-
-/**
- * @param {String} path
- * @param {Object} options
- */
-jDrupal.viewsLoad = function(path, options) {
-  try {
-    var view = new jDrupal.Views(path);
-    view.getView(options);
-    return view;
-  }
-  catch (error) {
-    console.log('viewsLoad - ' + error);
-  }
 };
