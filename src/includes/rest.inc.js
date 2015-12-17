@@ -38,7 +38,9 @@ jDrupal.userLogin = function(name, pass) {
     req.open('POST', jDrupal.restPath() + 'user/login');
     req.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
     req.onload = function() {
-      if (req.status == 200) { resolve(JSON.parse(req.response)); }
+      if (req.status == 200 || req.status == 303) {
+        jDrupal.connect().then(resolve);
+      }
       else { reject(Error(req.statusText)); }
     };
     req.onerror = function() { reject(Error("Network Error")); };
@@ -61,7 +63,7 @@ jDrupal.entityLoad = function(entity_type, entity_id) {
     req.onerror = function() { reject(Error("Network Error")); };
     req.send();
   });
-}
-jDrupal.userLoad = function(uid) {
-  return this.entityLoad('user', uid);
 };
+jDrupal.commentLoad = function(cid) { return this.entityLoad('comment', cid); };
+jDrupal.nodeLoad = function(nid) { return this.entityLoad('node', nid); };
+jDrupal.userLoad = function(uid) { return this.entityLoad('user', uid); };
