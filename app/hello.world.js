@@ -1,13 +1,20 @@
 function start_my_app() {
   (function($) {
 
+    // Connect and say hello.
+    //$.connect().then(function(response) {
+    //  var account = $.currentUser();
+    //  var msg = !account.isAuthenticated() ?
+    //    'Hello World' :
+    //    'Hello ' + account.getAccountName();
+    //  console.log(msg);
+    //});
+
     // Connect to Drupal... if the user is anonymous show them the login
     // form, otherwise say hello to them.
-    $.connect({
+    $.connect().then(function(result) {
 
-      success: function() {
-
-        try {
+          console.log(result);
 
           // Grab the current user.
           var account = $.currentUser();
@@ -29,13 +36,12 @@ function start_my_app() {
             console.log(msg);
 
             // Load a view.
-            //var view = $.viewsLoad('rest/content', {
-            //  success: function() {
-            //    var results = view.getResults();
-            //    for (var i = 0; i < results.length; i ++) {
-            //      var node = new $.Node(results[i]);
-            //      console.log('from a view: ' + node.getTitle());
-            //    }
+            // @TODO rename to viewLoad?
+            //$.viewsLoad('rest/content').then(function(view) {
+            //  var results = view.getResults();
+            //  for (var i = 0; i < results.length; i ++) {
+            //    var node = new $.Node(results[i]);
+            //    console.log(node.getTitle());
             //  }
             //});
 
@@ -165,11 +171,6 @@ function start_my_app() {
 
           }
 
-        }
-        catch (error) { console.log('start_my_app - ' + error); }
-
-      }
-
     });
 
   }(jDrupal));
@@ -183,25 +184,23 @@ function login_click() {
   var pass = document.getElementById('pass').value;
 
   // User login.
-  jDrupal.userLogin(name, pass, {
-    success: function() {
+  jDrupal.userLogin(name, pass).then(
+    function() {
       document.getElementById('user_dashboard').style.display = 'inline';
       document.getElementById('user_login_form').style.display = 'none';
     },
-    error: function(xhr, status, result) {
-      alert(result.message);
-    }
-  });
+    function(err) { alert(err); }
+  );
+
 }
 
+// Handle the logout button click.
 function logout_click() {
 
   // User logout.
-  jDrupal.userLogout({
-    success: function() {
-      document.getElementById('user_dashboard').style.display = 'none';
-      document.getElementById('user_login_form').style.display = 'inline';
-    }
+  jDrupal.userLogout().then(function(){
+    document.getElementById('user_dashboard').style.display = 'none';
+    document.getElementById('user_login_form').style.display = 'inline';
   });
 
 }
