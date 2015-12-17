@@ -1,14 +1,16 @@
 var jdrupal_grunt_src = [
   'src/core.js',
   'src/includes/module.inc.js',
+  'src/includes/rest.inc.js',
+  'src/includes/views.inc.js',
   'src/entity.js',
   'src/comment.js',
   'src/file.js',
   'src/node.js',
   'src/taxonomy_term.js',
   'src/taxonomy_vocabulary.js',
-  'src/user.js',
-  'src/services/services.js',
+  'src/user.js'
+  /*'src/services/services.js',
   'src/services/services.comment.js',
   'src/services/services.entity.js',
   'src/services/services.file.js',
@@ -17,7 +19,7 @@ var jdrupal_grunt_src = [
   'src/services/services.taxonomy_term.js',
   'src/services/services.taxonomy_vocabulary.js',
   'src/services/services.user.js',
-  'src/services/services.views.js'
+  'src/services/services.views.js'*/
 ];
 
 module.exports = function(grunt) {
