@@ -140,8 +140,8 @@ jDrupal.Comment.prototype.stringify = function() {
  * @param options
  * @returns {jDrupal.Comment}
  */
-jDrupal.commentLoad = function(cid, options) {
-  var comment = new jDrupal.Comment(cid);
-  comment.load(options);
-  return comment;
-};
+//jDrupal.commentLoad = function(cid, options) {
+//  var comment = new jDrupal.Comment(cid);
+//  comment.load(options);
+//  return comment;
+//};
