@@ -46,15 +46,13 @@ function start_my_app() {
             //});
 
             // Create a new node.
-            //var node = new $.Node({
-            //  type: [ { target_id: 'article' } ],
-            //  title: [ { value: 'Hello World' }]
-            //});
-            //node.save({
-            //  success: function() {
-            //    console.log('Saved new node # ' + node.id());
-            //  }
-            //});
+            var node = new $.Node({
+              type: [ { target_id: 'article' } ],
+              title: [ { value: 'Hello World' }]
+            });
+            node.save().then(function() {
+              console.log('Saved new node # ' + node.id());
+            });
 
             // Update an existing node...
 
