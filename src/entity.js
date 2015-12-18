@@ -52,25 +52,22 @@ jDrupal.Entity.prototype.stringify = function() {
 jDrupal.Entity.prototype.load = function(options) {
   try {
     var _entity = this;
-    var entityType = this.getEntityType();
-    jDrupal.services.call({
-      method: 'GET',
-      path: entityType + '/' + this.id(),
-      service: entityType,
-      resource: 'retrieve',
-      _format: 'json',
-      success: function(data) {
-        _entity.entity = data;
-        var invocationParams = {};
-        invocationParams[_entity.id()] = _entity;
-        //jDrupal.moduleInvokeAll('entity_load', invocationParams, options);
-        if (options.success) { options.success(data); }
-      },
-      error: function(xhr, status, message) {
-        if (options.error) { options.error(xhr, status, message); }
-      }
+    var entityType = this;
+    return new Promise(function(resolve, reject) {
+      var path = jDrupal.restPath() +
+        _entity.getEntityType() + '/' + _entity.id() + '?_format=json';
+      var req = new XMLHttpRequest();
+      req.open('GET', path);
+      req.onload = function() {
+        if (req.status == 200) {
+          _entity.entity = JSON.parse(req.response);
+          resolve(_entity);
+        }
+        else { reject(Error(req.statusText)); }
+      };
+      req.onerror = function() { reject(Error("Network Error")); };
+      req.send();
     });
-
   }
   catch (error) {
     console.log('jDrupal.Entity.load - ' + error);
