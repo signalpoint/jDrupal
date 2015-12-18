@@ -45,7 +45,7 @@ function start_my_app() {
             //  }
             //});
 
-            // Create a new node.
+            // Create a node.
             //var node = new $.Node({
             //  type: [ { target_id: 'article' } ],
             //  title: [ { value: 'Hello World' }]
@@ -54,7 +54,12 @@ function start_my_app() {
             //  console.log('Saved new node # ' + node.id());
             //});
 
-            // Update an existing node...
+            // Retrieve a node.
+            //$.nodeLoad(1).then(function(node) {
+            //  console.log('Loaded node: ' + node.getTitle());
+            //});
+
+            // Update a node...
 
             // First, load the node...
             //$.nodeLoad(123).then(function(node) {
@@ -69,43 +74,22 @@ function start_my_app() {
             //
             //});
 
-            // Delete an existing node..
+            // Delete a node..
 
             // First, load the node...
-            $.nodeLoad(7).then(function(node) {
-
-              // then delete it.
-              node.delete().then(function() {
-                console.log('Node deleted!');
-              });
-
-            });
-
-            // Load a node.
-            //var node = $.nodeLoad(1, {
-            //  success: function() {
-            //    console.log('Loaded node: ' + node.getTitle());
-            //  }
+            //$.nodeLoad(6).then(function(node) {
+            //
+            //  // then delete it.
+            //  node.delete().then(function() {
+            //    console.log('Node deleted!');
+            //  });
+            //
             //});
 
-            //// Load a user.
-            //var account = $.userLoad(1, {
-            //  success: function() {
-            //    console.log('Loaded user: ' + account.getAccountName());
-            //  }
-            //});
-
-            // Load a comment.
-            //var comment = $.commentLoad(1, {
-            //  success: function() {
-            //    console.log('Loaded comment: ' + comment.getSubject());
-            //  }
-            //});
-
-            // Create a new comment.
+            // Create a comment.
             //var comment = new $.Comment({
             //  uid: [ { target_id: 1 } ],
-            //  entity_id: [ { target_id: 33 } ],
+            //  entity_id: [ { target_id: 3 } ],
             //  entity_type: [ { value: 'node' } ],
             //  comment_type:[ { target_id: "comment" } ],
             //  subject: [ { value: jDrupal.userPassword() } ],
@@ -114,47 +98,47 @@ function start_my_app() {
             //    "format": "basic_html"
             //  }]
             //});
-            //comment.save({
-            //  success: function() {
-            //    console.log('Saved new comment # ' + comment.id());
-            //  }
+            //comment.save().then(function() {
+            //  console.log('Saved new comment # ' + comment.id());
             //});
 
-            // Update an existing comment...
-
-            // First, load the comment...
-            //var comment = $.commentLoad(6, {
-            //  success: function() {
-            //
-            //    // then change its title...
-            //    comment.setSubject('Woah buddy...');
-            //
-            //    // and then save the changes.
-            //    comment.save({
-            //      success: function() {
-            //        console.log('Saved ' + comment.getTitle());
-            //      }
-            //    });
-            //
-            //  }
+            // Retrieve a comment.
+            //$.commentLoad(3).then(function(comment) {
+            //  console.log('Loaded comment: ' + comment.getSubject());
             //});
 
-            // Delete an existing comment..
+            // Update a comment...
+            // @TODO D8 core bug?
+            // @see https://www.drupal.org/node/2631774
 
             // First, load the comment...
-            //var comment = $.commentLoad(2, {
-            //  success: function() {
+            //$.commentLoad(3).then(function(comment) {
             //
-            //    // then delete it.
-            //    comment.delete({
-            //      success: function() {
+            //  // then change its subject...
+            //  comment.setSubject('Woah buddy...');
             //
-            //        console.log('Comment deleted!');
+            //  // and then save the changes.
+            //  comment.save().then(function() {
+            //    console.log('Saved ' + comment.setSubject());
+            //  });
             //
-            //      }
-            //    });
+            //});
+
+            // Delete a comment..
+
+            // First, load the comment...
+            //$.commentLoad(3).then(function(comment) {
             //
-            //  }
+            //  // Then delete it.
+            //  comment.delete().then(function() {
+            //    console.log('Comment deleted!');
+            //  });
+            //
+            //});
+
+            // Load a user.
+            //$.userLoad(1).then(function (account) {
+            //  console.log('Loaded user: ' + account.getAccountName());
             //});
 
           }
