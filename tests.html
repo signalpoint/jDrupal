@@ -11,8 +11,7 @@
     <script src="http://code.jquery.com/mobile/1.4.0/jquery.mobile-1.4.0.min.js"></script>
     <script type='text/javascript' src='http://code.jquery.com/qunit/qunit-1.12.0.js'></script>
     
-    <!-- include to test binary -->
-    <!--<script src="bin/jdrupal.js"></script> -->
+
     <script src="bin/jdrupal.min.js"></script>
 
       <script src="app/jdrupal.settings.js"></script>
@@ -69,30 +68,25 @@
                 alert('Enter a site path!');
                 return false;
               }
-              jDrupal.connect({
-                  success:function(result){
+              jDrupal.connect().then(function() {
                   var account = jDrupal.currentUser();
                   var uid = account.id();
-                    $('#login_name_wrapper').show('slow');
-                    $('#login_pass_wrapper').show('slow');
-                    if (uid != '0') {
+                  $('#login_name_wrapper').show('slow');
+                  $('#login_pass_wrapper').show('slow');
+                  if (uid != '0') {
                       $('#login_name').val(account.getAccountName());
                       $('#logout').show();
                       $('#go').hide();
                       if (uid == '1') {
-                        $('#run_tests').show('slow');
+                          $('#run_tests').show('slow');
                       }
                       else {
-                        alert('Only user #1 can perform tests, your are user # ' + uid + '!');
+                          alert('Only user #1 can perform tests, your are user # ' + uid + '!');
                       }
-                    }
-                    else {
+                  }
+                  else {
                       $('#login').show('slow');
                       $('#go').hide();
-                    }
-                  },
-                  error:function(xhr, status, response){
-                    console.log(response);
                   }
               });
               return false;
@@ -100,27 +94,20 @@
           
           $('#login').on('click', function(){
               set_drupal_settings();
-              jDrupal.userLogin($('#login_name').val(), $('#login_pass').val(), {
-                  success:function(result){
-                    $('#login').hide();
-                    $('#logout').show('slow');
-                    $('#run_tests').show('slow');
-                  },
-                  error:function(xhr, status, message){
-                    alert(message);
-                  }
+              jDrupal.userLogin($('#login_name').val(), $('#login_pass').val()).then(function() {
+                  $('#login').hide();
+                  $('#logout').show('slow');
+                  $('#run_tests').show('slow');
               });
               return false;
           });
           
           $('#logout').on('click', function(){
-              jDrupal.userLogout({
-                  success:function() {
-                    $('#login').show('slow');
-                    $('#run_tests').hide();
-                    $('#logout').hide();
-                    $('#login_pass').val('');
-                  }
+              jDrupal.userLogout().then(function() {
+                  $('#login').show('slow');
+                  $('#run_tests').hide();
+                  $('#logout').hide();
+                  $('#login_pass').val('');
               });
               return false;
           });
