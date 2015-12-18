@@ -18,12 +18,12 @@ jDrupal.connect = function() {
       if (req.status != 200) { reject(Error(req.statusText)); return; }
       var result = JSON.parse(req.response);
       if (result.uid == 0) {
-        jDrupalSetCurrentUser(jDrupalUserDefaults());
+        jDrupal.setCurrentUser(jDrupal.userDefaults());
         resolve(result);
       }
       else {
         jDrupal.userLoad(result.uid).then(function(account) {
-          jDrupalSetCurrentUser(account);
+          jDrupal.setCurrentUser(account);
           resolve(result);
         });
       }
@@ -57,7 +57,7 @@ jDrupal.userLogout = function(name, pass) {
     req.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
     req.onload = function() {
       if (req.status == 200 || req.status == 303) {
-        jDrupalSetCurrentUser(jDrupalUserDefaults());
+        jDrupal.setCurrentUser(jDrupal.userDefaults());
         jDrupal.connect().then(resolve);
       }
       else { reject(Error(req.statusText)); }

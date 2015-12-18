@@ -84,20 +84,20 @@ jDrupal.currentUser = function() {
  *
  * @returns {jDrupal.User}
  */
-function jDrupalUserDefaults() {
+jDrupal.userDefaults = function() {
   return new jDrupal.User({
     uid: [ { value: 0 } ],
     roles: [ { target_id: 'anonymous' }]
   });
-}
+};
 
 /**
  * Sets the current user account object.
  * @param {Object} account
  */
-function jDrupalSetCurrentUser(account) {
+jDrupal.setCurrentUser = function(account) {
   jDrupal._currentUser = account;
-}
+};
 
 /**
  * Generates a random user password.
