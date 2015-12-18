@@ -8,18 +8,13 @@ var test_services_system = function(callback) {
 
 var test_connect = function(callback) {
   asyncTest("jDrupal.connect", function() {
-      jDrupal.connect({
-          success:function(result){
-            start();
-            expect(2);
-            var account = jDrupal.currentUser();
-            ok(!!account, "account");
-            ok(!!account.id(), "uid");
-            if (callback) {
-              callback();
-            }
-          }
+      jDrupal.connect().then(function(){
+        start();
+        expect(2);
+        var account = jDrupal.currentUser();
+        ok(!!account, "account");
+        ok(!!account.id(), "uid");
+        if (callback) { callback(); }
       });
   });
 };
-
