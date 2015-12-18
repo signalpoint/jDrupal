@@ -70,11 +70,11 @@ jDrupal.currentUser = function() {
  * @param options
  * @returns {jDrupal.User}
  */
-jDrupal.userLoad = function(uid, options) {
-  var account = new jDrupal.User(uid);
-  account.load(options);
-  return account;
-};
+//jDrupal.userLoad = function(uid, options) {
+//  var account = new jDrupal.User(uid);
+//  account.load(options);
+//  return account;
+//};
 
 /**
  * HELPERS
@@ -104,17 +104,14 @@ function jDrupalSetCurrentUser(account) {
  * @return {String}
  */
 jDrupal.userPassword = function() {
-  try {
-    // @credit http://stackoverflow.com/a/1349426/763010
-    var length = 10;
-    if (arguments[0]) { length = arguments[0]; }
-    var password = '';
-    var possible =
-      'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz23456789';
-    for (var i = 0; i < length; i++) {
-      password += possible.charAt(Math.floor(Math.random() * possible.length));
-    }
-    return password;
+  // @credit http://stackoverflow.com/a/1349426/763010
+  var length = 10;
+  if (arguments[0]) { length = arguments[0]; }
+  var password = '';
+  var possible =
+    'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz23456789';
+  for (var i = 0; i < length; i++) {
+    password += possible.charAt(Math.floor(Math.random() * possible.length));
   }
-  catch (error) { console.log('jDrupal.userPassword - ' + error); }
+  return password;
 };
