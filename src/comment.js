@@ -45,8 +45,7 @@ jDrupal.Comment.prototype.setSubject = function(subject) {
  */
 
 jDrupal.Comment.prototype.preSave = function(options) {
-  try {
-
+  return new Promise(function(resolve, reject) {
     // Remove protected fields.
     //var protected_fields = [
     //  'cid'
@@ -54,17 +53,12 @@ jDrupal.Comment.prototype.preSave = function(options) {
     //for (var i = 0; i < protected_fields.length; i++) {
     //  delete this.entity[protected_fields[i]];
     //}
-
-    // Continue along...
-    options.success();
-  }
-  catch (error) {
-    console.log('jDrupal.Comment.preSave - ' + error);
-  }
-
+    resolve();
+  });
 };
 
 jDrupal.Comment.prototype.stringify = function() {
+
   try {
 
     if (!this.isNew()) {

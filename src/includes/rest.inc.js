@@ -67,3 +67,17 @@ jDrupal.entityLoad = function(entity_type, entity_id) {
 jDrupal.commentLoad = function(cid) { return this.entityLoad('comment', cid); };
 jDrupal.nodeLoad = function(nid) { return this.entityLoad('node', nid); };
 jDrupal.userLoad = function(uid) { return this.entityLoad('user', uid); };
+
+
+// @TODO this doesn't work because for some reason(s) we have to pass along
+// the node type bundle data to properly delete the node. Learn why this
+// is, or raise an issue to remove that need, because without it you pretty
+// much have to load a node before you can delete it, i.e. you can't just
+// delete a node if you have its nid. This is true for comments too.
+//jDrupal.nodeDelete = function(nid) {
+//  var node = new this.Node(nid);
+//  return node.delete();
+//};
+//$.nodeDelete(6).then(function() {
+//  console.log('Node deleted eh!');
+//});
