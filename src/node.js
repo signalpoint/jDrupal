@@ -82,8 +82,8 @@ jDrupal.Node.prototype.isSticky = function() {
  */
 
 jDrupal.Node.prototype.preSave = function(options) {
-  try {
-
+  var self = this;
+  return new Promise(function(resolve, reject) {
     // Remove protected fields.
     var protected_fields = [
       'changed',
@@ -91,16 +91,10 @@ jDrupal.Node.prototype.preSave = function(options) {
       'revision_uid'
     ];
     for (var i = 0; i < protected_fields.length; i++) {
-      delete this.entity[protected_fields[i]];
+      delete self.entity[protected_fields[i]];
     }
-
-    // Continue along...
-    options.success();
-  }
-  catch (error) {
-    console.log('jDrupal.Node.preSave - ' + error);
-  }
-
+    resolve();
+  });
 };
 
 /**
@@ -113,8 +107,8 @@ jDrupal.Node.prototype.preSave = function(options) {
  * @param options
  * @returns {jDrupal.Node}
  */
-jDrupal.nodeLoad = function(nid, options) {
-  var node = new jDrupal.Node(nid);
-  node.load(options);
-  return node;
-};
+//jDrupal.nodeLoad = function(nid, options) {
+//  var node = new jDrupal.Node(nid);
+//  node.load(options);
+//  return node;
+//};
