@@ -46,50 +46,40 @@ function start_my_app() {
             //});
 
             // Create a new node.
-            var node = new $.Node({
-              type: [ { target_id: 'article' } ],
-              title: [ { value: 'Hello World' }]
-            });
-            node.save().then(function() {
-              console.log('Saved new node # ' + node.id());
-            });
+            //var node = new $.Node({
+            //  type: [ { target_id: 'article' } ],
+            //  title: [ { value: 'Hello World' }]
+            //});
+            //node.save().then(function() {
+            //  console.log('Saved new node # ' + node.id());
+            //});
 
             // Update an existing node...
 
             // First, load the node...
-            //var node = $.nodeLoad(3, {
-            //  success: function() {
+            //$.nodeLoad(123).then(function(node) {
             //
-            //    // then change its title...
-            //    node.setTitle('Goodbye world');
+            //  // then change its title...
+            //  node.setTitle('Goodbye world');
             //
-            //    // and then save the changes.
-            //    node.save({
-            //      success: function() {
-            //        console.log('Saved ' + node.getTitle());
-            //      }
-            //    });
+            //  // and then save the changes.
+            //  node.save().then(function() {
+            //    console.log('Saved ' + node.getTitle());
+            //  });
             //
-            //  }
             //});
 
             // Delete an existing node..
 
             // First, load the node...
-            //var node = $.nodeLoad(14, {
-            //  success: function() {
-            //
-            //    // then delete it.
-            //    node.delete({
-            //      success: function() {
-            //
-            //        console.log('Node deleted!');
-            //
-            //      }
-            //    });
-            //
-            //  }
-            //});
+            $.nodeLoad(7).then(function(node) {
+
+              // then delete it.
+              node.delete().then(function() {
+                console.log('Node deleted!');
+              });
+
+            });
 
             // Load a node.
             //var node = $.nodeLoad(1, {
