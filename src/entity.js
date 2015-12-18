@@ -175,7 +175,9 @@ jDrupal.Entity.prototype.postSave = function(req) {
  * @param options
  */
 jDrupal.Entity.prototype.preDelete = function(options) {
-  options.success();
+  return new Promise(function(resolve, reject) {
+    resolve();
+  });
 };
 
 /**
@@ -187,58 +189,35 @@ jDrupal.Entity.prototype.delete = function(options) {
   // Set aside "this" entity.
   var _entity = this;
 
-  // Invoke the pre-delete.
-  this.preDelete({
-    success: function() {
+  return new Promise(function(resolve, reject) {
 
-      try {
+    _entity.preDelete().then(function() {
 
-        var entityType = _entity.getEntityType();
+      jDrupal.token().then(function(token) {
 
-        // Build the necessary data to send along with the DELETE request.
+        var path = jDrupal.restPath() + _entity.getEntityType() + '/' + _entity.id();
         var data = {};
         data[_entity.getEntityKey('bundle')] = [ {
           target_id: _entity.getBundle()
         }];
+        var req = new XMLHttpRequest();
+        req.open('DELETE', path);
+        req.setRequestHeader('Content-type', 'application/json');
+        req.setRequestHeader('X-CSRF-Token', token);
+        req.onload = function() {
+          _entity.postDelete(req).then(function() {
+            if (req.status == 204) { resolve(); }
+            else { reject(Error(req.statusText)); }
+          });
 
-        jDrupal.services.call({
-          method: 'DELETE',
-          contentType: 'application/json',
-          path: entityType + '/' + _entity.id(),
-          service: entityType,
-          resource: 'delete',
-          entity_type: entityType,
-          bundle: _entity.getBundle(),
-          data: JSON.stringify(data),
-          _format: 'json',
-          success: function() {
+        };
+        req.onerror = function() { reject(Error("Network Error")); };
+        req.send(JSON.stringify(data));
 
-            //_entity_local_storage_delete(entity_type, entity_id);
+      });
 
-            // Invoke the post-delete.
-            _entity.postDelete({
-              success: function() {
+    });
 
-                // Move along...
-                if (options.success) {
-                  options.success(); // 204 - No Content
-                }
-
-              }
-            });
-
-          },
-          error: function(xhr, status, message) {
-            if (options.error) { options.error(xhr, status, message); }
-          }
-        });
-
-      }
-      catch (error) {
-        console.log('jDrupal.Entity.delete - ' + error);
-      }
-
-    }
   });
 
 };
@@ -248,9 +227,11 @@ jDrupal.Entity.prototype.delete = function(options) {
  * @param options
  */
 jDrupal.Entity.prototype.postDelete = function(options) {
-  // Clear out the entity and succeed.
-  this.entity = null;
-  options.success();
+  var self = this;
+  return new Promise(function(resolve, reject) {
+    self.entity = null;
+    resolve();
+  });
 };
 
 /**
