@@ -50,19 +50,29 @@ jDrupal.userLogin = function(name, pass) {
     req.send(data);
   });
 };
-jDrupal.entityLoad = function(entity_type, entity_id) {
+jDrupal.userLogout = function(name, pass) {
   return new Promise(function(resolve, reject) {
     var req = new XMLHttpRequest();
-    req.open('GET', jDrupal.restPath() + entity_type + '/' + entity_id + '?_format=json');
+    req.open('GET', jDrupal.restPath() + 'user/logout');
+    req.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
     req.onload = function() {
-      if (req.status == 200) {
-        resolve(new jDrupal[jDrupal.ucfirst(entity_type)](JSON.parse(req.response)));
+      if (req.status == 200 || req.status == 303) {
+        jDrupalSetCurrentUser(jDrupalUserDefaults());
+        jDrupal.connect().then(resolve);
       }
       else { reject(Error(req.statusText)); }
     };
     req.onerror = function() { reject(Error("Network Error")); };
     req.send();
   });
+};
+
+/**
+ * ENTITY PROXY FUNCTIONS
+ */
+jDrupal.entityLoad = function(entity_type, entity_id) {
+  var entity = new this[this.ucfirst(entity_type)](entity_id);
+  return entity.load();
 };
 jDrupal.commentLoad = function(cid) { return this.entityLoad('comment', cid); };
 jDrupal.nodeLoad = function(nid) { return this.entityLoad('node', nid); };
