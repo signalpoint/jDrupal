@@ -401,6 +401,20 @@ jDrupal.entityLoad = function(entity_type, entity_id) {
 jDrupal.commentLoad = function(cid) { return this.entityLoad('comment', cid); };
 jDrupal.nodeLoad = function(nid) { return this.entityLoad('node', nid); };
 jDrupal.userLoad = function(uid) { return this.entityLoad('user', uid); };
+
+
+// @TODO this doesn't work because for some reason(s) we have to pass along
+// the node type bundle data to properly delete the node. Learn why this
+// is, or raise an issue to remove that need, because without it you pretty
+// much have to load a node before you can delete it, i.e. you can't just
+// delete a node if you have its nid. This is true for comments too.
+//jDrupal.nodeDelete = function(nid) {
+//  var node = new this.Node(nid);
+//  return node.delete();
+//};
+//$.nodeDelete(6).then(function() {
+//  console.log('Node deleted eh!');
+//});
 /**
  * Entity
  * @param {String} path
@@ -1087,8 +1101,7 @@ jDrupal.Comment.prototype.setSubject = function(subject) {
  */
 
 jDrupal.Comment.prototype.preSave = function(options) {
-  try {
-
+  return new Promise(function(resolve, reject) {
     // Remove protected fields.
     //var protected_fields = [
     //  'cid'
@@ -1096,17 +1109,12 @@ jDrupal.Comment.prototype.preSave = function(options) {
     //for (var i = 0; i < protected_fields.length; i++) {
     //  delete this.entity[protected_fields[i]];
     //}
-
-    // Continue along...
-    options.success();
-  }
-  catch (error) {
-    console.log('jDrupal.Comment.preSave - ' + error);
-  }
-
+    resolve();
+  });
 };
 
 jDrupal.Comment.prototype.stringify = function() {
+
   try {
 
     if (!this.isNew()) {
