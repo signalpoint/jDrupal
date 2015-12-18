@@ -86,7 +86,9 @@ jDrupal.Entity.prototype.load = function(options) {
  * @param options
  */
 jDrupal.Entity.prototype.preSave = function(options) {
-  options.success();
+  return new Promise(function(resolve, reject) {
+    resolve();
+  });
 };
 
 /**
@@ -95,78 +97,52 @@ jDrupal.Entity.prototype.preSave = function(options) {
  */
 jDrupal.Entity.prototype.save = function(options) {
 
-  // Set aside "this" entity.
   var _entity = this;
 
-  // Invoke the pre-save.
-  this.preSave({
-    success: function() {
+  return new Promise(function(resolve, reject) {
 
-      try {
+    _entity.preSave().then(function() {
+
+      jDrupal.token().then(function(token) {
 
         var entityType = _entity.getEntityType();
         var method = null;
         var resource = null;
         var path = null;
-
         var isNew = _entity.isNew();
 
-        // Save new entity.
         if (isNew) {
-
           method = 'POST';
           resource = 'create';
           path = 'entity/' + entityType;
-
         }
-
-        // Update existing entity.
         else {
-
           method = 'PATCH';
           resource = 'update';
           path = entityType + '/' + _entity.id();
-
         }
 
-        // Make the call...
-        jDrupal.services.call({
-          method: method,
-          contentType: 'application/json',
-          path: path,
-          service: entityType,
-          resource: resource,
-          data: _entity.stringify(),
-          success: function(data) {
+        var req = new XMLHttpRequest();
+        req.open(method, jDrupal.restPath() + path);
+        req.setRequestHeader('Content-type', 'application/json');
+        req.setRequestHeader('X-CSRF-Token', token);
+        req.onload = function() {
+          _entity.postSave(req).then(function() {
+            if (
+              (method == 'POST' && req.status == 201) ||
+              (method == 'PATCH' && req.status == 204)
+            ) { resolve(); }
+            else { reject(Error(req.statusText)); }
+          });
 
-            _entity.postSave(data, {
-              success: function() {
+        };
+        req.onerror = function() { reject(Error("Network Error")); };
+        req.send(_entity.stringify());
 
-                //if (!isNew) {
-                //  _entity_local_storage_delete(entityType, entity.id());
-                //}
+      });
 
-                // Move along..
-                if (options.success) {
-                  if (isNew) { options.success(data); } // 201 - Created
-                  else { options.success(); } // 204 - No Content
-                }
+    });
 
-              }
-            });
-
-          },
-          error: function(xhr, status, message) {
-            if (options.error) { options.error(xhr, status, message); }
-          }
-        });
-
-      }
-      catch (error) {
-        console.log('jDrupal.Entity.save - ' + error);
-      }
-
-    }
   });
 
 };
@@ -174,18 +150,20 @@ jDrupal.Entity.prototype.save = function(options) {
 /**
  * Entity post save.
  * @param data
- * @param options
  */
-jDrupal.Entity.prototype.postSave = function(data, options) {
-  // For new entities, set their id's value.
-  if (this.isNew()) {
-    var parts = data.split('/');
-    var entityID =
-      this.entity[this.getEntityKey('id')] = [ {
-        value: parts[parts.length - 1]
-      }];
-  }
-  options.success();
+jDrupal.Entity.prototype.postSave = function(req) {
+  var self = this;
+  return new Promise(function(resolve, reject) {
+    // For new entities, grab their id from the Location response header.
+    if (self.isNew()) {
+      var parts = req.getResponseHeader('Location').split('/');
+      var entityID =
+        self.entity[self.getEntityKey('id')] = [ {
+          value: parts[parts.length - 1]
+        }];
+    }
+    resolve();
+  });
 };
 
 /**
