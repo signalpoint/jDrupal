@@ -384,19 +384,29 @@ jDrupal.userLogin = function(name, pass) {
     req.send(data);
   });
 };
-jDrupal.entityLoad = function(entity_type, entity_id) {
+jDrupal.userLogout = function(name, pass) {
   return new Promise(function(resolve, reject) {
     var req = new XMLHttpRequest();
-    req.open('GET', jDrupal.restPath() + entity_type + '/' + entity_id + '?_format=json');
+    req.open('GET', jDrupal.restPath() + 'user/logout');
+    req.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
     req.onload = function() {
-      if (req.status == 200) {
-        resolve(new jDrupal[jDrupal.ucfirst(entity_type)](JSON.parse(req.response)));
+      if (req.status == 200 || req.status == 303) {
+        jDrupalSetCurrentUser(jDrupalUserDefaults());
+        jDrupal.connect().then(resolve);
       }
       else { reject(Error(req.statusText)); }
     };
     req.onerror = function() { reject(Error("Network Error")); };
     req.send();
   });
+};
+
+/**
+ * ENTITY PROXY FUNCTIONS
+ */
+jDrupal.entityLoad = function(entity_type, entity_id) {
+  var entity = new this[this.ucfirst(entity_type)](entity_id);
+  return entity.load();
 };
 jDrupal.commentLoad = function(cid) { return this.entityLoad('comment', cid); };
 jDrupal.nodeLoad = function(nid) { return this.entityLoad('node', nid); };
@@ -415,6 +425,7 @@ jDrupal.userLoad = function(uid) { return this.entityLoad('user', uid); };
 //$.nodeDelete(6).then(function() {
 //  console.log('Node deleted eh!');
 //});
+
 /**
  * Entity
  * @param {String} path
@@ -524,25 +535,22 @@ jDrupal.Entity.prototype.stringify = function() {
 jDrupal.Entity.prototype.load = function(options) {
   try {
     var _entity = this;
-    var entityType = this.getEntityType();
-    jDrupal.services.call({
-      method: 'GET',
-      path: entityType + '/' + this.id(),
-      service: entityType,
-      resource: 'retrieve',
-      _format: 'json',
-      success: function(data) {
-        _entity.entity = data;
-        var invocationParams = {};
-        invocationParams[_entity.id()] = _entity;
-        //jDrupal.moduleInvokeAll('entity_load', invocationParams, options);
-        if (options.success) { options.success(data); }
-      },
-      error: function(xhr, status, message) {
-        if (options.error) { options.error(xhr, status, message); }
-      }
+    var entityType = this;
+    return new Promise(function(resolve, reject) {
+      var path = jDrupal.restPath() +
+        _entity.getEntityType() + '/' + _entity.id() + '?_format=json';
+      var req = new XMLHttpRequest();
+      req.open('GET', path);
+      req.onload = function() {
+        if (req.status == 200) {
+          _entity.entity = JSON.parse(req.response);
+          resolve(_entity);
+        }
+        else { reject(Error(req.statusText)); }
+      };
+      req.onerror = function() { reject(Error("Network Error")); };
+      req.send();
     });
-
   }
   catch (error) {
     console.log('jDrupal.Entity.load - ' + error);
