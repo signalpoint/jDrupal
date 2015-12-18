@@ -6,6 +6,9 @@ jDrupal.sitePath = function() {
 jDrupal.basePath = function() {
   return jDrupal.settings.basePath;
 };
+jDrupal.restPath = function() {
+  return this.sitePath() + this.basePath();
+};
 
 /**
  * Checks if we're ready to make a Services call.
