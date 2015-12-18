@@ -120,8 +120,8 @@ var test_user_crud = function(name, pass, callback) {
                      ok(user_index_results[0].uid, "uid");
                      */
                     if (callback) {
-                      //test_services_node(callback);
-                      callback();
+                      test_services_node(callback);
+                      //callback();
                     }/*
                      }
                      });
