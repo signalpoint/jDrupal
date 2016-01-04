@@ -11,6 +11,7 @@ jDrupal.Comment = function(cid_or_comment) {
   this.entityKeys['type'] = 'comment';
   this.entityKeys['bundle'] = 'comment_type';
   this.entityKeys['id'] = 'cid';
+  this.entityKeys['label'] = 'subject';
 
   // Prep the entity.
   jDrupalEntityConstructorPrep(this, cid_or_comment);

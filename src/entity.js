@@ -37,6 +37,11 @@ jDrupal.Entity.prototype.id = function() {
 jDrupal.Entity.prototype.isNew = function() {
   return !this.id();
 };
+jDrupal.Entity.prototype.label = function() {
+  var label = this.getEntityKey('label');
+  return typeof this.entity[label] !== 'undefined' ?
+    this.entity[label][0].value : null;
+};
 jDrupal.Entity.prototype.stringify = function() {
   return JSON.stringify(this.entity);
 };

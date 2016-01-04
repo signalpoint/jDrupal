@@ -11,6 +11,7 @@ jDrupal.Node = function(nid_or_node) {
   this.entityKeys['type'] = 'node';
   this.entityKeys['bundle'] = 'type';
   this.entityKeys['id'] = 'nid';
+  this.entityKeys['label'] = 'title';
 
   // Prep the entity.
   jDrupalEntityConstructorPrep(this, nid_or_node);
@@ -30,9 +31,7 @@ jDrupal.Node.prototype.constructor = jDrupal.Node;
  *
  * @returns {*}
  */
-jDrupal.Node.prototype.getTitle = function() {
-  return this.entity.title[0].value;
-};
+jDrupal.Node.prototype.getTitle = function() { return this.label(); };
 
 /**
  *

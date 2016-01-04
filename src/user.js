@@ -10,6 +10,7 @@ jDrupal.User = function(uid_or_account) {
   this.entityKeys['type'] = 'user';
   this.entityKeys['bundle'] = 'user';
   this.entityKeys['id'] = 'uid';
+  this.entityKeys['label'] = 'name';
 
   // Prep the entity.
   jDrupalEntityConstructorPrep(this, uid_or_account);
@@ -26,9 +27,7 @@ jDrupal.User.prototype.constructor = jDrupal.User;
  *
  * @returns {*}
  */
-jDrupal.User.prototype.getAccountName = function() {
-  return this.entity.name[0].value;
-};
+jDrupal.User.prototype.getAccountName = function() { return this.label(); };
 
 /**
  *
