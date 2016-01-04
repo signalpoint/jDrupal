@@ -1,0 +1,27 @@
+{
+  "title": "jDrupal 8 Docs",
+  "tagline": "JavaScript Library for Drupal 8 REST",
+  "author": "Tyler Frankenstein",
+  "image": "app.jpg",
+  "ignore": {
+    "files": ["Work_In_Progress.md"],
+    "folders": ["99_Not_Ready"]
+  },
+  "live": {
+    "inherit_index": true,
+    "clean_urls": true
+  },
+  "html": {
+    "theme": "daux-blue",
+    "breadcrumbs": true,
+    "breadcrumb_separator": "Chevrons",
+    "toggle_code": false,
+    "date_modified": true,
+    "float": true,
+    "repo": "easystreet3/jDrupal",
+    "links": {
+      "jDrupal Home": "http://jdrupal.easystreet3.com",
+      "jDrupal 7": "http://jdrupal.easystreet3.com/7"
+    }
+  }
+}
