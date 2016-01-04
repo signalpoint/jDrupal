@@ -495,6 +495,11 @@ jDrupal.Entity.prototype.id = function() {
 jDrupal.Entity.prototype.isNew = function() {
   return !this.id();
 };
+jDrupal.Entity.prototype.label = function() {
+  var label = this.getEntityKey('label');
+  return typeof this.entity[label] !== 'undefined' ?
+    this.entity[label][0].value : null;
+};
 jDrupal.Entity.prototype.stringify = function() {
   return JSON.stringify(this.entity);
 };
@@ -1050,6 +1055,7 @@ jDrupal.Comment = function(cid_or_comment) {
   this.entityKeys['type'] = 'comment';
   this.entityKeys['bundle'] = 'comment_type';
   this.entityKeys['id'] = 'cid';
+  this.entityKeys['label'] = 'subject';
 
   // Prep the entity.
   jDrupalEntityConstructorPrep(this, cid_or_comment);
@@ -1193,6 +1199,7 @@ jDrupal.Node = function(nid_or_node) {
   this.entityKeys['type'] = 'node';
   this.entityKeys['bundle'] = 'type';
   this.entityKeys['id'] = 'nid';
+  this.entityKeys['label'] = 'title';
 
   // Prep the entity.
   jDrupalEntityConstructorPrep(this, nid_or_node);
@@ -1212,9 +1219,7 @@ jDrupal.Node.prototype.constructor = jDrupal.Node;
  *
  * @returns {*}
  */
-jDrupal.Node.prototype.getTitle = function() {
-  return this.entity.title[0].value;
-};
+jDrupal.Node.prototype.getTitle = function() { return this.label(); };
 
 /**
  *
@@ -1309,6 +1314,7 @@ jDrupal.User = function(uid_or_account) {
   this.entityKeys['type'] = 'user';
   this.entityKeys['bundle'] = 'user';
   this.entityKeys['id'] = 'uid';
+  this.entityKeys['label'] = 'name';
 
   // Prep the entity.
   jDrupalEntityConstructorPrep(this, uid_or_account);
@@ -1325,9 +1331,7 @@ jDrupal.User.prototype.constructor = jDrupal.User;
  *
  * @returns {*}
  */
-jDrupal.User.prototype.getAccountName = function() {
-  return this.entity.name[0].value;
-};
+jDrupal.User.prototype.getAccountName = function() { return this.label(); };
 
 /**
  *
