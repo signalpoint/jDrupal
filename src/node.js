@@ -17,8 +17,10 @@ jDrupal.Node = function(nid_or_node) {
   jDrupalEntityConstructorPrep(this, nid_or_node);
 
   // Set default values.
-  if (!this.entity.title) {
-    this.entity.title = [ { value: '' }];
+  if (this.entity) {
+    if (!this.entity.title) {
+      this.entity.title = [ { value: '' }];
+    }
   }
 
 };
