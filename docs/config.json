@@ -13,6 +13,7 @@
   },
   "html": {
     "theme": "daux-blue",
+    "auto_landing": false,
     "breadcrumbs": true,
     "breadcrumb_separator": "Chevrons",
     "toggle_code": false,

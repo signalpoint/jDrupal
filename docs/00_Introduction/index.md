@@ -1,13 +1,55 @@
-## What is DrupalGap?
+## What is jDrupal?
 
-> An open source application development kit for Drupal websites.
+> A light weight JavaScript library for Drupal 8 REST.
 
-## What is DrupalGap used for?
+## What is jDrupal used for?
 
-> Build custom apps, `with one set of code`, and then deploy them to a wide range of **app stores**, **devices** and **browsers**.
+> Tools for JavaScript apps and Drupal 8.
 
-![DrupalGap Flow](http://drupalgap.org/sites/default/files/drupalgap-flow.jpg)
+- connect
+- user login/logout
+- entity C.R.U.D. (`create, retrieve, update, delete`)
+  - comments
+  - nodes
+  - users
 
-## What is under DrupalGap's hood?
+## What kind of apps?
 
-> Since Drupal covers our needs on the backend, let's learn more about our needs on the front end. This is where PhoneGap and jQuery Mobile come into play.
+> A variety of application architectures, including...
+
+- headless
+- decoupled
+- web apps
+- hybrid mobile apps (phonegap/cordova)
+
+> And works with many frameworks, including...
+
+- Bootstrap
+- Foundation
+- Angular
+- ...
+
+## Where can jDrupal be used?
+
+> In any JavaScript application.
+
+Since jDrupal has no dependencies and is written in pure JavaScript, it can be used in a wide variety of architectures and frameworks.
+
+Just include it in the `<head>` of your app's `index.html` file:
+
+```
+<html>
+<head>
+  <!-- ... -->
+
+  <script src="jdrupal.min.js"></script>
+  
+  <!-- ... -->
+  
+</head>
+<body><!-- ... --></body>
+</html>
+```
+
+
+## Getting Started with jDrupal
