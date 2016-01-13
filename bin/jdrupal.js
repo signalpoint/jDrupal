@@ -71,33 +71,6 @@ jDrupal.functionExists = function(name) {
 };
 
 /**
- * Given an integer http status code, this will return the title of it.
- * @param {Number} status
- * @return {String} title
- */
-function http_status_code_title(status) {
-  try {
-    // @todo - this can be replaced by using the statusText property on the XHR
-    // object.
-    //https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest#Properties
-    var title = '';
-    switch (status) {
-      case 200: title = 'OK'; break;
-      case 201: title = 'Created'; break;
-      case 204: title = 'No Content'; break;
-      case 401: title = 'Unauthorized'; break;
-      case 404: title = 'Not Found'; break;
-      case 406: title = 'Not Acceptable'; break;
-      case 500: title = 'Internal Server Error'; break;
-    }
-    return title;
-  }
-  catch (error) {
-    console.log('http_status_code_title - ' + error);
-  }
-}
-
-/**
  * Checks if the needle string, is in the haystack array. Returns true if it is
  * found, false otherwise. Credit: http://stackoverflow.com/a/15276975/763010
  * @param {String|Number} needle
