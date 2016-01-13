@@ -1,60 +1,78 @@
-Welcome to the DrupalGap "Hello World". By completing this guide, you'll be ready to build a mobile application for your Drupal website. Along the way, be sure to visit the [support](http://drupalgap.org/support) and [troubleshoot](Install/Troubleshoot) pages if you run into any problems.
+Welcome to the jDrupal "Hello World". By completing this guide, you'll be ready to build a app for your Drupal 8 website.
 
-## 1. Install DrupalGap
+## 1. Install jDrupal
 
-Follow the [DrupalGap Install](Install) documentation.
+Follow the [jDrupal Install](Install) documentation.
 
-## 2. Create a Custom DrupalGap Module
+## 2. Add an index.html file
 
-Follow the Create a Custom DrupalGap Module documentation.
+Next, create an `index.html` file to start your app.
 
-## 3. Create the "Hello World" App Page
+This file should live within the same domain as your Drupal site, but not in Drupal's root directory, for example:
 
-Place this code into the custom module's JavaScript file:
+`http://example.com/app/index.html`
 
 ```
-/**
- * Implements hook_menu().
- */
-function my_module_menu() {
-  var items = {};
-  items['hello_world'] = {
-    title: 'DrupalGap',
-    page_callback: 'my_module_hello_world_page'
-  };
-  return items;
-}
+<!DOCTYPE html>
+<html>
 
-/**
- * The callback for the "Hello World" page.
- */
-function my_module_hello_world_page() {
-  var content = {};
-  content['my_button'] = {
-    theme: 'button',
-    text: 'Hello World',
-    attributes: {
-      onclick: "drupalgap_alert('Hi!')"
+  <head>
+
+      <title>jDrupal</title>
+
+      <!-- Load jDrupal and configure its settings-->
+      <script src="jdrupal.min.js"></script>
+      <script type="text/javascript">
+          jDrupal.settings = {
+              sitePath: 'http://example',
+              basePath: '/'
+          };
+      </script>
+      
+      <!-- Load my app -->
+      <script src="app.js"></script>
+
+  </head>
+
+  <body onload="helloWorld()">
+    
+    <p id="msg">Loading...</p>
+    
+  </body>
+</html>
+```
+
+## 3. Add an app.js file
+
+Next, create an `app.js` file to power your app.
+
+This file will live next to the `index.html` file, for example:
+                                                 
+`http://example.com/app/app.js`
+
+```
+function helloWorld() {
+
+  // Connect to Drupal.
+  jDrupal.connect().then(function() {
+
+    // Grab the current user account.
+    var user = jDrupal.currentUser();
+
+    // Prepare a message for the user.
+    var text = 'Hello World';
+    if (user.isAuthenticated()) {
+      text = 'Hello ' + user.getAccountName();
     }
-  };
-  return content;
+
+    // Show the message in the paragraph.
+    document.getElementById("msg").innerHTML = text;
+
+  });
+  
 }
 ```
 
-## 4. Set the App's Front Page
+## 4. Run the app
 
-Open the `www/app/settings.js` file and set the app's front page path:
-
-```
-drupalgap.settings.front = 'hello_world';
-```
-
-## 5. Run the App!
-
-Now when we run the app, we'll have a "Hello World" button widget that will say "Hi" when clicked:
-
-![Hello World](http://www.drupalgap.org/sites/default/files/hello-world_0.png)
-
-That's it, you've now got the basic tools to build a custom mobile application for a Drupal website!
-
-Next, try placing an additional [widget](Widgets) or two on your page or head back to the getting started guide for more topics and features within DrupalGap.
+Navigate to `http://example.com/app` to view the `Hello World`.

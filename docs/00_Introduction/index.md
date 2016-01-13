@@ -17,8 +17,7 @@
 
 > A variety of application architectures, including...
 
-- headless
-- decoupled
+- headless / decoupled
 - web apps
 - hybrid mobile apps (phonegap/cordova)
 
