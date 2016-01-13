@@ -707,7 +707,8 @@ jDrupal.Entity.prototype.postDelete = function(options) {
 // @TODO every function should live in the jDrupal namespace!
 function jDrupalEntityConstructorPrep(obj, entityID_or_entity) {
   try {
-    if (typeof entityID_or_entity === 'object') {
+    if (!entityID_or_entity) { }
+    else if (typeof entityID_or_entity === 'object') {
       obj.entity = entityID_or_entity;
     }
     else {
@@ -1205,8 +1206,10 @@ jDrupal.Node = function(nid_or_node) {
   jDrupalEntityConstructorPrep(this, nid_or_node);
 
   // Set default values.
-  if (!this.entity.title) {
-    this.entity.title = [ { value: '' }];
+  if (this.entity) {
+    if (!this.entity.title) {
+      this.entity.title = [ { value: '' }];
+    }
   }
 
 };
