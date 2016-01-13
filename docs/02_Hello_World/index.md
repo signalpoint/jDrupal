@@ -24,7 +24,7 @@ This file should live within the same domain as your Drupal site, but not in Dru
       <script src="jdrupal.min.js"></script>
       <script type="text/javascript">
           jDrupal.settings = {
-              sitePath: 'http://example',
+              sitePath: 'http://example.com',
               basePath: '/'
           };
       </script>

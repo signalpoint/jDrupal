@@ -12,6 +12,7 @@
   - comments
   - nodes
   - users
+- views JSON
 
 ## What kind of apps?
 
@@ -49,6 +50,3 @@ Just include it in the `<head>` of your app's `index.html` file:
 <body><!-- ... --></body>
 </html>
 ```
-
-
-## Getting Started with jDrupal
