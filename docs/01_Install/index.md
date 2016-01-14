@@ -11,7 +11,7 @@ Download and enable the [jDrupal module](http://www.drupal.org/project/jdrupal).
 
 ## 3. Configure jDrupal
 
-Next, configure jDrupal on your Drupal 8 by following the module's [README](http://cgit.drupalcode.org/jdrupal/tree/README.md).
+Next, configure jDrupal on your Drupal 8 site by following the module's [README](http://cgit.drupalcode.org/jdrupal/plain/README.md).
 
 ## 4. Done!
 
