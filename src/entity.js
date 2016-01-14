@@ -22,7 +22,12 @@ jDrupal.Entity.prototype.get = function(prop, delta) {
   return typeof delta !== 'undefined' ? this.entity[prop][delta] : this.entity[prop];
 };
 jDrupal.Entity.prototype.set = function(prop, delta, val) {
-  if (this.entity) { this.entity[prop] = val; }
+  if (this.entity) {
+    if (typeof delta !== 'undefined' && typeof this.entity[prop] !== 'undefined') {
+      this.entity[prop][delta] = val;
+    }
+    else { this.entity[prop] = val; }
+  }
 };
 jDrupal.Entity.prototype.getEntityKey = function(key) {
   return typeof this.entityKeys[key] !== 'undefined' ?
