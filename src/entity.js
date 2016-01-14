@@ -17,6 +17,13 @@ jDrupal.Entity = function(entityType, bundle, id) {
   this.entityKeys = {};
 };
 
+jDrupal.Entity.prototype.get = function(prop, delta) {
+  if (!this.entity || typeof this.entity[prop] === 'undefined') { return null; }
+  return typeof delta !== 'undefined' ? this.entity[prop][delta] : this.entity[prop];
+};
+jDrupal.Entity.prototype.set = function(prop, delta, val) {
+  if (this.entity) { this.entity[prop] = val; }
+};
 jDrupal.Entity.prototype.getEntityKey = function(key) {
   return typeof this.entityKeys[key] !== 'undefined' ?
     this.entityKeys[key] : null;
