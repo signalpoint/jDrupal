@@ -18,16 +18,19 @@
 
 > A variety of application architectures, including...
 
-- headless / decoupled
+- headless/decoupled
 - web apps
-- hybrid mobile apps (phonegap/cordova)
+- hybrid mobile apps
+  - phonegap/cordova
+  - titanium
 
 > And works with many frameworks, including...
 
 - Bootstrap
 - Foundation
 - Angular
-- ...
+- React
+- Ember
 
 ## Where can jDrupal be used?
 

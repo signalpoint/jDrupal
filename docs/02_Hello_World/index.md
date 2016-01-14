@@ -1,8 +1,8 @@
-Welcome to the jDrupal "Hello World". By completing this guide, you'll be ready to build a app for your Drupal 8 website.
+> By completing this guide, you'll be ready to build an app for your Drupal 8 website.
 
 ## 1. Install jDrupal
 
-Follow the [jDrupal Install](Install) documentation.
+Follow the [jDrupal install docs](Install).
 
 ## 2. Add an index.html file
 
@@ -19,17 +19,7 @@ This file should live within the same domain as your Drupal site, but not in Dru
   <head>
 
       <title>jDrupal</title>
-
-      <!-- Load jDrupal and configure its settings-->
       <script src="jdrupal.min.js"></script>
-      <script type="text/javascript">
-          jDrupal.settings = {
-              sitePath: 'http://example.com',
-              basePath: '/'
-          };
-      </script>
-      
-      <!-- Load my app -->
       <script src="app.js"></script>
 
   </head>
@@ -51,6 +41,11 @@ This file will live next to the `index.html` file, for example:
 `http://example.com/app/app.js`
 
 ```
+jDrupal.settings = {
+  sitePath: 'http://example.com',
+  basePath: '/'
+};
+          
 function helloWorld() {
 
   // Connect to Drupal.
