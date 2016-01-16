@@ -280,9 +280,34 @@ jDrupal.modulesLoad = function() {
   return jDrupal.modules;
 };
 
+// Add a pre process hook, and continue with the call as usual.
+(function(send) {
+  XMLHttpRequest.prototype.send = function(data) {
+    var self = this;
+    var alters = jDrupal.moduleInvokeAll('rest_preprocess', this, data);
+    if (!alters) { send.call(this, data); }
+    else { alters.then(function() { send.call(self, data); }); }
+  };
+})(XMLHttpRequest.prototype.send);
+
+// Add a post process hook, and continue with the call as usual.
+(function(open) {
+  XMLHttpRequest.prototype.open = function(method, url, async, user, pass) {
+    this.addEventListener("readystatechange", function() {
+      if (this.readyState == 4) { jDrupal.moduleInvokeAll('rest_post_process', this) }
+    }, false);
+    open.call(this, method, url, async, user, pass);
+  };
+})(XMLHttpRequest.prototype.open);
+
+// Token resource.
 jDrupal.token = function() {
   return new Promise(function(resolve, reject) {
     var req = new XMLHttpRequest();
+    req.dg = {
+      service: 'system',
+      resource: 'token'
+    };
     req.open('GET', jDrupal.restPath() + 'rest/session/token');
     req.onload = function() {
       if (req.status == 200) { resolve(req.response); }
@@ -292,9 +317,15 @@ jDrupal.token = function() {
     req.send();
   });
 };
+
+// Connect resource.
 jDrupal.connect = function() {
   return new Promise(function(resolve, reject) {
     var req = new XMLHttpRequest();
+    req.dg = {
+      service: 'system',
+      resource: 'connect'
+    };
     req.open('GET', jDrupal.restPath() + 'jdrupal/connect?_format=json');
     req.onload = function() {
       if (req.status != 200) { reject(Error(req.statusText)); return; }
@@ -314,9 +345,15 @@ jDrupal.connect = function() {
     req.send();
   });
 };
+
+// User login resource.
 jDrupal.userLogin = function(name, pass) {
   return new Promise(function(resolve, reject) {
     var req = new XMLHttpRequest();
+    req.dg = {
+      service: 'user',
+      resource: 'login'
+    };
     req.open('POST', jDrupal.restPath() + 'user/login');
     req.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
     req.onload = function() {
@@ -332,9 +369,15 @@ jDrupal.userLogin = function(name, pass) {
     req.send(data);
   });
 };
+
+// User logout resource.
 jDrupal.userLogout = function(name, pass) {
   return new Promise(function(resolve, reject) {
     var req = new XMLHttpRequest();
+    req.dg = {
+      service: 'user',
+      resource: 'logout'
+    };
     req.open('GET', jDrupal.restPath() + 'user/logout');
     req.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
     req.onload = function() {
@@ -403,6 +446,10 @@ jDrupal.Views.prototype.getView = function() {
   var self = this;
   return new Promise(function(resolve, reject) {
     var req = new XMLHttpRequest();
+    req.dg = {
+      service: 'views',
+      resource: null
+    };
     req.open('GET', jDrupal.restPath() + self.getPath() + '?_format=json');
     req.onload = function() {
       if (req.status == 200) {
@@ -497,14 +544,18 @@ jDrupal.Entity.prototype.stringify = function() {
  * Entity load.
  * @param options
  */
-jDrupal.Entity.prototype.load = function(options) {
+jDrupal.Entity.prototype.load = function() {
   try {
     var _entity = this;
-    var entityType = this;
+    var entityType = _entity.getEntityType();
     return new Promise(function(resolve, reject) {
       var path = jDrupal.restPath() +
-        _entity.getEntityType() + '/' + _entity.id() + '?_format=json';
+          entityType + '/' + _entity.id() + '?_format=json';
       var req = new XMLHttpRequest();
+      req.dg = {
+        service: entityType,
+        resource: 'retrieve'
+      };
       req.open('GET', path);
       req.onload = function() {
         if (req.status == 200) {
@@ -538,9 +589,8 @@ jDrupal.Entity.prototype.preSave = function(options) {
 
 /**
  * Entity save.
- * @param options
  */
-jDrupal.Entity.prototype.save = function(options) {
+jDrupal.Entity.prototype.save = function() {
 
   var _entity = this;
 
@@ -568,6 +618,10 @@ jDrupal.Entity.prototype.save = function(options) {
         }
 
         var req = new XMLHttpRequest();
+        req.dg = {
+          service: entityType,
+          resource: resource
+        };
         req.open(method, jDrupal.restPath() + path);
         req.setRequestHeader('Content-type', 'application/json');
         req.setRequestHeader('X-CSRF-Token', token);
@@ -640,12 +694,17 @@ jDrupal.Entity.prototype.delete = function(options) {
 
       jDrupal.token().then(function(token) {
 
-        var path = jDrupal.restPath() + _entity.getEntityType() + '/' + _entity.id();
+        var entityType = _entity.getEntityType();
+        var path = jDrupal.restPath() + entityType + '/' + _entity.id();
         var data = {};
         data[_entity.getEntityKey('bundle')] = [ {
           target_id: _entity.getBundle()
         }];
         var req = new XMLHttpRequest();
+        req.dg = {
+          service: entityType,
+          resource: 'delete'
+        };
         req.open('DELETE', path);
         req.setRequestHeader('Content-type', 'application/json');
         req.setRequestHeader('X-CSRF-Token', token);
