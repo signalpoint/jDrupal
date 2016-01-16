@@ -66,14 +66,18 @@ jDrupal.Entity.prototype.stringify = function() {
  * Entity load.
  * @param options
  */
-jDrupal.Entity.prototype.load = function(options) {
+jDrupal.Entity.prototype.load = function() {
   try {
     var _entity = this;
-    var entityType = this;
+    var entityType = _entity.getEntityType();
     return new Promise(function(resolve, reject) {
       var path = jDrupal.restPath() +
-        _entity.getEntityType() + '/' + _entity.id() + '?_format=json';
+          entityType + '/' + _entity.id() + '?_format=json';
       var req = new XMLHttpRequest();
+      req.dg = {
+        service: entityType,
+        resource: 'retrieve'
+      };
       req.open('GET', path);
       req.onload = function() {
         if (req.status == 200) {
@@ -107,9 +111,8 @@ jDrupal.Entity.prototype.preSave = function(options) {
 
 /**
  * Entity save.
- * @param options
  */
-jDrupal.Entity.prototype.save = function(options) {
+jDrupal.Entity.prototype.save = function() {
 
   var _entity = this;
 
@@ -137,6 +140,10 @@ jDrupal.Entity.prototype.save = function(options) {
         }
 
         var req = new XMLHttpRequest();
+        req.dg = {
+          service: entityType,
+          resource: resource
+        };
         req.open(method, jDrupal.restPath() + path);
         req.setRequestHeader('Content-type', 'application/json');
         req.setRequestHeader('X-CSRF-Token', token);
@@ -209,12 +216,17 @@ jDrupal.Entity.prototype.delete = function(options) {
 
       jDrupal.token().then(function(token) {
 
-        var path = jDrupal.restPath() + _entity.getEntityType() + '/' + _entity.id();
+        var entityType = _entity.getEntityType();
+        var path = jDrupal.restPath() + entityType + '/' + _entity.id();
         var data = {};
         data[_entity.getEntityKey('bundle')] = [ {
           target_id: _entity.getBundle()
         }];
         var req = new XMLHttpRequest();
+        req.dg = {
+          service: entityType,
+          resource: 'delete'
+        };
         req.open('DELETE', path);
         req.setRequestHeader('Content-type', 'application/json');
         req.setRequestHeader('X-CSRF-Token', token);
