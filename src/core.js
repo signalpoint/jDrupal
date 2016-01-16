@@ -16,12 +16,9 @@ jDrupal.restPath = function() {
  */
 jDrupal.isReady = function() {
   try {
-    var result = true;
-    if (jDrupal.isEmpty(jDrupal.sitePath())) {
-      result = false;
-      console.log('sitePath not set in jdrupal.settings.js');
-    }
-    return result;
+    var ready = !jDrupal.isEmpty(jDrupal.sitePath());
+    if (!ready) { console.log('sitePath not set in jdrupal.settings.js'); }
+    return ready;
   }
   catch (error) { console.log('jDrupal.isReady - ' + error); }
 };
