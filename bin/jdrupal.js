@@ -16,12 +16,9 @@ jDrupal.restPath = function() {
  */
 jDrupal.isReady = function() {
   try {
-    var result = true;
-    if (jDrupal.isEmpty(jDrupal.sitePath())) {
-      result = false;
-      console.log('sitePath not set in jdrupal.settings.js');
-    }
-    return result;
+    var ready = !jDrupal.isEmpty(jDrupal.sitePath());
+    if (!ready) { console.log('sitePath not set in jdrupal.settings.js'); }
+    return ready;
   }
   catch (error) { console.log('jDrupal.isReady - ' + error); }
 };
@@ -537,6 +534,9 @@ jDrupal.Entity.prototype.id = function() {
   var id = this.getEntityKey('id');
   return typeof this.entity[id] !== 'undefined' ?
     this.entity[id][0].value : null;
+};
+jDrupal.Entity.prototype.language = function() {
+  return this.entity.langcode[0].value;
 };
 jDrupal.Entity.prototype.isNew = function() {
   return !this.id();
