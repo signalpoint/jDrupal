@@ -1,6 +1,31 @@
+// Add a pre process hook, and continue with the call as usual.
+(function(send) {
+  XMLHttpRequest.prototype.send = function(data) {
+    var self = this;
+    var alters = jDrupal.moduleInvokeAll('rest_preprocess', this, data);
+    if (!alters) { send.call(this, data); }
+    else { alters.then(function() { send.call(self, data); }); }
+  };
+})(XMLHttpRequest.prototype.send);
+
+// Add a post process hook, and continue with the call as usual.
+(function(open) {
+  XMLHttpRequest.prototype.open = function(method, url, async, user, pass) {
+    this.addEventListener("readystatechange", function() {
+      if (this.readyState == 4) { jDrupal.moduleInvokeAll('rest_post_process', this) }
+    }, false);
+    open.call(this, method, url, async, user, pass);
+  };
+})(XMLHttpRequest.prototype.open);
+
+// Token resource.
 jDrupal.token = function() {
   return new Promise(function(resolve, reject) {
     var req = new XMLHttpRequest();
+    req.dg = {
+      service: 'system',
+      resource: 'token'
+    };
     req.open('GET', jDrupal.restPath() + 'rest/session/token');
     req.onload = function() {
       if (req.status == 200) { resolve(req.response); }
@@ -10,9 +35,15 @@ jDrupal.token = function() {
     req.send();
   });
 };
+
+// Connect resource.
 jDrupal.connect = function() {
   return new Promise(function(resolve, reject) {
     var req = new XMLHttpRequest();
+    req.dg = {
+      service: 'system',
+      resource: 'connect'
+    };
     req.open('GET', jDrupal.restPath() + 'jdrupal/connect?_format=json');
     req.onload = function() {
       if (req.status != 200) { reject(Error(req.statusText)); return; }
@@ -32,9 +63,15 @@ jDrupal.connect = function() {
     req.send();
   });
 };
+
+// User login resource.
 jDrupal.userLogin = function(name, pass) {
   return new Promise(function(resolve, reject) {
     var req = new XMLHttpRequest();
+    req.dg = {
+      service: 'user',
+      resource: 'login'
+    };
     req.open('POST', jDrupal.restPath() + 'user/login');
     req.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
     req.onload = function() {
@@ -50,9 +87,15 @@ jDrupal.userLogin = function(name, pass) {
     req.send(data);
   });
 };
+
+// User logout resource.
 jDrupal.userLogout = function(name, pass) {
   return new Promise(function(resolve, reject) {
     var req = new XMLHttpRequest();
+    req.dg = {
+      service: 'user',
+      resource: 'logout'
+    };
     req.open('GET', jDrupal.restPath() + 'user/logout');
     req.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
     req.onload = function() {
