@@ -27,6 +27,10 @@ jDrupal.Views.prototype.getView = function() {
   var self = this;
   return new Promise(function(resolve, reject) {
     var req = new XMLHttpRequest();
+    req.dg = {
+      service: 'views',
+      resource: null
+    };
     req.open('GET', jDrupal.restPath() + self.getPath() + '?_format=json');
     req.onload = function() {
       if (req.status == 200) {
