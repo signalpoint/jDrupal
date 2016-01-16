@@ -37,6 +37,7 @@ function jDrupalInit() {
     jDrupal.csrf_token = false;
     jDrupal.sessid = null;
     jDrupal.modules = {};
+    jDrupal.connected = false; // Will be equal to true after the system connect.
 
   }
   catch (error) { console.log('jDrupalInit - ' + error); }
