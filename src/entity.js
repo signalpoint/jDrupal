@@ -79,10 +79,15 @@ jDrupal.Entity.prototype.load = function() {
         resource: 'retrieve'
       };
       req.open('GET', path);
+      var loaded = function() {
+        _entity.entity = JSON.parse(req.response);
+        resolve(_entity);
+      };
       req.onload = function() {
         if (req.status == 200) {
-          _entity.entity = JSON.parse(req.response);
-          resolve(_entity);
+          var invoke = jDrupal.moduleInvokeAll('rest_post_process', req);
+          if (!invoke) { loaded(); }
+          else { invoke.then(loaded); }
         }
         else { reject(Error(req.statusText)); }
       };
@@ -152,7 +157,11 @@ jDrupal.Entity.prototype.save = function() {
             if (
               (method == 'POST' && req.status == 201) ||
               (method == 'PATCH' && req.status == 204)
-            ) { resolve(); }
+            ) {
+              var invoke = jDrupal.moduleInvokeAll('rest_post_process', req);
+              if (!invoke) { resolve(); }
+              else { invoke.then(resolve); }
+            }
             else { reject(Error(req.statusText)); }
           });
 
@@ -232,7 +241,11 @@ jDrupal.Entity.prototype.delete = function(options) {
         req.setRequestHeader('X-CSRF-Token', token);
         req.onload = function() {
           _entity.postDelete(req).then(function() {
-            if (req.status == 204) { resolve(); }
+            if (req.status == 204) {
+              var invoke = jDrupal.moduleInvokeAll('rest_post_process', req);
+              if (!invoke) { resolve(); }
+              else { invoke.then(resolve); }
+            }
             else { reject(Error(req.statusText)); }
           });
 

@@ -8,16 +8,6 @@
   };
 })(XMLHttpRequest.prototype.send);
 
-// Add a post process hook, and continue with the call as usual.
-(function(open) {
-  XMLHttpRequest.prototype.open = function(method, url, async, user, pass) {
-    this.addEventListener("readystatechange", function() {
-      if (this.readyState == 4) { jDrupal.moduleInvokeAll('rest_post_process', this) }
-    }, false);
-    open.call(this, method, url, async, user, pass);
-  };
-})(XMLHttpRequest.prototype.open);
-
 // Token resource.
 jDrupal.token = function() {
   return new Promise(function(resolve, reject) {
@@ -28,7 +18,11 @@ jDrupal.token = function() {
     };
     req.open('GET', jDrupal.restPath() + 'rest/session/token');
     req.onload = function() {
-      if (req.status == 200) { resolve(req.response); }
+      if (req.status == 200) {
+        var invoke = jDrupal.moduleInvokeAll('rest_post_process', req);
+        if (!invoke) { resolve(req.response); }
+        else { invoke.then(resolve(req.response));}
+      }
       else { reject(Error(req.statusText)); }
     };
     req.onerror = function() { reject(Error("Network Error")); };
@@ -45,8 +39,8 @@ jDrupal.connect = function() {
       resource: 'connect'
     };
     req.open('GET', jDrupal.restPath() + 'jdrupal/connect?_format=json');
-    req.onload = function() {
-      if (req.status != 200) { reject(Error(req.statusText)); return; }
+    var connected = function() {
+      jDrupal.connected = true;
       var result = JSON.parse(req.response);
       if (result.uid == 0) {
         jDrupal.setCurrentUser(jDrupal.userDefaults());
@@ -58,6 +52,12 @@ jDrupal.connect = function() {
           resolve(result);
         });
       }
+    };
+    req.onload = function() {
+      if (req.status != 200) { reject(Error(req.statusText)); return; }
+      var invoke = jDrupal.moduleInvokeAll('rest_post_process', req);
+      if (!invoke) { connected(); }
+      else { invoke.then(connected); }
     };
     req.onerror = function() { reject(Error("Network Error")); };
     req.send();
@@ -74,9 +74,12 @@ jDrupal.userLogin = function(name, pass) {
     };
     req.open('POST', jDrupal.restPath() + 'user/login');
     req.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+    var connected = function() { jDrupal.connect().then(resolve); };
     req.onload = function() {
       if (req.status == 200 || req.status == 303) {
-        jDrupal.connect().then(resolve);
+        var invoke = jDrupal.moduleInvokeAll('rest_post_process', req);
+        if (!invoke) { connected(); }
+        else { invoke.then(connected); }
       }
       else { reject(Error(req.statusText)); }
     };
@@ -98,10 +101,15 @@ jDrupal.userLogout = function(name, pass) {
     };
     req.open('GET', jDrupal.restPath() + 'user/logout');
     req.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+    var connected = function() {
+      jDrupal.setCurrentUser(jDrupal.userDefaults());
+      jDrupal.connect().then(resolve);
+    };
     req.onload = function() {
       if (req.status == 200 || req.status == 303) {
-        jDrupal.setCurrentUser(jDrupal.userDefaults());
-        jDrupal.connect().then(resolve);
+        var invoke = jDrupal.moduleInvokeAll('rest_post_process', req);
+        if (!invoke) { connected(); }
+        else { invoke.then(connected); }
       }
       else { reject(Error(req.statusText)); }
     };

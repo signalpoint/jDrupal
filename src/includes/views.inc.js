@@ -32,10 +32,15 @@ jDrupal.Views.prototype.getView = function() {
       resource: null
     };
     req.open('GET', jDrupal.restPath() + self.getPath() + '?_format=json');
+    var loaded = function() {
+      self.results = JSON.parse(req.response);
+      resolve();
+    };
     req.onload = function() {
       if (req.status == 200) {
-        self.results = JSON.parse(req.response);
-        resolve();
+        var invoke = jDrupal.moduleInvokeAll('rest_post_process', req);
+        if (!invoke) { loaded(); }
+        else { invoke.then(loaded); }
       }
       else { reject(Error(req.statusText)); }
     };
