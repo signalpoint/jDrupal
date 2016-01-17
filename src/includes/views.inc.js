@@ -31,7 +31,7 @@ jDrupal.Views.prototype.getView = function() {
       service: 'views',
       resource: null
     };
-    req.open('GET', jDrupal.restPath() + self.getPath() + '?_format=json');
+    req.open('GET', jDrupal.restPath() + self.getPath());
     var loaded = function() {
       self.results = JSON.parse(req.response);
       resolve();
