@@ -1376,11 +1376,12 @@ jDrupal.Node.prototype.preSave = function(options) {
 
 
 
+// @see https://api.drupal.org/api/drupal/core!modules!user!src!Entity!User.php/class/User/8
+
 /**
  * User
  * @param {Number|Object} uid_or_account
  * @constructor
- * @see https://api.drupal.org/api/drupal/core!modules!user!src!Entity!User.php/class/User/8
  */
 jDrupal.User = function(uid_or_account) {
 
@@ -1393,8 +1394,6 @@ jDrupal.User = function(uid_or_account) {
   // Prep the entity.
   jDrupalEntityConstructorPrep(this, uid_or_account);
 
-  // Set default values.
-
 };
 
 // Extend the entity prototype.
@@ -1406,6 +1405,19 @@ jDrupal.User.prototype.constructor = jDrupal.User;
  * @returns {*}
  */
 jDrupal.User.prototype.getAccountName = function() { return this.label(); };
+
+jDrupal.User.prototype.getRoles = function() {
+  var _roles = this.entity.roles;
+  var roles = [];
+  for (var i = 0; i < this.entity.roles.length; i++) {
+    roles.push(this.entity.roles[i].target_id)
+  }
+  return roles;
+};
+
+jDrupal.User.prototype.hasRole = function(role) {
+  return jDrupal.inArray(role, this.getRoles());
+};
 
 /**
  *
