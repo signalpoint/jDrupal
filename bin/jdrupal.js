@@ -9,6 +9,9 @@ jDrupal.basePath = function() {
 jDrupal.restPath = function() {
   return this.sitePath() + this.basePath();
 };
+jDrupal.path = function() {
+  return this.restPath().substr(this.restPath().indexOf('://')+3).replace('localhost', '');
+};
 
 /**
  * Checks if we're ready to make a Services call.
@@ -456,7 +459,7 @@ jDrupal.Views.prototype.getView = function() {
       service: 'views',
       resource: null
     };
-    req.open('GET', jDrupal.restPath() + self.getPath() + '?_format=json');
+    req.open('GET', jDrupal.restPath() + self.getPath());
     var loaded = function() {
       self.results = JSON.parse(req.response);
       resolve();
