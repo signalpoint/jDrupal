@@ -9,6 +9,9 @@ jDrupal.basePath = function() {
 jDrupal.restPath = function() {
   return this.sitePath() + this.basePath();
 };
+jDrupal.path = function() {
+  return this.restPath().substr(this.restPath().indexOf('://')+3).replace('localhost', '');
+};
 
 /**
  * Checks if we're ready to make a Services call.
