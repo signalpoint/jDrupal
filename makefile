@@ -22,5 +22,5 @@ files =				 src/core.js\
 
 # Create an aggregated js file and a compressed js file.
 all: ${files}
-				@echo "Generating aggregated bin/jdrupal.js file"
-				@cat > bin/jdrupal.js $^
+				@echo "Generating aggregated jdrupal.js file"
+				@cat > jdrupal.js $^
