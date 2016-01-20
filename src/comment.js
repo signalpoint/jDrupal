@@ -14,7 +14,7 @@ jDrupal.Comment = function(cid_or_comment) {
   this.entityKeys['label'] = 'subject';
 
   // Prep the entity.
-  jDrupalEntityConstructorPrep(this, cid_or_comment);
+  jDrupal.entityConstructorPrep(this, cid_or_comment);
 
 };
 

@@ -14,7 +14,7 @@ jDrupal.User = function(uid_or_account) {
   this.entityKeys['label'] = 'name';
 
   // Prep the entity.
-  jDrupalEntityConstructorPrep(this, uid_or_account);
+  jDrupal.entityConstructorPrep(this, uid_or_account);
 
 };
 

@@ -14,7 +14,7 @@ jDrupal.Node = function(nid_or_node) {
   this.entityKeys['label'] = 'title';
 
   // Prep the entity.
-  jDrupalEntityConstructorPrep(this, nid_or_node);
+  jDrupal.entityConstructorPrep(this, nid_or_node);
 
   // Set default values.
   if (this.entity) {
