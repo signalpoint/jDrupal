@@ -84,7 +84,7 @@ jDrupal.moduleInvokeAll = function(hook) {
     if (!jDrupal.functionExists(module + '_' + hook)) { continue; }
     modules.push(module);
   }
-  if (jDrupal.isEmpty(modules)) { return; }
+  if (jDrupal.isEmpty(modules)) { return Promise.resolve(); }
 
   for (var i = 0; i < modules.length; i++) {
     // If there are no arguments, just call the hook directly,
