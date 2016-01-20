@@ -12,9 +12,14 @@
     <script type='text/javascript' src='http://code.jquery.com/qunit/qunit-1.12.0.js'></script>
     
 
-    <script src="bin/jdrupal.min.js"></script>
+    <script src="jdrupal.min.js"></script>
 
-      <script src="app/jdrupal.settings.js"></script>
+      <script type="text/javascript">
+          jDrupal.settings = {
+              sitePath: 'http://localhost/d8', // The path to your Drupal site, for example: http://www.example.com
+              basePath: '/'
+          };
+      </script>
     
     <!-- include tests -->
     <script src="tests/services.comment.test.js"></script>
