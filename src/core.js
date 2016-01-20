@@ -1,5 +1,20 @@
-// Initialize the jDrupal JSON object and run the bootstrap.
-var jDrupal = {}; jDrupalInit();
+// Initialize the jDrupal object.
+var jDrupal = {};
+
+/**
+ * Initializes the jDrupal JSON object.
+ */
+jDrupal.init = function() {
+  // General properties.
+  jDrupal.csrf_token = false;
+  jDrupal.sessid = null;
+  jDrupal.modules = {};
+  jDrupal.connected = false; // Will be equal to true after the system connect.
+};
+
+// Init jDrupal.
+jDrupal.init();
+
 jDrupal.sitePath = function() {
   return jDrupal.settings.sitePath;
 };
@@ -27,17 +42,13 @@ jDrupal.isReady = function() {
 };
 
 /**
- * Initializes the jDrupal JSON object.
+ *
  */
 function jDrupalInit() {
   try {
     if (!jDrupal) { jDrupal = {}; }
 
-    // General properties.
-    jDrupal.csrf_token = false;
-    jDrupal.sessid = null;
-    jDrupal.modules = {};
-    jDrupal.connected = false; // Will be equal to true after the system connect.
+
 
   }
   catch (error) { console.log('jDrupalInit - ' + error); }
