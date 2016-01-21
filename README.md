@@ -10,7 +10,7 @@
 
 - solves many common development needs for Drupal based applications.
 - provides a familiar Drupal coding experience and syntax for developers.
-- runs alongside any frontend, client side framework, or with no framework at all.
+- runs alongside any frontend client side framework, or with no framework at all.
 - utilizes JavaScript prototypes and promises.
 
 ## What kind of apps?
