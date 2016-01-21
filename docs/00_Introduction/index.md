@@ -4,35 +4,23 @@
 
 ## What is jDrupal used for?
 
-> Tools for Drupal 8 Application Development.
+> Drupal 8 Application Development.
 
-- Connect
-- User Login / Logout
-- Entity C.R.U.D. (*create, retrieve, update, delete*)
-  - Nodes
-  - Users
-  - Comments
-- Views Integration
+## jDrupal...
+
+- solves many common development needs for Drupal based applications.
+- provides a familiar Drupal coding experience and syntax for developers.
+- runs alongside any frontend, client side framework, or with no framework at all.
+- utilizes JavaScript prototypes and promises.
 
 ## What kind of apps?
 
 > A variety of application architectures, including...
 
-- headless/decoupled
-- web apps
-- hybrid mobile apps
-  - phonegap/cordova
-  - titanium
-
-> and works with many frameworks, including...
-
-- Bootstrap
-- Foundation
-- Angular
-- React
-- Ember
-
-> or with no framework at all.
+- Mobile Applications (Android, iOS, etc)
+- Web Applications
+- Headless Drupal / Decoupled Drupal
+- [PhoneGap](http://phonegap.com/) ([Cordova](https://cordova.apache.org/))
 
 ## Where can jDrupal be used?
 

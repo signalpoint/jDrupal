@@ -6,7 +6,7 @@
 
 ## 2. Create an app folder
 
-Next, create a folder called `app` to store your application's source code. This folder should live within the same domain as your Drupal website. For example place it in a new directory called `app` in your Drupal root:
+Next, create a folder called `app` to store your application's source code. This folder should live within the same domain as your Drupal website. For example, place it in a new directory called `app` in your Drupal root:
 
 ```
 http://example.com/app
