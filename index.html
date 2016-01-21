@@ -11,8 +11,6 @@
   </head>
 
   <body onload="hello_world()">
-  
-    <h1>jDrupal</h1>
     
     <p id="message">Loading...</p>
     
@@ -31,10 +29,9 @@
             success:function(result){
               
               // Place custom code here...
-              
-              if (Drupal.user.uid == 0) { message = "Hello World, Visitor!"; }
-              else { message = "Hello World, " + Drupal.user.name + "!"; }
-              document.getElementById("message").innerHTML = message;
+
+              var msg = Drupal.user.uid == 0 ? 'Hello World' : 'Hello ' + Drupal.user.name;
+              document.getElementById("message").innerHTML = msg;
               
             },
             error:function(xhr, status, message) {
