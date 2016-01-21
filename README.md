@@ -26,14 +26,12 @@ Since jDrupal has no dependencies and is written in pure JavaScript, it can be u
 
 ```
 <html>
-<head>
-  <!-- ... -->
-
-  <script src="jdrupal.min.js"></script>
-  
-  <!-- ... -->
-</head>
-<body><!-- ... --></body>
+  <head>
+    <!-- ... -->
+    <script src="jdrupal.min.js"></script>
+    <!-- ... -->
+  </head>
+  <body><!-- ... --></body>
 </html>
 ```
 
