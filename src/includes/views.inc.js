@@ -1,6 +1,6 @@
 /**
- * Entity
- * @param {String} path
+ * The Views constructor.
+ * @param {String} path The path to the Views REST Export in Drupal.
  * @constructor
  */
 jDrupal.Views = function(path) {
@@ -9,19 +9,24 @@ jDrupal.Views = function(path) {
 };
 
 /**
- *
- * @returns {String|*}
+ * Returns the path to the rest export.
+ * @returns {String}
  */
 jDrupal.Views.prototype.getPath = function() {
   return this.path;
 };
 
+/**
+ * Returns the results, if any.
+ * @returns {*}
+ */
 jDrupal.Views.prototype.getResults = function() {
   return this.results;
 };
 
 /**
- *
+ * Retrieves the Views' results from the Drupal site's rest export.
+ * @returns {Promise}
  */
 jDrupal.Views.prototype.getView = function() {
   var self = this;
@@ -50,6 +55,7 @@ jDrupal.Views.prototype.getView = function() {
 };
 
 /**
+ * Loads a view and fetches its results from the Drupal site.
  * @param {String} path
  * @param {Object} options
  */

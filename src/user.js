@@ -1,7 +1,7 @@
 // @see https://api.drupal.org/api/drupal/core!modules!user!src!Entity!User.php/class/User/8
 
 /**
- * User
+ * Given a user id or JSON object, this Creates a new jDrupal User object.
  * @param {Number|Object} uid_or_account
  * @constructor
  */
@@ -18,8 +18,16 @@ jDrupal.User = function(uid_or_account) {
 
 };
 
-// Extend the entity prototype.
+/**
+ * Extend the entity prototype.
+ * @type {jDrupal.Entity}
+ */
 jDrupal.User.prototype = new jDrupal.Entity;
+
+/**
+ * Set the constructor.
+ * @type {jDrupal.User|*}
+ */
 jDrupal.User.prototype.constructor = jDrupal.User;
 
 /**
@@ -74,18 +82,6 @@ jDrupal.User.prototype.isAuthenticated = function() {
 jDrupal.currentUser = function() {
   return jDrupal._currentUser;
 };
-
-/**
- *
- * @param uid
- * @param options
- * @returns {jDrupal.User}
- */
-//jDrupal.userLoad = function(uid, options) {
-//  var account = new jDrupal.User(uid);
-//  account.load(options);
-//  return account;
-//};
 
 /**
  * HELPERS

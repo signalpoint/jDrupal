@@ -1,7 +1,7 @@
 // @see https://api.drupal.org/api/drupal/core!modules!node!src!Entity!Node.php/class/Node/8
 
 /**
- * Node
+ * Given a node id or JSON object, this Creates a new jDrupal Node object.
  * @param {Number|Object} nid_or_node
  * @constructor
  */
@@ -25,8 +25,16 @@ jDrupal.Node = function(nid_or_node) {
 
 };
 
-// Extend the entity prototype.
+/**
+ * Extend the entity prototype.
+ * @type {jDrupal.Entity}
+ */
 jDrupal.Node.prototype = new jDrupal.Entity;
+
+/**
+ * Set the constructor.
+ * @type {jDrupal.Node|*}
+ */
 jDrupal.Node.prototype.constructor = jDrupal.Node;
 
 /**
@@ -82,6 +90,11 @@ jDrupal.Node.prototype.isSticky = function() {
  * OVERRIDES
  */
 
+/**
+ *
+ * @param options
+ * @returns {Promise}
+ */
 jDrupal.Node.prototype.preSave = function(options) {
   var self = this;
   return new Promise(function(resolve, reject) {
@@ -97,19 +110,3 @@ jDrupal.Node.prototype.preSave = function(options) {
     resolve();
   });
 };
-
-/**
- * PROXIES
- */
-
-/**
- *
- * @param nid
- * @param options
- * @returns {jDrupal.Node}
- */
-//jDrupal.nodeLoad = function(nid, options) {
-//  var node = new jDrupal.Node(nid);
-//  node.load(options);
-//  return node;
-//};

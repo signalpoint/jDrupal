@@ -1,5 +1,7 @@
+// @TODO All "set" functions should return "this" for easy code chains.
+
 /**
- * Entity
+ * Given a entity type, bundle and id, this Creates a new jDrupal Entity object.
  * @param entityType
  * @param bundle
  * @param id
@@ -7,20 +9,34 @@
  */
 jDrupal.Entity = function(entityType, bundle, id) {
 
+  // @TODO Allow an entity object to be passed in.
+
   this.entity = null;
 
-  // @TODO these flat values need to be turned into arrays, e.g.
-  // [ { value: 'foo'} ]
+  // @TODO these flat values need to be turned into arrays, e.g. [ { value: 'foo'} ]
   this.bundle = bundle;
   this.entityID = id;
 
   this.entityKeys = {};
 };
 
+/**
+ *
+ * @param prop
+ * @param delta
+ * @returns {*}
+ */
 jDrupal.Entity.prototype.get = function(prop, delta) {
   if (!this.entity || typeof this.entity[prop] === 'undefined') { return null; }
   return typeof delta !== 'undefined' ? this.entity[prop][delta] : this.entity[prop];
 };
+
+/**
+ *
+ * @param prop
+ * @param delta
+ * @param val
+ */
 jDrupal.Entity.prototype.set = function(prop, delta, val) {
   if (this.entity) {
     if (typeof delta !== 'undefined' && typeof this.entity[prop] !== 'undefined') {
@@ -29,34 +45,74 @@ jDrupal.Entity.prototype.set = function(prop, delta, val) {
     else { this.entity[prop] = val; }
   }
 };
+
+/**
+ *
+ * @param key
+ * @returns {null}
+ */
 jDrupal.Entity.prototype.getEntityKey = function(key) {
   return typeof this.entityKeys[key] !== 'undefined' ?
     this.entityKeys[key] : null;
 };
+
+/**
+ *
+ * @returns {*}
+ */
 jDrupal.Entity.prototype.getEntityType = function() {
   return this.entityKeys['type'];
 };
+
+/**
+ *
+ * @returns {*}
+ */
 jDrupal.Entity.prototype.getBundle = function() {
   var bundle = this.getEntityKey('bundle');
   return typeof this.entity[bundle] !== 'undefined' ?
     this.entity[bundle][0].target_id : null;
 };
+
+/**
+ *
+ * @returns {null}
+ */
 jDrupal.Entity.prototype.id = function() {
   var id = this.getEntityKey('id');
   return typeof this.entity[id] !== 'undefined' ?
     this.entity[id][0].value : null;
 };
+
+/**
+ *
+ * @returns {*}
+ */
 jDrupal.Entity.prototype.language = function() {
   return this.entity.langcode[0].value;
 };
+
+/**
+ *
+ * @returns {boolean}
+ */
 jDrupal.Entity.prototype.isNew = function() {
   return !this.id();
 };
+
+/**
+ *
+ * @returns {null}
+ */
 jDrupal.Entity.prototype.label = function() {
   var label = this.getEntityKey('label');
   return typeof this.entity[label] !== 'undefined' ?
     this.entity[label][0].value : null;
 };
+
+/**
+ * @returns {String}
+ */
 jDrupal.Entity.prototype.stringify = function() {
   return JSON.stringify(this.entity);
 };
@@ -66,8 +122,8 @@ jDrupal.Entity.prototype.stringify = function() {
  */
 
 /**
- * Entity load.
- * @param options
+ *
+ * @returns {Promise}
  */
 jDrupal.Entity.prototype.load = function() {
   try {
@@ -108,8 +164,9 @@ jDrupal.Entity.prototype.load = function() {
  */
 
 /**
- * Entity pre save.
+ *
  * @param options
+ * @returns {Promise}
  */
 jDrupal.Entity.prototype.preSave = function(options) {
   return new Promise(function(resolve, reject) {
@@ -118,7 +175,8 @@ jDrupal.Entity.prototype.preSave = function(options) {
 };
 
 /**
- * Entity save.
+ *
+ * @returns {Promise}
  */
 jDrupal.Entity.prototype.save = function() {
 
@@ -181,15 +239,16 @@ jDrupal.Entity.prototype.save = function() {
 };
 
 /**
- * Entity post save.
- * @param data
+ *
+ * @param xhr
+ * @returns {Promise}
  */
-jDrupal.Entity.prototype.postSave = function(req) {
+jDrupal.Entity.prototype.postSave = function(xhr) {
   var self = this;
   return new Promise(function(resolve, reject) {
     // For new entities, grab their id from the Location response header.
     if (self.isNew()) {
-      var parts = req.getResponseHeader('Location').split('/');
+      var parts = xhr.getResponseHeader('Location').split('/');
       var entityID =
         self.entity[self.getEntityKey('id')] = [ {
           value: parts[parts.length - 1]
@@ -204,8 +263,9 @@ jDrupal.Entity.prototype.postSave = function(req) {
  */
 
 /**
- * Entity pre delete.
+ *
  * @param options
+ * @returns {Promise}
  */
 jDrupal.Entity.prototype.preDelete = function(options) {
   return new Promise(function(resolve, reject) {
@@ -214,8 +274,9 @@ jDrupal.Entity.prototype.preDelete = function(options) {
 };
 
 /**
- * Entity delete.
+ *
  * @param options
+ * @returns {Promise}
  */
 jDrupal.Entity.prototype.delete = function(options) {
 
@@ -265,8 +326,9 @@ jDrupal.Entity.prototype.delete = function(options) {
 };
 
 /**
- * Entity post delete.
+ *
  * @param options
+ * @returns {Promise}
  */
 jDrupal.Entity.prototype.postDelete = function(options) {
   var self = this;

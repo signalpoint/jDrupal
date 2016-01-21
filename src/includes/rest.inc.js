@@ -1,14 +1,20 @@
-// Add a pre process hook, and continue with the call as usual.
 (function(send) {
+  /**
+   * Adds a pre process hook to all xhr request, and then continues with the call as usual.
+   * @param {*} data
+   */
   XMLHttpRequest.prototype.send = function(data) {
     var self = this;
-    var alters = jDrupal.moduleInvokeAll('rest_preprocess', this, data);
+    var alters = jDrupal.moduleInvokeAll('rest_pre_process', this, data);
     if (!alters) { send.call(this, data); }
     else { alters.then(function() { send.call(self, data); }); }
   };
 })(XMLHttpRequest.prototype.send);
 
-// Token resource.
+/**
+ * Gets the X-CSRF-Token from Drupal.
+ * @returns {Promise}
+ */
 jDrupal.token = function() {
   return new Promise(function(resolve, reject) {
     var req = new XMLHttpRequest();
@@ -30,7 +36,10 @@ jDrupal.token = function() {
   });
 };
 
-// Connect resource.
+/**
+ * Connects to Drupal and sets the currentUser object.
+ * @returns {Promise}
+ */
 jDrupal.connect = function() {
   return new Promise(function(resolve, reject) {
     var req = new XMLHttpRequest();
@@ -64,7 +73,12 @@ jDrupal.connect = function() {
   });
 };
 
-// User login resource.
+/**
+ * Logs into Drupal, then makes a jDrupal.connect() call to properly set the currentUser object.
+ * @param {String} name
+ * @param {String} pass
+ * @returns {Promise}
+ */
 jDrupal.userLogin = function(name, pass) {
   return new Promise(function(resolve, reject) {
     var req = new XMLHttpRequest();
@@ -91,8 +105,12 @@ jDrupal.userLogin = function(name, pass) {
   });
 };
 
-// User logout resource.
-jDrupal.userLogout = function(name, pass) {
+/**
+ * Logs out of Drupal, clears the currentUser object, then performs a jDrupal.connect() to properly set the currentUser
+ * object.
+ * @returns {Promise}
+ */
+jDrupal.userLogout = function() {
   return new Promise(function(resolve, reject) {
     var req = new XMLHttpRequest();
     req.dg = {
@@ -121,24 +139,35 @@ jDrupal.userLogout = function(name, pass) {
 /**
  * ENTITY PROXY FUNCTIONS
  */
-jDrupal.entityLoad = function(entity_type, entity_id) {
-  var entity = new this[this.ucfirst(entity_type)](entity_id);
+
+/**
+ * Given an entity type and id, this will attempt to load the entity.
+ * @param {String} entityType
+ * @param {Number} entityID
+ * @returns {Promise}
+ */
+jDrupal.entityLoad = function(entityType, entityID) {
+  var entity = new this[this.ucfirst(entityType)](entityID);
   return entity.load();
 };
+
+/**
+ * Given a comment id, this will attempt to load the comment.
+ * @param {Number} cid
+ * @returns {Promise}
+ */
 jDrupal.commentLoad = function(cid) { return this.entityLoad('comment', cid); };
+
+/**
+ * Given a node id, this will attempt to load the node.
+ * @param {Number} nid
+ * @returns {Promise}
+ */
 jDrupal.nodeLoad = function(nid) { return this.entityLoad('node', nid); };
+
+/**
+ * Given a user id, this will attempt to load the account.
+ * @param {Number} uid
+ * @returns {Promise}
+ */
 jDrupal.userLoad = function(uid) { return this.entityLoad('user', uid); };
-
-
-// @TODO this doesn't work because for some reason(s) we have to pass along
-// the node type bundle data to properly delete the node. Learn why this
-// is, or raise an issue to remove that need, because without it you pretty
-// much have to load a node before you can delete it, i.e. you can't just
-// delete a node if you have its nid. This is true for comments too.
-//jDrupal.nodeDelete = function(nid) {
-//  var node = new this.Node(nid);
-//  return node.delete();
-//};
-//$.nodeDelete(6).then(function() {
-//  console.log('Node deleted eh!');
-//});

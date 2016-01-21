@@ -1,12 +1,14 @@
+/**
+ * The jDrupal Module constructor prototype skeleton, which doesn't do anything since all module's implement their own
+ * constructors.
+ * @constructor
+ */
 jDrupal.Module = function() {
-
   this.name = null;
-
 };
 
 /**
- * Given a module name, this returns true if the module is enabled, false
- * otherwise.
+ * Given a module name, this returns true if the module is enabled, false otherwise.
  * @param {String} name The name of the module
  * @return {Boolean}
  */
@@ -18,9 +20,8 @@ jDrupal.moduleExists = function (name) {
 };
 
 /**
- * Determines which modules are implementing a hook. Returns an array with the
- * names of the modules which are implementing this hook. If no modules
- * implement the hook, it returns false.
+ * Determines which modules are implementing a hook. Returns an array with the names of the modules which are
+ * implementing this hook. If no modules implement the hook, it returns false.
  * @param {String} hook
  * @return {Array}
  */
@@ -45,7 +46,8 @@ jDrupal.moduleImplements = function(hook) {
 };
 
 /**
- * Given a module name and a hook name, this will invoke that module's hook.
+ * Given a module name and a hook name, this will invoke that module's hook and return the results of the invocation.
+ * Any additional arguments will be sent along to the hook.
  * @param {String} module
  * @param {String} hook
  * @return {*}
@@ -65,9 +67,10 @@ jDrupal.moduleInvoke = function(module, hook) {
 };
 
 /**
- * Given a hook name, this will invoke all modules that implement the hook.
+ * Given a hook name, this will invoke all modules that implement the hook. Any additional arguments will be sent along
+ * to each of the hooks.
  * @param {String} hook
- * @return {Array}
+ * @return {Promise}
  */
 jDrupal.moduleInvokeAll = function(hook) {
   var promises = [];
@@ -112,12 +115,12 @@ jDrupal.moduleInvokeAll = function(hook) {
  * @return {Object|Boolean}
  */
 jDrupal.moduleLoad = function(name) {
-  try {
-    return jDrupal.modules[name];
-  }
+  try { return jDrupal.modules[name] ? jDrupal.modules[name] : false; }
   catch (error) { console.log('jDrupal.moduleLoad - ' + error); }
 };
 
-jDrupal.modulesLoad = function() {
-  return jDrupal.modules;
-};
+/**
+ * Returns all active module JSON objects.
+ * @returns {Object}
+ */
+jDrupal.modulesLoad = function() { return jDrupal.modules; };

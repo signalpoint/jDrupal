@@ -1,7 +1,7 @@
 // @see https://api.drupal.org/api/drupal/core!modules!comment!src!Entity!Comment.php/class/Comment/8
 
 /**
- * Comment
+ * Given a comment id or JSON object, this Creates a new jDrupal Comment object.
  * @param {Number|Object} cid_or_comment
  * @constructor
  */
@@ -18,12 +18,20 @@ jDrupal.Comment = function(cid_or_comment) {
 
 };
 
-// Extend the entity prototype.
+/**
+ * Extend the entity prototype.
+ * @type {jDrupal.Entity}
+ */
 jDrupal.Comment.prototype = new jDrupal.Entity;
+
+/**
+ * Set the constructor.
+ * @type {jDrupal.Comment|*}
+ */
 jDrupal.Comment.prototype.constructor = jDrupal.Comment;
 
 /**
- *
+ * Returns the comment's subject.
  * @returns {*}
  */
 jDrupal.Comment.prototype.getSubject = function() {
@@ -31,7 +39,7 @@ jDrupal.Comment.prototype.getSubject = function() {
 };
 
 /**
- *
+ * Set's the comment's subject.
  * @returns {*}
  */
 jDrupal.Comment.prototype.setSubject = function(subject) {
@@ -58,6 +66,9 @@ jDrupal.Comment.prototype.preSave = function(options) {
   });
 };
 
+/**
+ *
+ */
 jDrupal.Comment.prototype.stringify = function() {
 
   try {
@@ -124,19 +135,3 @@ jDrupal.Comment.prototype.stringify = function() {
   }
 
 };
-
-/**
- * PROXIES
- */
-
-/**
- *
- * @param cid
- * @param options
- * @returns {jDrupal.Comment}
- */
-//jDrupal.commentLoad = function(cid, options) {
-//  var comment = new jDrupal.Comment(cid);
-//  comment.load(options);
-//  return comment;
-//};
