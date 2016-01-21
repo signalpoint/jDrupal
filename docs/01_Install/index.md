@@ -1,7 +1,7 @@
 ## 1. Set up a Drupal 8 Website
 
-  - [Download Drupal](https://drupal.org/download)
-  - [Install Drupal](http://drupal.org/documentation/install)
+- [Download Drupal](https://drupal.org/download)
+- [Install Drupal](http://drupal.org/documentation/install)
 
 ## 2. Enable the Module
 
