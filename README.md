@@ -1,63 +1,72 @@
-jDrupal
-=======
+## What is jDrupal?
 
-A pure JavaScript library for a RESTful Drupal website.
+> A simple Vanilla JavaScript Library and API.
+
+## What is jDrupal used for?
+
+> Drupal 7 Application Development.
+
+## What kind of apps?
+
+> A variety of application architectures, including...
+
+- Mobile Applications (Android, iOS, etc)
+- Web Applications
+- Headless Drupal / Decoupled Drupal
+- [PhoneGap](http://phonegap.com/) ([Cordova](https://cordova.apache.org/))
+
+## jDrupal...
+
+- solves many common development needs for Drupal based applications.
+- provides a familiar Drupal coding experience and syntax for developers.
+- runs alongside any frontend client side framework, or with no framework at all.
+
+Since jDrupal has no dependencies and is written in pure JavaScript, it can be used in a wide variety of architectures and frameworks. Just include it in the `<head>` of your app's `index.html` file:
 
 ```
-node_load(123, {
-    success: function(node) {
-      alert('Loaded node: ' + node.title);
-    },
-    error: function(xhr, status, message) {
-      alert(message)
-    }
+<html>
+  <head>
+    <!-- ... -->
+    <script src="jdrupal.min.js"></script>
+    <!-- ... -->
+  </head>
+  <body><!-- ... --></body>
+</html>
+```
+
+## Quick Examples
+
+```
+// Connect to Drupal and say hello to the current user.
+system_connect({
+  success: function(result) {
+    var msg = Drupal.user.uid == 0 ?
+        'Hello World' : 'Hello ' + Drupal.user.name;
+    alert(msg);
+  }
 });
 ```
 
-Above is an example of how easy it is to load a Drupal node with jDrupal
-in JavaScript. Use jDrupal to easily build JavaScript based mobile applications
-and web applications for your Drupal site.
-
-For more information and "Hello World", please visit: http://www.easystreet3.com/jDrupal
-
-## Install
-
-### Download and Install Drupal
-First, [download](https://drupal.org/download) and [install](https://drupal.org/documentation/install) Drupal so your site is available here, for example:
-
 ```
-http://www.example.com
+// Load a node and display the title.
+node_load(123, {
+  success: function(node) {
+    alert(node.title);
+  }
+});
 ```
 
-### Enable the Services Module and Create Endpoint
-Download and enable the Services module on the Drupal site. Import the endpoint by following these steps:
-
-- In Drupal, go to admin/structure/services/import
-- Copy the export code from [services-endpoint-export.txt](https://github.com/easystreet3/jDrupal/blob/7.x-1.x/services-endpoint-export.txt)
-- Paste it into the Endpoint code textarea
-- Click Continue
-- Click Save
-- Under admin/config/development/performance click Clear all caches
-
-### Add jDrupal library to your app and configure it
-- Download the jDrupal library with `bower install jdrupal` or [download a release](https://github.com/easystreet3/jDrupal/releases) manually.
-- Include the `jdrupal.js` file using a script tag in your app.
-- Configure the environmental variables to let jDrupal know where your Drupal endpoint is.
 ```
-// Set the site path (without the trailing slash).
-Drupal.settings.site_path = "http://www.example.com";
-
-// Set the Service Resource endpoint path.
-Drupal.settings.endpoint = "rest";
+// Login and show the user their id.
+user_login("bob", "secret", {
+  success: function(result) {
+    alert(Drupal.user.id);
+  }
+});
 ```
 
-# Entity Local Storage Cache
-```
-// Set to true to enable local storage caching for entities.
-Drupal.settings.cache.entity.enabled = true;
+## Getting Started
 
-// Number of seconds before cached copy expires. Set to 0 to cache forever, set
-// to 60 for one minute, etc.
-Drupal.settings.cache.entity.expiration = 60*60*24;
-```
+- [Hello World](http://jdrupal.easystreet3.com/7/docs/Hello_World)
 
+> jDrupal is best friends with [DrupalGap](http://drupalgap.org), the open source application development kit for Drupal websites.
