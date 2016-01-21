@@ -1,30 +1,179 @@
-A typical mobile application for a Drupal website will want to have access to nodes, users, comments. Luckily DrupalGap supports the Core Entity Bundles provided by Drupal.
+> A Bunch of Common jDrupal Examples
 
-DrupalGap provides [built-in pages for your mobile app](Pages/Built_in_Pages) that support viewing and editing core entities. For example, here are some typical page paths within DrupalGap for viewing and editing entities:
+The following examples use a [closure]((http://stackoverflow.com/q/111102/763010)) so we can use `$.example();` instead of `jDrupal.example();` for brevity.
 
-- `node/123`
-- `node/123/edit`
-- `user/456`
-- `user/456/edit`
-
-If you are familiar with the paths on your Drupal site, the DrupalGap paths above will look very familiar. So familiar in fact, they are the same paths used by Drupal!
-
-It is also easy to load entities from your Drupal site into your DrupalGap mobile application. These example functions are available within DrupalGap:
-
+## Authentication
+### Connect
 ```
-node_load(123, {
-    success: function(node) {
-      alert('Loaded ' + node.title);
-    }
+$.connect().then(function() {
+  // Connected to Drupal, safe to start my app...
 });
-
-user_load(456, {
-    success: function(user) {
-      alert('Loaded ' + user.name);
-    }
+```
+### Login
+```
+$.userLogin('bob', 'secret').then(function() {
+  console.log('Logged out!');
+});
+```
+### Logout
+```
+$.userLogout().then(function() {
+  console.log('Logged out!');
 });
 ```
 
-If entity caching is enabled in the `settings.js` file, anytime DrupalGap fetches an entity from the server, it will save it to the local storage on the mobile device. This allows developers to call e.g. `node_load(123, {...});` multiple times without worrying about the mobile application calling the Drupal server over and over for the same data.
+## Users
+### Get current user
+```
+var user = $.currentUser();
+console.log('Current user id: ' + user.id());
+```
+### Load a user
+```
+$.userLoad(456).then(function(user) {
+  console.log('Loaded : ' + user.getAccountName());
+});
+```
 
-[Learn More About Entity Caching](Developer_Guide/Caching_and_Performance)
+## Views
+```
+$.viewsLoad('my-view-url').then(function(view) {
+  var results = view.getResults();
+  for (var i = 0; i < results.length; i ++) {
+    var node = new $.Node(results[i]);
+    console.log('Loaded: ' + node.getTitle());
+  }
+});
+```
+
+## Nodes
+### Create a node
+```
+var node = new $.Node({
+  type: [ { target_id: 'article' } ],
+  title: [ { value: 'Hello World' }]
+});
+node.save().then(function() {
+  console.log('Saved new node # ' + node.id());
+});
+```
+### Load a node
+```
+$.nodeLoad(1).then(function(node) {
+  console.log('Loaded node: ' + node.getTitle());
+});
+```
+### Update a node
+```
+// First, load the node...
+$.nodeLoad(123).then(function(node) {
+
+  // then change its title...
+  node.setTitle('Goodbye world');
+
+  // and then save the changes.
+  node.save().then(function() {
+    console.log('Saved ' + node.getTitle());
+  });
+
+});
+```
+### Delete a node
+```
+// First, load the node...
+$.nodeLoad(123).then(function(node) {
+
+  // then delete it.
+  node.delete(123).then(function() {
+    console.log('Node deleted!');
+  });
+
+});
+```
+## Comments
+### Create a comment
+```
+var comment = new $.Comment({
+  uid: [ { target_id: 1 } ],
+  entity_id: [ { target_id: 123 } ],
+  entity_type: [ { value: 'node' } ],
+  comment_type:[ { target_id: "comment" } ],
+  subject: [ { value: 'Hello World' } ],
+  comment_body: [{
+    "value": "<p>How are you?</p>",
+    "format": "basic_html"
+  }]
+});
+comment.save().then(function() {
+  console.log('Saved new comment # ' + comment.id());
+});
+```
+### Load a comment
+```
+$.commentLoad(456).then(function(comment) {
+  console.log('Loaded: ' + comment.getSubject());
+});
+```
+### Update a comment
+```
+// @see https://www.drupal.org/node/2631774 (D8 core bug)
+
+// First, load the comment...
+$.commentLoad(456).then(function(comment) {
+
+  // then change its subject...
+  comment.setSubject('Goodbye world');
+
+  // and then save the changes.
+  comment.save().then(function() {
+    console.log('Saved ' + comment.setSubject());
+  });
+
+});
+```
+### Delete a comment
+```
+// First, load the comment...
+$.commentLoad(456).then(function(comment) {
+
+  // then delete it.
+  comment.delete(456).then(function() {
+    console.log('comment deleted!');
+  });
+
+});
+```
+
+## Taxonomy terms
+### Create a taxonomy term
+```
+```
+### Load a taxonomy term
+```
+```
+### Update a taxonomy term
+```
+```
+### Delete a taxonomy term
+```
+```
+### Understanding a closure
+#### With a closure
+When using a closure you can access jDrupal using `$`, which is great for keeping code clean:
+```
+(function($) {
+
+  $.nodeLoad(123).then(function(node) {
+    alert(node.getTitle());
+  });
+
+})(jDrupal);
+```
+
+#### Without a closure
+When not using a closure, you can quickly access jDrupal using the `jDrupal` object:
+```
+jDrupal.nodeLoad(123).then(function(node) {
+  alert(node.getTitle());
+});
+```

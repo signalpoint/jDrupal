@@ -12,6 +12,7 @@
     "clean_urls": true
   },
   "html": {
+    "google_analytics":"UA-36188740-5",
     "theme": "daux-blue",
     "auto_landing": false,
     "breadcrumbs": true,

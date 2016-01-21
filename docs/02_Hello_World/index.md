@@ -1,14 +1,28 @@
-> By completing this guide, you'll be ready to build an app for your Drupal 8 website.
+> This creates a simple web app for Drupal 8.
 
-## 1. Install jDrupal
+## 1. Set up the jDrupal Module
 
-Follow the [jDrupal install docs](Install).
+[Enable and Configure](Install) the jDrupal module for your Drupal 8 site.
 
-## 2. Add an index.html file
+## 2. Create an app folder
 
-Next, create an `index.html` file to start your app.
+Next, create a folder called `app` to store your application's source code. This folder should live within the same domain as your Drupal website. For example place it in a new directory called `app` in your Drupal root:
 
-This file should live within the same domain as your Drupal site, but not in Drupal's root directory, for example:
+```
+http://example.com/app
+```
+
+## 3. Download jDrupal
+
+[Download](https://raw.githubusercontent.com/easystreet3/jDrupal/8.x-1.x/jdrupal.min.js) the tool kit so it lives here:
+
+```
+http://example.com/app/jdrupal.min.js
+```
+
+## 4. Add an index.html file
+
+Next, create an `index.html` file to start your app. 
 
 `http://example.com/app/index.html`
 
@@ -32,11 +46,9 @@ This file should live within the same domain as your Drupal site, but not in Dru
 </html>
 ```
 
-## 3. Add an app.js file
+## 5. Add an app.js file
 
-Next, create an `app.js` file to power your app.
-
-This file will live next to the `index.html` file, for example:
+Next, create an `app.js` file to run your app and replace the `sitePath` value with the URL to your Drupal website.
                                                  
 `http://example.com/app/app.js`
 
@@ -68,6 +80,6 @@ function helloWorld() {
 }
 ```
 
-## 4. Run the app
+## 6. Run the app
 
 Navigate to `http://example.com/app` to view the `Hello World`.
