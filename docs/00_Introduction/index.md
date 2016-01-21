@@ -6,13 +6,6 @@
 
 > Drupal 8 Application Development.
 
-## jDrupal...
-
-- solves many common development needs for Drupal based applications.
-- provides a familiar Drupal coding experience and syntax for developers.
-- runs alongside any frontend client side framework, or with no framework at all.
-- utilizes JavaScript prototypes and promises.
-
 ## What kind of apps?
 
 > A variety of application architectures, including...
@@ -22,21 +15,22 @@
 - Headless Drupal / Decoupled Drupal
 - [PhoneGap](http://phonegap.com/) ([Cordova](https://cordova.apache.org/))
 
-## Where can jDrupal be used?
+## jDrupal...
 
-> In any JavaScript application.
+- solves many common development needs for Drupal based applications.
+- provides a familiar Drupal coding experience and syntax for developers.
+- runs alongside any frontend client side framework, or with no framework at all.
+- utilizes JavaScript prototypes and promises.
 
 Since jDrupal has no dependencies and is written in pure JavaScript, it can be used in a wide variety of architectures and frameworks. Just include it in the `<head>` of your app's `index.html` file:
 
 ```
 <html>
-<head>
-  <!-- ... -->
-
-  <script src="jdrupal.min.js"></script>
-  
-  <!-- ... -->
-</head>
-<body><!-- ... --></body>
+  <head>
+    <!-- ... -->
+    <script src="jdrupal.min.js"></script>
+    <!-- ... -->
+  </head>
+  <body><!-- ... --></body>
 </html>
 ```
