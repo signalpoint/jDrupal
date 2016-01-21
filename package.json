@@ -1,7 +1,7 @@
 {
   "name": "jdrupal",
   "version": "7.0.0",
-  "description": "A JavaScript library for Drupal 7 Services.",
+  "description": "Application Development Tools for Drupal 7 Services",
   "main": "index.html",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -16,7 +16,7 @@
   "author": {
     "name": "Tyler Frankenstein",
     "email": "tyler.frankenstein@gmail.com",
-    "url": "http://tylerfrankenstein.com/"
+    "url": "email@tylerfrankenstein.com"
   },
   "license": "GNU",
   "bugs": {

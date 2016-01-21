@@ -41,7 +41,7 @@ Download and enable the Services module on the Drupal site. Import the endpoint 
 
 ### Add jDrupal library to your app and configure it
 - Download the jDrupal library with `bower install jdrupal` or [download a release](https://github.com/easystreet3/jDrupal/releases) manually.
-- Include the `bin/jdrupal.js` file using a script tag in your app.
+- Include the `jdrupal.js` file using a script tag in your app.
 - Configure the environmental variables to let jDrupal know where your Drupal endpoint is.
 ```
 // Set the site path (without the trailing slash).
