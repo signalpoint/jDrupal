@@ -1,0 +1,3 @@
+#!/bin/bash
+
+./node_modules/.bin/jsdoc jDrupal/src/*.js jDrupal/src/includes/*.*.js
