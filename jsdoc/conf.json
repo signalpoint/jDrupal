@@ -1,0 +1,17 @@
+{
+    "tags": {
+        "allowUnknownTags": true
+    },
+    "source": {
+      "include": [ "/var/www/html/d7/mobile-application/jDrupal/src" ]
+    },
+    "plugins": [],
+    "templates": {
+        "cleverLinks": false,
+        "monospaceLinks": false,
+        "default": {
+            "outputSourceFiles": true,
+            "layoutFile": "/var/www/html/jdrupal.easystreet3.com/8/jDrupal/jsdoc/layout.tmpl"
+        }
+    }
+}
