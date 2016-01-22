@@ -68,7 +68,7 @@ var test_user_crud = function(name, pass, callback) {
                  ok(!!user_create_result.uri, "uri");*/
 
                 // Retrieve
-                asyncTest("user_load", function() {
+                asyncTest("jDrupal.userLoad", function() {
                   //user_load(user_create_result.uid, {
                   jDrupal.userLoad(account.id()).then(function() {
                     start();
