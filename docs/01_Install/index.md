@@ -1,4 +1,4 @@
-## 1. Set up a Drupal 8 Website
+## 1. Set up a Drupal 7 Website
 
 - [Download Drupal](https://drupal.org/download)
 - [Install Drupal](http://drupal.org/documentation/install)

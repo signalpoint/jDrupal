@@ -1,4 +1,4 @@
-> This creates a simple web app for Drupal 8.
+> This creates a simple web app for Drupal 7.
 
 ## 1. Create an app folder
 
