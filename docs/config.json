@@ -13,7 +13,7 @@
   },
   "html": {
     "google_analytics":"UA-36188740-5",
-    "theme": "daux-blue",
+    "theme": "daux-green",
     "auto_landing": false,
     "breadcrumbs": true,
     "breadcrumb_separator": "Chevrons",
@@ -22,8 +22,10 @@
     "float": true,
     "repo": "easystreet3/jDrupal",
     "links": {
-      "Home": "http://jdrupal.easystreet3.com",
-      "jDrupal 8": "http://jdrupal.easystreet3.com/8"
+      "jDrupal Home": "http://jdrupal.easystreet3.com",
+      "jDrupal 7 API": "http://jdrupal.easystreet3.com/7/api",
+      "jDrupal 8": "http://jdrupal.easystreet3.com/8",
+      "DrupalGap": "http://drupalgap.org"
     }
   }
 }
