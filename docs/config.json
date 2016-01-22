@@ -13,7 +13,7 @@
   },
   "html": {
     "google_analytics":"UA-36188740-5",
-    "theme": "daux-blue",
+    "theme": "daux-red",
     "auto_landing": false,
     "breadcrumbs": true,
     "breadcrumb_separator": "Chevrons",
@@ -23,7 +23,9 @@
     "repo": "easystreet3/jDrupal",
     "links": {
       "jDrupal Home": "http://jdrupal.easystreet3.com",
-      "jDrupal 7": "http://jdrupal.easystreet3.com/7"
+      "jDrupal 8 API": "http://jdrupal.easystreet3.com/8/api",
+      "jDrupal 7": "http://jdrupal.easystreet3.com/7",
+      "DrupalGap": "http://drupalgap.org"
     }
   }
 }
