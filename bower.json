@@ -1,11 +1,11 @@
 {
   "name": "jdrupal",
-  "version": "7.0.0",
+  "version": "7.0.3",
   "homepage": "https://github.com/easystreet3/jDrupal",
   "authors": [
-    "Tyler Frankenstein <tyler.frankenstein@gmail.com>"
+    "Tyler Frankenstein <email@tylerfrankenstein.com>"
   ],
-  "description": "An JavaScript module for Drupal 7 Services.",
+  "description": "A JavaScript library for Drupal 7 Services.",
   "keywords": [
     "drupal"
   ],
