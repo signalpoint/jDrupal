@@ -13,7 +13,7 @@
   },
   "html": {
     "google_analytics":"UA-36188740-5",
-    "theme": "daux-green",
+    "theme": "daux-red",
     "auto_landing": false,
     "breadcrumbs": true,
     "breadcrumb_separator": "Chevrons",
