@@ -3,7 +3,7 @@
         "allowUnknownTags": true
     },
     "source": {
-      "include": [ "/var/www/html/d7/mobile-application/jDrupal/src" ]
+      "include": [ "/var/www/html/jdrupal.web/8/jDrupal/src" ]
     },
     "plugins": [],
     "templates": {
@@ -11,7 +11,7 @@
         "monospaceLinks": false,
         "default": {
             "outputSourceFiles": true,
-            "layoutFile": "/var/www/html/jdrupal.easystreet3.com/8/jDrupal/jsdoc/layout.tmpl"
+            "layoutFile": "/var/www/html/jdrupal.web/8/jDrupal/jsdoc/layout.tmpl"
         }
     }
 }
