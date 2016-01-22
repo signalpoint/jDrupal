@@ -168,15 +168,17 @@ jDrupal.ucfirst = function(str) {
   return f + str.substr(1);
 };
 
+/**
+ * The jDrupal Module constructor prototype skeleton, which doesn't do anything since all module's implement their own
+ * constructors.
+ * @constructor
+ */
 jDrupal.Module = function() {
-
   this.name = null;
-
 };
 
 /**
- * Given a module name, this returns true if the module is enabled, false
- * otherwise.
+ * Given a module name, this returns true if the module is enabled, false otherwise.
  * @param {String} name The name of the module
  * @return {Boolean}
  */
@@ -188,9 +190,8 @@ jDrupal.moduleExists = function (name) {
 };
 
 /**
- * Determines which modules are implementing a hook. Returns an array with the
- * names of the modules which are implementing this hook. If no modules
- * implement the hook, it returns false.
+ * Determines which modules are implementing a hook. Returns an array with the names of the modules which are
+ * implementing this hook. If no modules implement the hook, it returns false.
  * @param {String} hook
  * @return {Array}
  */
@@ -215,7 +216,8 @@ jDrupal.moduleImplements = function(hook) {
 };
 
 /**
- * Given a module name and a hook name, this will invoke that module's hook.
+ * Given a module name and a hook name, this will invoke that module's hook and return the results of the invocation.
+ * Any additional arguments will be sent along to the hook.
  * @param {String} module
  * @param {String} hook
  * @return {*}
@@ -235,9 +237,10 @@ jDrupal.moduleInvoke = function(module, hook) {
 };
 
 /**
- * Given a hook name, this will invoke all modules that implement the hook.
+ * Given a hook name, this will invoke all modules that implement the hook. Any additional arguments will be sent along
+ * to each of the hooks.
  * @param {String} hook
- * @return {Array}
+ * @return {Promise}
  */
 jDrupal.moduleInvokeAll = function(hook) {
   var promises = [];
@@ -282,27 +285,33 @@ jDrupal.moduleInvokeAll = function(hook) {
  * @return {Object|Boolean}
  */
 jDrupal.moduleLoad = function(name) {
-  try {
-    return jDrupal.modules[name];
-  }
+  try { return jDrupal.modules[name] ? jDrupal.modules[name] : false; }
   catch (error) { console.log('jDrupal.moduleLoad - ' + error); }
 };
 
-jDrupal.modulesLoad = function() {
-  return jDrupal.modules;
-};
+/**
+ * Returns all active module JSON objects.
+ * @returns {Object}
+ */
+jDrupal.modulesLoad = function() { return jDrupal.modules; };
 
-// Add a pre process hook, and continue with the call as usual.
 (function(send) {
+  /**
+   * Adds a pre process hook to all xhr request, and then continues with the call as usual.
+   * @param {*} data
+   */
   XMLHttpRequest.prototype.send = function(data) {
     var self = this;
-    var alters = jDrupal.moduleInvokeAll('rest_preprocess', this, data);
+    var alters = jDrupal.moduleInvokeAll('rest_pre_process', this, data);
     if (!alters) { send.call(this, data); }
     else { alters.then(function() { send.call(self, data); }); }
   };
 })(XMLHttpRequest.prototype.send);
 
-// Token resource.
+/**
+ * Gets the X-CSRF-Token from Drupal.
+ * @returns {Promise}
+ */
 jDrupal.token = function() {
   return new Promise(function(resolve, reject) {
     var req = new XMLHttpRequest();
@@ -324,7 +333,10 @@ jDrupal.token = function() {
   });
 };
 
-// Connect resource.
+/**
+ * Connects to Drupal and sets the currentUser object.
+ * @returns {Promise}
+ */
 jDrupal.connect = function() {
   return new Promise(function(resolve, reject) {
     var req = new XMLHttpRequest();
@@ -358,7 +370,12 @@ jDrupal.connect = function() {
   });
 };
 
-// User login resource.
+/**
+ * Logs into Drupal, then makes a jDrupal.connect() call to properly set the currentUser object.
+ * @param {String} name
+ * @param {String} pass
+ * @returns {Promise}
+ */
 jDrupal.userLogin = function(name, pass) {
   return new Promise(function(resolve, reject) {
     var req = new XMLHttpRequest();
@@ -385,8 +402,12 @@ jDrupal.userLogin = function(name, pass) {
   });
 };
 
-// User logout resource.
-jDrupal.userLogout = function(name, pass) {
+/**
+ * Logs out of Drupal, clears the currentUser object, then performs a jDrupal.connect() to properly set the currentUser
+ * object.
+ * @returns {Promise}
+ */
+jDrupal.userLogout = function() {
   return new Promise(function(resolve, reject) {
     var req = new XMLHttpRequest();
     req.dg = {
@@ -415,31 +436,42 @@ jDrupal.userLogout = function(name, pass) {
 /**
  * ENTITY PROXY FUNCTIONS
  */
-jDrupal.entityLoad = function(entity_type, entity_id) {
-  var entity = new this[this.ucfirst(entity_type)](entity_id);
-  return entity.load();
-};
-jDrupal.commentLoad = function(cid) { return this.entityLoad('comment', cid); };
-jDrupal.nodeLoad = function(nid) { return this.entityLoad('node', nid); };
-jDrupal.userLoad = function(uid) { return this.entityLoad('user', uid); };
-
-
-// @TODO this doesn't work because for some reason(s) we have to pass along
-// the node type bundle data to properly delete the node. Learn why this
-// is, or raise an issue to remove that need, because without it you pretty
-// much have to load a node before you can delete it, i.e. you can't just
-// delete a node if you have its nid. This is true for comments too.
-//jDrupal.nodeDelete = function(nid) {
-//  var node = new this.Node(nid);
-//  return node.delete();
-//};
-//$.nodeDelete(6).then(function() {
-//  console.log('Node deleted eh!');
-//});
 
 /**
- * Entity
- * @param {String} path
+ * Given an entity type and id, this will attempt to load the entity.
+ * @param {String} entityType
+ * @param {Number} entityID
+ * @returns {Promise}
+ */
+jDrupal.entityLoad = function(entityType, entityID) {
+  var entity = new this[this.ucfirst(entityType)](entityID);
+  return entity.load();
+};
+
+/**
+ * Given a comment id, this will attempt to load the comment.
+ * @param {Number} cid
+ * @returns {Promise}
+ */
+jDrupal.commentLoad = function(cid) { return this.entityLoad('comment', cid); };
+
+/**
+ * Given a node id, this will attempt to load the node.
+ * @param {Number} nid
+ * @returns {Promise}
+ */
+jDrupal.nodeLoad = function(nid) { return this.entityLoad('node', nid); };
+
+/**
+ * Given a user id, this will attempt to load the account.
+ * @param {Number} uid
+ * @returns {Promise}
+ */
+jDrupal.userLoad = function(uid) { return this.entityLoad('user', uid); };
+
+/**
+ * The Views constructor.
+ * @param {String} path The path to the Views REST Export in Drupal.
  * @constructor
  */
 jDrupal.Views = function(path) {
@@ -448,19 +480,24 @@ jDrupal.Views = function(path) {
 };
 
 /**
- *
- * @returns {String|*}
+ * Returns the path to the rest export.
+ * @returns {String}
  */
 jDrupal.Views.prototype.getPath = function() {
   return this.path;
 };
 
+/**
+ * Returns the results, if any.
+ * @returns {*}
+ */
 jDrupal.Views.prototype.getResults = function() {
   return this.results;
 };
 
 /**
- *
+ * Retrieves the Views' results from the Drupal site's rest export.
+ * @returns {Promise}
  */
 jDrupal.Views.prototype.getView = function() {
   var self = this;
@@ -489,6 +526,7 @@ jDrupal.Views.prototype.getView = function() {
 };
 
 /**
+ * Loads a view and fetches its results from the Drupal site.
  * @param {String} path
  * @param {Object} options
  */
@@ -501,8 +539,10 @@ jDrupal.viewsLoad = function(path) {
   });
 };
 
+// @TODO All "set" functions should return "this" for easy code chains.
+
 /**
- * Entity
+ * Given a entity type, bundle and id, this Creates a new jDrupal Entity object.
  * @param entityType
  * @param bundle
  * @param id
@@ -510,20 +550,34 @@ jDrupal.viewsLoad = function(path) {
  */
 jDrupal.Entity = function(entityType, bundle, id) {
 
+  // @TODO Allow an entity object to be passed in.
+
   this.entity = null;
 
-  // @TODO these flat values need to be turned into arrays, e.g.
-  // [ { value: 'foo'} ]
+  // @TODO these flat values need to be turned into arrays, e.g. [ { value: 'foo'} ]
   this.bundle = bundle;
   this.entityID = id;
 
   this.entityKeys = {};
 };
 
+/**
+ *
+ * @param prop
+ * @param delta
+ * @returns {*}
+ */
 jDrupal.Entity.prototype.get = function(prop, delta) {
   if (!this.entity || typeof this.entity[prop] === 'undefined') { return null; }
   return typeof delta !== 'undefined' ? this.entity[prop][delta] : this.entity[prop];
 };
+
+/**
+ *
+ * @param prop
+ * @param delta
+ * @param val
+ */
 jDrupal.Entity.prototype.set = function(prop, delta, val) {
   if (this.entity) {
     if (typeof delta !== 'undefined' && typeof this.entity[prop] !== 'undefined') {
@@ -532,34 +586,74 @@ jDrupal.Entity.prototype.set = function(prop, delta, val) {
     else { this.entity[prop] = val; }
   }
 };
+
+/**
+ *
+ * @param key
+ * @returns {null}
+ */
 jDrupal.Entity.prototype.getEntityKey = function(key) {
   return typeof this.entityKeys[key] !== 'undefined' ?
     this.entityKeys[key] : null;
 };
+
+/**
+ *
+ * @returns {*}
+ */
 jDrupal.Entity.prototype.getEntityType = function() {
   return this.entityKeys['type'];
 };
+
+/**
+ *
+ * @returns {*}
+ */
 jDrupal.Entity.prototype.getBundle = function() {
   var bundle = this.getEntityKey('bundle');
   return typeof this.entity[bundle] !== 'undefined' ?
     this.entity[bundle][0].target_id : null;
 };
+
+/**
+ *
+ * @returns {null}
+ */
 jDrupal.Entity.prototype.id = function() {
   var id = this.getEntityKey('id');
   return typeof this.entity[id] !== 'undefined' ?
     this.entity[id][0].value : null;
 };
+
+/**
+ *
+ * @returns {*}
+ */
 jDrupal.Entity.prototype.language = function() {
   return this.entity.langcode[0].value;
 };
+
+/**
+ *
+ * @returns {boolean}
+ */
 jDrupal.Entity.prototype.isNew = function() {
   return !this.id();
 };
+
+/**
+ *
+ * @returns {null}
+ */
 jDrupal.Entity.prototype.label = function() {
   var label = this.getEntityKey('label');
   return typeof this.entity[label] !== 'undefined' ?
     this.entity[label][0].value : null;
 };
+
+/**
+ * @returns {String}
+ */
 jDrupal.Entity.prototype.stringify = function() {
   return JSON.stringify(this.entity);
 };
@@ -569,8 +663,8 @@ jDrupal.Entity.prototype.stringify = function() {
  */
 
 /**
- * Entity load.
- * @param options
+ *
+ * @returns {Promise}
  */
 jDrupal.Entity.prototype.load = function() {
   try {
@@ -611,8 +705,9 @@ jDrupal.Entity.prototype.load = function() {
  */
 
 /**
- * Entity pre save.
+ *
  * @param options
+ * @returns {Promise}
  */
 jDrupal.Entity.prototype.preSave = function(options) {
   return new Promise(function(resolve, reject) {
@@ -621,7 +716,8 @@ jDrupal.Entity.prototype.preSave = function(options) {
 };
 
 /**
- * Entity save.
+ *
+ * @returns {Promise}
  */
 jDrupal.Entity.prototype.save = function() {
 
@@ -684,15 +780,16 @@ jDrupal.Entity.prototype.save = function() {
 };
 
 /**
- * Entity post save.
- * @param data
+ *
+ * @param xhr
+ * @returns {Promise}
  */
-jDrupal.Entity.prototype.postSave = function(req) {
+jDrupal.Entity.prototype.postSave = function(xhr) {
   var self = this;
   return new Promise(function(resolve, reject) {
     // For new entities, grab their id from the Location response header.
     if (self.isNew()) {
-      var parts = req.getResponseHeader('Location').split('/');
+      var parts = xhr.getResponseHeader('Location').split('/');
       var entityID =
         self.entity[self.getEntityKey('id')] = [ {
           value: parts[parts.length - 1]
@@ -707,8 +804,9 @@ jDrupal.Entity.prototype.postSave = function(req) {
  */
 
 /**
- * Entity pre delete.
+ *
  * @param options
+ * @returns {Promise}
  */
 jDrupal.Entity.prototype.preDelete = function(options) {
   return new Promise(function(resolve, reject) {
@@ -717,8 +815,9 @@ jDrupal.Entity.prototype.preDelete = function(options) {
 };
 
 /**
- * Entity delete.
+ *
  * @param options
+ * @returns {Promise}
  */
 jDrupal.Entity.prototype.delete = function(options) {
 
@@ -768,8 +867,9 @@ jDrupal.Entity.prototype.delete = function(options) {
 };
 
 /**
- * Entity post delete.
+ *
  * @param options
+ * @returns {Promise}
  */
 jDrupal.Entity.prototype.postDelete = function(options) {
   var self = this;
@@ -804,7 +904,7 @@ jDrupal.entityConstructorPrep = function(obj, entityID_or_entity) {
 // @see https://api.drupal.org/api/drupal/core!modules!comment!src!Entity!Comment.php/class/Comment/8
 
 /**
- * Comment
+ * Given a comment id or JSON object, this Creates a new jDrupal Comment object.
  * @param {Number|Object} cid_or_comment
  * @constructor
  */
@@ -821,12 +921,20 @@ jDrupal.Comment = function(cid_or_comment) {
 
 };
 
-// Extend the entity prototype.
+/**
+ * Extend the entity prototype.
+ * @type {jDrupal.Entity}
+ */
 jDrupal.Comment.prototype = new jDrupal.Entity;
+
+/**
+ * Set the constructor.
+ * @type {jDrupal.Comment|*}
+ */
 jDrupal.Comment.prototype.constructor = jDrupal.Comment;
 
 /**
- *
+ * Returns the comment's subject.
  * @returns {*}
  */
 jDrupal.Comment.prototype.getSubject = function() {
@@ -834,7 +942,7 @@ jDrupal.Comment.prototype.getSubject = function() {
 };
 
 /**
- *
+ * Set's the comment's subject.
  * @returns {*}
  */
 jDrupal.Comment.prototype.setSubject = function(subject) {
@@ -861,6 +969,9 @@ jDrupal.Comment.prototype.preSave = function(options) {
   });
 };
 
+/**
+ *
+ */
 jDrupal.Comment.prototype.stringify = function() {
 
   try {
@@ -928,27 +1039,11 @@ jDrupal.Comment.prototype.stringify = function() {
 
 };
 
-/**
- * PROXIES
- */
-
-/**
- *
- * @param cid
- * @param options
- * @returns {jDrupal.Comment}
- */
-//jDrupal.commentLoad = function(cid, options) {
-//  var comment = new jDrupal.Comment(cid);
-//  comment.load(options);
-//  return comment;
-//};
-
 
 // @see https://api.drupal.org/api/drupal/core!modules!node!src!Entity!Node.php/class/Node/8
 
 /**
- * Node
+ * Given a node id or JSON object, this Creates a new jDrupal Node object.
  * @param {Number|Object} nid_or_node
  * @constructor
  */
@@ -972,8 +1067,16 @@ jDrupal.Node = function(nid_or_node) {
 
 };
 
-// Extend the entity prototype.
+/**
+ * Extend the entity prototype.
+ * @type {jDrupal.Entity}
+ */
 jDrupal.Node.prototype = new jDrupal.Entity;
+
+/**
+ * Set the constructor.
+ * @type {jDrupal.Node|*}
+ */
 jDrupal.Node.prototype.constructor = jDrupal.Node;
 
 /**
@@ -1029,6 +1132,11 @@ jDrupal.Node.prototype.isSticky = function() {
  * OVERRIDES
  */
 
+/**
+ *
+ * @param options
+ * @returns {Promise}
+ */
 jDrupal.Node.prototype.preSave = function(options) {
   var self = this;
   return new Promise(function(resolve, reject) {
@@ -1045,28 +1153,12 @@ jDrupal.Node.prototype.preSave = function(options) {
   });
 };
 
-/**
- * PROXIES
- */
-
-/**
- *
- * @param nid
- * @param options
- * @returns {jDrupal.Node}
- */
-//jDrupal.nodeLoad = function(nid, options) {
-//  var node = new jDrupal.Node(nid);
-//  node.load(options);
-//  return node;
-//};
-
 
 
 // @see https://api.drupal.org/api/drupal/core!modules!user!src!Entity!User.php/class/User/8
 
 /**
- * User
+ * Given a user id or JSON object, this Creates a new jDrupal User object.
  * @param {Number|Object} uid_or_account
  * @constructor
  */
@@ -1083,8 +1175,16 @@ jDrupal.User = function(uid_or_account) {
 
 };
 
-// Extend the entity prototype.
+/**
+ * Extend the entity prototype.
+ * @type {jDrupal.Entity}
+ */
 jDrupal.User.prototype = new jDrupal.Entity;
+
+/**
+ * Set the constructor.
+ * @type {jDrupal.User|*}
+ */
 jDrupal.User.prototype.constructor = jDrupal.User;
 
 /**
@@ -1139,18 +1239,6 @@ jDrupal.User.prototype.isAuthenticated = function() {
 jDrupal.currentUser = function() {
   return jDrupal._currentUser;
 };
-
-/**
- *
- * @param uid
- * @param options
- * @returns {jDrupal.User}
- */
-//jDrupal.userLoad = function(uid, options) {
-//  var account = new jDrupal.User(uid);
-//  account.load(options);
-//  return account;
-//};
 
 /**
  * HELPERS
