@@ -30,7 +30,7 @@
               // Grab the current user account.
               var user = jDrupal.currentUser();
 
-              // Prepare a message form the user.
+              // Prepare a message for the user.
               var msg = 'Hello World';
               if (user.isAuthenticated()) { msg = 'Hello ' + user.getAccountName(); }
 
