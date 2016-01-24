@@ -3,9 +3,9 @@
   "version": "8.0.0",
   "homepage": "https://github.com/easystreet3/jDrupal",
   "authors": [
-    "Tyler Frankenstein <tyler.frankenstein@gmail.com>"
+    "Tyler Frankenstein <email@tylerfrankenstein.com>"
   ],
-  "description": "An JavaScript module for Drupal 8 REST.",
+  "description": "A JavaScript library for Drupal 8 REST.",
   "keywords": [
     "drupal"
   ],
