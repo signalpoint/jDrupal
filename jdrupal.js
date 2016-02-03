@@ -1104,6 +1104,15 @@ jDrupal.Node.prototype.getType = function() {
   return this.getBundle();
 };
 
+
+/**
+ *
+ * @returns {*}
+ */
+jDrupal.Node.prototype.getCreatedTime = function() {
+  return this.entity.created[0].value;
+};
+
 /**
  *
  * @returns {*}
