@@ -40,7 +40,8 @@ Since jDrupal has no dependencies and is written in pure JavaScript, it can be u
 ```
 // Connect to Drupal and say hello to the current user.
 jDrupal.connect().then(function() {
-  var msg = jDrupal.currentUser().isAuthenticated() ?
+  var user = jDrupal.currentUser();
+  var msg = user.isAuthenticated() ?
     'Hello ' + user.getAccountName() : 'Hello World';
   alert(msg);
 });
