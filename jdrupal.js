@@ -664,6 +664,17 @@ jDrupal.Entity.prototype.stringify = function() {
 
 /**
  *
+ * @param options
+ * @returns {Promise}
+ */
+jDrupal.Entity.prototype.preLoad = function(options) {
+  return new Promise(function(resolve, reject) {
+    resolve();
+  });
+};
+
+/**
+ *
  * @returns {Promise}
  */
 jDrupal.Entity.prototype.load = function() {
@@ -671,33 +682,53 @@ jDrupal.Entity.prototype.load = function() {
     var _entity = this;
     var entityType = _entity.getEntityType();
     return new Promise(function(resolve, reject) {
-      var path = jDrupal.restPath() +
-          entityType + '/' + _entity.id() + '?_format=json';
-      var req = new XMLHttpRequest();
-      req.dg = {
-        service: entityType,
-        resource: 'retrieve'
-      };
-      req.open('GET', path);
-      var loaded = function() {
-        _entity.entity = JSON.parse(req.response);
-        resolve(_entity);
-      };
-      req.onload = function() {
-        if (req.status == 200) {
-          var invoke = jDrupal.moduleInvokeAll('rest_post_process', req);
-          if (!invoke) { loaded(); }
-          else { invoke.then(loaded); }
-        }
-        else { reject(Error(req.statusText)); }
-      };
-      req.onerror = function() { reject(Error("Network Error")); };
-      req.send();
+
+      _entity.preLoad().then(function() {
+
+        var path = jDrupal.restPath() +
+            entityType + '/' + _entity.id() + '?_format=json';
+        var req = new XMLHttpRequest();
+        req.dg = {
+          service: entityType,
+          resource: 'retrieve'
+        };
+        req.open('GET', path);
+        var loaded = function() {
+          _entity.entity = JSON.parse(req.response);
+          _entity.postLoad(req).then(function() {
+            resolve(_entity);
+          });
+        };
+        req.onload = function() {
+          if (req.status == 200) {
+            var invoke = jDrupal.moduleInvokeAll('rest_post_process', req);
+            if (!invoke) { loaded(); }
+            else { invoke.then(loaded); }
+          }
+          else { reject(Error(req.statusText)); }
+        };
+        req.onerror = function() { reject(Error("Network Error")); };
+        req.send();
+
+      });
+
+
     });
   }
   catch (error) {
     console.log('jDrupal.Entity.load - ' + error);
   }
+};
+
+/**
+ *
+ * @param options
+ * @returns {Promise}
+ */
+jDrupal.Entity.prototype.postLoad = function(options) {
+  return new Promise(function(resolve, reject) {
+    resolve();
+  });
 };
 
 /**
@@ -1247,6 +1278,24 @@ jDrupal.User.prototype.isAuthenticated = function() {
  */
 jDrupal.currentUser = function() {
   return jDrupal._currentUser;
+};
+
+/**
+ * OVERRIDES
+ */
+
+/**
+ *
+ * @param options
+ * @returns {Promise}
+ */
+jDrupal.User.prototype.postLoad = function(options) {
+  var self = this;
+  return new Promise(function(ok, err) {
+    // @TODO it appears in drupal 8.0.3 it stopped returning roles to us.... so we make a default.
+    if (!self.entity.roles) { self.entity.roles = [ { target_id: 'authenticated' }]; }
+    ok();
+  });
 };
 
 /**
