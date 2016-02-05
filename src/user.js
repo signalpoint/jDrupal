@@ -84,6 +84,24 @@ jDrupal.currentUser = function() {
 };
 
 /**
+ * OVERRIDES
+ */
+
+/**
+ *
+ * @param options
+ * @returns {Promise}
+ */
+jDrupal.User.prototype.postLoad = function(options) {
+  var self = this;
+  return new Promise(function(ok, err) {
+    // @TODO it appears in drupal 8.0.3 it stopped returning roles to us.... so we make a default.
+    if (!self.entity.roles) { self.entity.roles = [ { target_id: 'authenticated' }]; }
+    ok();
+  });
+};
+
+/**
  * HELPERS
  */
 
