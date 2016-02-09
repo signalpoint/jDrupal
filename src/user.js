@@ -121,7 +121,17 @@ jDrupal.userDefaults = function() {
  * @param {Object} account
  */
 jDrupal.setCurrentUser = function(account) {
+
+  // For some reason Drupal 8 (and/or the jDrupal module), doesn't return to us the authenticated user role if the
+  // user is in fact authenticated (and this may only effect admins and/or uid #1). We'll add the authenticated
+  // user role object to the account object so role checking can be more consistent.
+  if (account.isAuthenticated() && !jDrupal.inArray('authenticated', account.getRoles())) {
+    account.entity.roles.push({ target_id: 'authenticated' });
+  }
+
+  // Set the account object onto the jDrupal object.
   jDrupal._currentUser = account;
+
 };
 
 /**
