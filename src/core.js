@@ -10,10 +10,28 @@ jDrupal.init = function() {
   jDrupal.sessid = null;
   jDrupal.modules = {};
   jDrupal.connected = false; // Will be equal to true after the system connect.
+  jDrupal.settings = {
+    sitePath: null,
+    basePath: '/'
+  };
 };
 
 // Init jDrupal.
 jDrupal.init();
+
+/**
+ * Get or set a jDrupal configuration setting.
+ * @param {String} name
+ * @returns {*}
+ */
+jDrupal.config = function(name) {
+  var value = typeof arguments[1] !== 'undefined' ? arguments[1] : null;
+  if (value) {
+    jDrupal.settings[name] = value;
+    return;
+  }
+  return jDrupal.settings[name];
+};
 
 jDrupal.sitePath = function() {
   return jDrupal.settings.sitePath;
@@ -40,19 +58,6 @@ jDrupal.isReady = function() {
   }
   catch (error) { console.log('jDrupal.isReady - ' + error); }
 };
-
-/**
- *
- */
-function jDrupalInit() {
-  try {
-    if (!jDrupal) { jDrupal = {}; }
-
-
-
-  }
-  catch (error) { console.log('jDrupalInit - ' + error); }
-}
 
 /**
  * Returns true if given value is empty. A generic way to test for emptiness.
