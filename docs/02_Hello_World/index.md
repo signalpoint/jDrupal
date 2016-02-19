@@ -1,5 +1,7 @@
 > This creates a simple web app for Drupal 8.
 
+To use jDrupal directly on the Drupal front end, see the [Drupal Example page](Examples/Drupal).
+
 ## 1. Set up the jDrupal Module
 
 [Enable and Configure](Install) the jDrupal module for your Drupal 8 site.
@@ -53,10 +55,8 @@ Next, create an `app.js` file to run your app and replace the `sitePath` value w
 `http://example.com/app/app.js`
 
 ```
-jDrupal.settings = {
-  sitePath: 'http://example.com',
-  basePath: '/'
-};
+// Set the Drupal site path.
+jDrupal.config('sitePath', 'http://example.com');
           
 function helloWorld() {
 
