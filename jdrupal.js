@@ -679,15 +679,15 @@ function entity_delete(entity_type, ids, options) {
  */
 function entity_get_bundle(entity_type, entity) {
   try {
-    // @todo This isn't dynamic at all.
+    // @TODO This isn't dynamic at all.
     var bundle = null;
     switch (entity_type) {
       case 'node': bundle = entity.type; break;
+      case 'taxonomy_term': bundle = entity.vid; break;
       case 'comment':
       case 'file':
       case 'user':
       case 'taxonomy_vocabulary':
-      case 'taxonomy_term':
         // These entity types don't have a bundle.
         break;
       default:
@@ -697,6 +697,25 @@ function entity_get_bundle(entity_type, entity) {
         break;
     }
     return bundle;
+  }
+  catch (error) { console.log('entity_get_bundle - ' + error); }
+}
+
+function entity_get_bundle_name(entity_type) {
+  try {
+    // @TODO Should be dynamic.
+    var bundle = null;
+    switch (entity_type) {
+      case 'node': return 'type'; break;
+      case 'taxonomy_term': return 'vid'; break;
+      case 'comment': // @TODO comment has a node bundle, kind of
+      case 'file':
+      case 'user':
+      case 'taxonomy_vocabulary':
+      default:
+        return null;
+        break;
+    }
   }
   catch (error) { console.log('entity_get_bundle - ' + error); }
 }
