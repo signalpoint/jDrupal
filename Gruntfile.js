@@ -1,5 +1,5 @@
 var jdrupal_grunt_src = [
-  'src/drupal.js',
+  'src/core.js',
   'src/includes/module.inc.js',
   'src/comment.js',
   'src/entity.js',
@@ -28,8 +28,8 @@ module.exports = function(grunt) {
       options: { },
       dist: {
         src: jdrupal_grunt_src,
-        dest: '<%= pkg.name %>.js',
-      },
+        dest: '<%= pkg.name %>.js'
+      }
     },
     uglify: {
       options: { },
@@ -53,4 +53,3 @@ module.exports = function(grunt) {
   grunt.registerTask('default', ['concat', 'uglify', 'watch']);
 
 };
-
