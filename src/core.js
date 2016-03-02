@@ -70,6 +70,20 @@ function drupal_init() {
         retrieve: {}
       }
     };
+
+    // Build a JSON object to house cache expiration indices.
+    Drupal.cache_expiration = window.localStorage.getItem('cache_expiration');
+    if (!Drupal.cache_expiration) {
+
+      Drupal.cache_expiration = {
+
+        // Entities will expire by a key value (key timestamp) pair
+        entities: {}
+
+      };
+    }
+    else { Drupal.cache_expiration = JSON.parse(Drupal.cache_expiration); }
+
   }
   catch (error) { console.log('drupal_init - ' + error); }
 }
