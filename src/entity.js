@@ -490,6 +490,24 @@ function entity_has_expired(entity_type, entity) {
 }
 
 /**
+ * If entity caching is enabled, this will look for expired entities and remove them from local storage.
+ */
+function entity_clean_local_storage() {
+  if (!entity_caching_enabled() || !Drupal.cache_expiration.entities) { return; }
+  for (var key in Drupal.cache_expiration.entities) {
+    if (!Drupal.cache_expiration.entities.hasOwnProperty(key)) { continue; }
+    var expiration = Drupal.cache_expiration.entities[key];
+    if (expiration > time()) { continue; }
+    delete Drupal.cache_expiration.entities[key];
+    var parts = key.split('_');
+    var entity_type = parts[0];
+    var entity_id = parts[1];
+    _entity_local_storage_delete(entity_type, entity_id);
+    window.localStorage.setItem('cache_expiration', JSON.stringify(Drupal.cache_expiration));
+  }
+}
+
+/**
  * An internal function used to get the expiration time for entities.
  * @param entity_type
  * @param entity
