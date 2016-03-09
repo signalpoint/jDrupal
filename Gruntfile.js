@@ -1,5 +1,5 @@
 var jdrupal_grunt_src = [
-  'src/drupal.js',
+  'src/core.js',
   'src/includes/module.inc.js',
   'src/comment.js',
   'src/entity.js',
@@ -28,19 +28,19 @@ module.exports = function(grunt) {
       options: { },
       dist: {
         src: jdrupal_grunt_src,
-        dest: 'bin/<%= pkg.name %>.js',
-      },
+        dest: '<%= pkg.name %>.js'
+      }
     },
     uglify: {
       options: { },
       build: {
         src: jdrupal_grunt_src,
-        dest: 'bin/<%= pkg.name %>.min.js'
+        dest: '<%= pkg.name %>.min.js'
       }
     },
     watch: {
       files: jdrupal_grunt_src,
-      tasks: ['uglify']
+      tasks: ['concat', 'uglify']
     }
   });
 
@@ -53,4 +53,3 @@ module.exports = function(grunt) {
   grunt.registerTask('default', ['concat', 'uglify', 'watch']);
 
 };
-

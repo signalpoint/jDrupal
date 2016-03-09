@@ -1,0 +1,31 @@
+{
+  "title": "jDrupal 7 Docs",
+  "tagline": "JavaScript Library for Drupal 7 Services",
+  "author": "Tyler Frankenstein",
+  "image": "app.jpg",
+  "ignore": {
+    "files": ["Work_In_Progress.md"],
+    "folders": ["99_Not_Ready"]
+  },
+  "live": {
+    "inherit_index": true,
+    "clean_urls": true
+  },
+  "html": {
+    "google_analytics":"UA-36188740-5",
+    "theme": "daux-red",
+    "auto_landing": false,
+    "breadcrumbs": true,
+    "breadcrumb_separator": "Chevrons",
+    "toggle_code": false,
+    "date_modified": true,
+    "float": true,
+    "repo": "easystreet3/jDrupal",
+    "links": {
+      "jDrupal Home": "http://jdrupal.easystreet3.com",
+      "jDrupal 7 API": "http://jdrupal.easystreet3.com/7/api",
+      "jDrupal 8": "http://jdrupal.easystreet3.com/8",
+      "DrupalGap": "http://drupalgap.org"
+    }
+  }
+}

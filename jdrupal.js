@@ -70,6 +70,20 @@ function drupal_init() {
         retrieve: {}
       }
     };
+
+    // Build a JSON object to house cache expiration indices.
+    Drupal.cache_expiration = window.localStorage.getItem('cache_expiration');
+    if (!Drupal.cache_expiration) {
+
+      Drupal.cache_expiration = {
+
+        // Entities will expire by a key value (key timestamp) pair
+        entities: {}
+
+      };
+    }
+    else { Drupal.cache_expiration = JSON.parse(Drupal.cache_expiration); }
+
   }
   catch (error) { console.log('drupal_init - ' + error); }
 }
@@ -454,12 +468,10 @@ function time() {
  * @return {String}
  */
 function ucfirst(str) {
-  // http://kevin.vanzonneveld.net
-  // +   original by: Kevin van Zonneveld (http://kevin.vanzonneveld.net)
-  // +   bugfixed by: Onno Marsman
-  // +   improved by: Brett Zamir (http://brett-zamir.me)
-  // *     example 1: ucfirst('kevin van zonneveld');
-  // *     returns 1: 'Kevin van zonneveld'
+  // @see http://kevin.vanzonneveld.net
+  // + original by: Kevin van Zonneveld (http://kevin.vanzonneveld.net)
+  // + bugfixed by: Onno Marsman
+  // + improved by: Brett Zamir (http://brett-zamir.me)
   str += '';
   var f = str.charAt(0).toUpperCase();
   return f + str.substr(1);
@@ -623,6 +635,7 @@ function module_types() {
   catch (error) { console.log('module_types - ' + error); }
 }
 
+
 /**
  * Loads a comment.
  * @param {Number} cid
@@ -646,6 +659,7 @@ function comment_save(comment, options) {
   }
   catch (error) { console.log('comment_save - ' + error); }
 }
+
 
 /**
  * Delete an entity.
@@ -676,15 +690,15 @@ function entity_delete(entity_type, ids, options) {
  */
 function entity_get_bundle(entity_type, entity) {
   try {
-    // @todo This isn't dynamic at all.
+    // @TODO This isn't dynamic at all.
     var bundle = null;
     switch (entity_type) {
       case 'node': bundle = entity.type; break;
+      case 'taxonomy_term': bundle = entity.vid; break;
       case 'comment':
       case 'file':
       case 'user':
       case 'taxonomy_vocabulary':
-      case 'taxonomy_term':
         // These entity types don't have a bundle.
         break;
       default:
@@ -694,6 +708,25 @@ function entity_get_bundle(entity_type, entity) {
         break;
     }
     return bundle;
+  }
+  catch (error) { console.log('entity_get_bundle - ' + error); }
+}
+
+function entity_get_bundle_name(entity_type) {
+  try {
+    // @TODO Should be dynamic.
+    var bundle = null;
+    switch (entity_type) {
+      case 'node': return 'type'; break;
+      case 'taxonomy_term': return 'vid'; break;
+      case 'comment': // @TODO comment has a node bundle, kind of
+      case 'file':
+      case 'user':
+      case 'taxonomy_vocabulary':
+      default:
+        return null;
+        break;
+    }
   }
   catch (error) { console.log('entity_get_bundle - ' + error); }
 }
@@ -739,21 +772,31 @@ function entity_index_local_storage_key(path) {
 /**
  * Loads an entity.
  * @param {String} entity_type
- * @param {Number} ids
+ * @param {Number|Array} ids
  * @param {Object} options
  */
 function entity_load(entity_type, ids, options) {
   try {
-    if (!is_int(ids)) {
-      // @TODO - if an array of ints is sent in, call entity_index() instead.
-      var msg = 'entity_load(' + entity_type + ') - only single ids supported!';
-      console.log(msg);
+
+    // If an array of entity ids was passed in, use the entity index resource to load them all.
+    if ($.isArray(ids)) {
+      var query = {
+        parameters: {},
+        options: {
+          entity_load: true
+        }
+      };
+      query.parameters[entity_primary_key(entity_type)] = ids.join(',');
+      window[entity_type + '_index'](query, options);
       return;
     }
-    var caching_enabled = entity_caching_enabled(entity_type);
+
+    // A single id was passed in, convert the id to an int, if it's a string.
     var entity_id = ids;
-    // Convert the id to an int, if it's a string.
     entity_id = entity_id_parse(entity_id);
+
+    var caching_enabled = entity_caching_enabled(entity_type);
+
     // If this entity is already queued for retrieval, set the success and
     // error callbacks aside, and return. Unless entity caching is enabled and
     // we have a copy of the entity in local storage, then send it to the
@@ -831,40 +874,26 @@ function entity_load(entity_type, ids, options) {
           // Set the entity equal to the returned data.
           entity = data;
 
-          // If entity caching is enabled, set its expiration time and save it
-          // to local storage.
-          if (
-            entity_caching_enabled(
-              entity_type,
-              entity_get_bundle(entity_type, entity)
-            )
-          ) {
-            _entity_set_expiration_time(entity);
+          // If entity caching is enabled, set its expiration time and save it to local storage.
+          if (entity_caching_enabled(entity_type, entity_get_bundle(entity_type, entity))) {
+            _entity_set_expiration_time(entity_type, entity);
             _entity_local_storage_save(entity_type, entity_id, entity);
           }
 
-          // Send the entity back to the queued callback(s), then clear out the
-          // callbacks.
+          // Send the entity back to the queued callback(s), then clear out the callbacks.
           var _success_callbacks =
             Drupal.services_queue[entity_type]['retrieve'][entity_id].success;
-          for (var i = 0; i < _success_callbacks.length; i++) {
-            _success_callbacks[i](entity);
-          }
-          Drupal.services_queue[entity_type]['retrieve'][entity_id].success =
-            [];
+          for (var i = 0; i < _success_callbacks.length; i++) { _success_callbacks[i](entity); }
+          Drupal.services_queue[entity_type]['retrieve'][entity_id].success = [];
 
         }
-        catch (error) {
-          console.log('entity_load - success - ' + error);
-        }
+        catch (error) { console.log('entity_load - success - ' + error); }
       },
       error: function(xhr, status, message) {
         try {
           if (options.error) { options.error(xhr, status, message); }
         }
-        catch (error) {
-          console.log('entity_load - error - ' + error);
-        }
+        catch (error) { console.log('entity_load - error - ' + error); }
       }
     };
 
@@ -910,10 +939,7 @@ function _entity_local_storage_load(entity_type, entity_id, options) {
       // We successfully loaded the entity from local storage. If it expired
       // remove it from local storage then continue onward with the entity
       // retrieval from Drupal. Otherwise return the local storage entity copy.
-      // @TODO add new expiration layer for entity types and bundles!
-      if (typeof entity.expiration !== 'undefined' &&
-          entity.expiration != 0 &&
-          time() > entity.expiration) {
+      if (entity_has_expired(entity_type, entity)) {
         _entity_local_storage_delete(entity_type, entity_id);
         entity = false;
       }
@@ -957,10 +983,10 @@ function _entity_local_storage_load(entity_type, entity_id, options) {
  */
 function _entity_local_storage_save(entity_type, entity_id, entity) {
   try {
-    window.localStorage.setItem(
-      entity_local_storage_key(entity_type, entity_id),
-      JSON.stringify(entity)
-    );
+    var key = entity_local_storage_key(entity_type, entity_id);
+    window.localStorage.setItem(key, JSON.stringify(entity));
+    Drupal.cache_expiration.entities[key] = entity.expiration;
+    window.localStorage.setItem('cache_expiration', JSON.stringify(Drupal.cache_expiration));
   }
   catch (error) { console.log('_entity_local_storage_save - ' + error); }
 }
@@ -1083,17 +1109,21 @@ function entity_caching_enabled() {
 
     // Entity caching is enabled globally...
 
-    // Did they provide an entity type?
+    // Did they provide an entity type? If not, caching is enabled.
     var entity_type = arguments[0];
     if (!entity_type) { return true; }
 
+    // Are there any entity type caching configs present? If not, caching is enabled.
+    if (
+        !Drupal.settings.cache.entity.entity_types ||
+        !Drupal.settings.cache.entity.entity_types[entity_type]
+    ) { return true; }
+
+    // Grab the cache config for this entity type.
+    var cache = Drupal.settings.cache.entity.entity_types[entity_type];
+
     // Is caching explicitly disabled for this entity type?
-    var entity_type_caching_disabled =
-      Drupal.settings.cache.entity.entity_types &&
-      Drupal.settings.cache.entity.entity_types[entity_type] &&
-      typeof Drupal.settings.cache.entity.entity_types[entity_type].enabled !==
-        'undefined' &&
-      Drupal.settings.cache.entity.entity_types[entity_type].enabled === false;
+    var entity_type_caching_disabled = typeof cache.enabled !== 'undefined' && cache.enabled === false;
     if (entity_type_caching_disabled) { return false; }
 
     // Did they provide a bundle? If not, then this entity type's caching is
@@ -1102,45 +1132,89 @@ function entity_caching_enabled() {
     if (!bundle) { return true; }
 
     // Is caching explicitly disabled for this bundle?
-    var cache = Drupal.settings.cache.entity.entity_types[entity_type];
-    var entity_bundle_caching_disabled =
-      typeof cache.bundles !== 'undefined' &&
-      typeof cache.bundles[bundle] !== 'undefined' &&
-      typeof cache.bundles[bundle].enabled !== 'undefined' &&
-      cache.bundles[bundle].enabled === false;
-    if (entity_bundle_caching_disabled) { return false; }
+    if (typeof cache.bundles !== 'undefined' && typeof cache.bundles[bundle] !== 'undefined') {
+      return typeof cache.bundles[bundle].enabled !== 'undefined' ?
+          cache.bundles[bundle].enabled : cache.enabled;
+    }
 
+    // We didn't prove caching to be disabled, so it must be enabled.
     return true;
   }
   catch (error) { console.log('entity_caching_enabled - ' + error); }
 }
 
 /**
- * An internal function used to get the expiration time for entities.
- * @return {Number}
+ *
+ * @param entity_type
+ * @param entity
  */
-function _entity_get_expiration_time() {
+function entity_has_expired(entity_type, entity) {
+  return typeof entity.expiration !== 'undefined' && entity.expiration != 0 && time() > entity.expiration;
+}
+
+/**
+ * If entity caching is enabled, this will look for expired entities and remove them from local storage.
+ */
+function entity_clean_local_storage() {
+  if (!entity_caching_enabled() || !Drupal.cache_expiration.entities) { return; }
+  for (var key in Drupal.cache_expiration.entities) {
+    if (!Drupal.cache_expiration.entities.hasOwnProperty(key)) { continue; }
+    var expiration = Drupal.cache_expiration.entities[key];
+    if (expiration > time()) { continue; }
+    delete Drupal.cache_expiration.entities[key];
+    var parts = key.split('_');
+    var entity_type = parts[0];
+    var entity_id = parts[1];
+    _entity_local_storage_delete(entity_type, entity_id);
+    window.localStorage.setItem('cache_expiration', JSON.stringify(Drupal.cache_expiration));
+  }
+}
+
+/**
+ * An internal function used to get the expiration time for entities.
+ * @param entity_type
+ * @param entity
+ * @returns {null|Number}
+ * @private
+ */
+function _entity_get_expiration_time(entity_type, entity) {
   try {
     var expiration = null;
-    if (
-      Drupal.settings.cache.entity.enabled &&
-      Drupal.settings.cache.entity.expiration !== 'undefined'
-    ) {
-      expiration = Drupal.settings.cache.entity.expiration === 0 ?
-        0 : time() + Drupal.settings.cache.entity.expiration;
+    var bundle = entity_get_bundle(entity_type, entity);
+    if (entity_caching_enabled(entity_type, bundle)) {
+      var expiration = 0;
+      var cache = Drupal.settings.cache;
+      if (cache.entity.expiration !== 'undefined') {
+        expiration = cache.entity.expiration;
+      }
+      if (cache.entity.entity_types !== 'undefined') {
+        if (
+            cache.entity.entity_types[entity_type] &&
+            typeof cache.entity.entity_types[entity_type].expiration !== 'undefined'
+        ) { expiration = cache.entity.entity_types[entity_type].expiration; }
+        if (
+            bundle &&
+            cache.entity.entity_types[entity_type] &&
+            cache.entity.entity_types[entity_type].bundles &&
+            cache.entity.entity_types[entity_type].bundles[bundle] &&
+            typeof cache.entity.entity_types[entity_type].bundles[bundle].expiration !== 'undefined'
+        ) { expiration = cache.entity.entity_types[entity_type].bundles[bundle].expiration; }
+      }
     }
+    if (expiration) { expiration += time(); }
     return expiration;
   }
   catch (error) { console.log('_entity_get_expiration_time - ' + error); }
 }
 
 /**
- * An internal function used to set the expiration time for entities.
- * @param {Object} entity
+ * An internal function used to set the expiration time onto a given entity.
+ * @param {String} entity_type The entity type.
+ * @param {Object} entity The entity object.
  */
-function _entity_set_expiration_time(entity) {
+function _entity_set_expiration_time(entity_type, entity) {
   try {
-    entity.expiration = _entity_get_expiration_time();
+    entity.expiration = _entity_get_expiration_time(entity_type, entity);
   }
   catch (error) { console.log('_entity_set_expiration_time - ' + error); }
 }
@@ -1281,6 +1355,7 @@ function file_save(file, options) {
   catch (error) { console.log('file_save - ' + error); }
 }
 
+
 /**
  * Loads a node.
  * @param {Number} nid
@@ -1304,6 +1379,7 @@ function node_save(node, options) {
   }
   catch (error) { console.log('node_save - ' + error); }
 }
+
 
 /**
  * Loads a taxonomy term.
@@ -1329,6 +1405,7 @@ function taxonomy_term_save(taxonomy_term, options) {
   catch (error) { console.log('taxonomy_term_save - ' + error); }
 }
 
+
 /**
  * Loads a taxonomy vocabulary.
  * @param {Number} vid
@@ -1352,6 +1429,7 @@ function taxonomy_vocabulary_save(taxonomy_vocabulary, options) {
   }
   catch (error) { console.log('taxonomy_vocabulary_save - ' + error); }
 }
+
 
 /**
  * Loads a user account.
@@ -1396,6 +1474,7 @@ function user_password() {
   }
   catch (error) { console.log('user_password - ' + error); }
 }
+
 
 /**
  * The Drupal services JSON object.
@@ -1793,6 +1872,7 @@ function _services_queue_callback_count(service, resource, entity_id,
   catch (error) { console.log('_services_queue_callback_count - ' + error); }
 }
 
+
 /**
  * Creates a comment.
  * @param {Object} comment
@@ -1857,6 +1937,7 @@ function comment_index(query, options) {
   }
   catch (error) { console.log('comment_index - ' + error); }
 }
+
 
 /**
  * Creates an entity.
@@ -2205,6 +2286,7 @@ function _entity_wrap(entity_type, entity) {
   catch (error) { console.log('_entity_wrap - ' + error); }
 }
 
+
 /**
  * Creates a file.
  * @param {Object} file
@@ -2230,6 +2312,7 @@ function file_retrieve(ids, options) {
   }
   catch (error) { console.log('file_retrieve - ' + error); }
 }
+
 
 /**
  * Creates a node.
@@ -2295,6 +2378,7 @@ function node_index(query, options) {
   }
   catch (error) { console.log('node_index - ' + error); }
 }
+
 
 /**
  * System connect call.
@@ -2363,6 +2447,7 @@ function system_connect(options) {
   }
 }
 
+
 /**
  * Creates a taxonomy term.
  * @param {Object} taxonomy_term
@@ -2427,6 +2512,7 @@ function taxonomy_term_index(query, options) {
   }
   catch (error) { console.log('taxonomy_term_index - ' + error); }
 }
+
 
 /**
  * Creates a taxonomy vocabulary.
@@ -2532,6 +2618,7 @@ function taxonomy_get_tree(vid, parent, max_depth, load_entities, options) {
   }
   catch (error) { console.log('taxonomy_get_tree - ' + error); }
 }
+
 
 /**
  * Creates a user.

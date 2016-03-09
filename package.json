@@ -1,6 +1,6 @@
 {
   "name": "jdrupal",
-  "version": "7.0.0",
+  "version": "7.0.3",
   "description": "A JavaScript library for Drupal 7 Services.",
   "main": "index.html",
   "scripts": {
@@ -13,11 +13,7 @@
   "keywords": [
     "drupal"
   ],
-  "author": {
-    "name": "Tyler Frankenstein",
-    "email": "tyler.frankenstein@gmail.com",
-    "url": "http://tylerfrankenstein.com/"
-  },
+  "author": "Tyler Frankenstein <email@tylerfrankenstein.com> (http://tylerfrankenstein.com/)",
   "license": "GNU",
   "bugs": {
     "url": "https://github.com/easystreet3/jDrupal/issues"
@@ -29,6 +25,10 @@
     "grunt-contrib-uglify": "^0.9.1",
     "grunt-contrib-watch": "^0.6.1"
   },
-  "readme": "",
-  "readmeFilename": "README.md"
+  "bin": {
+    "jdrupal": "jdrupal.js"
+  },
+  "directories": {
+    "test": "tests"
+  }
 }
