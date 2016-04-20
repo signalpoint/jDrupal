@@ -490,10 +490,10 @@ function entity_has_expired(entity_type, entity) {
 }
 
 /**
- * If entity caching is enabled, this will look for expired entities and remove them from local storage.
+ * Looks for expired entities and remove them from local storage.
  */
 function entity_clean_local_storage() {
-  if (!entity_caching_enabled() || !Drupal.cache_expiration.entities) { return; }
+  if (!Drupal.cache_expiration.entities) { return; }
   for (var key in Drupal.cache_expiration.entities) {
     if (!Drupal.cache_expiration.entities.hasOwnProperty(key)) { continue; }
     var expiration = Drupal.cache_expiration.entities[key];
