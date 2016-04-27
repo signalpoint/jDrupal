@@ -10,7 +10,7 @@ $.connect().then(function() {
 ### Login
 ```
 $.userLogin('bob', 'secret').then(function() {
-  console.log('Logged out!');
+  console.log('Logged in!');
 });
 ```
 ### Logout
