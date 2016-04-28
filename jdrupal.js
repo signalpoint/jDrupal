@@ -985,6 +985,7 @@ function _entity_local_storage_save(entity_type, entity_id, entity) {
   try {
     var key = entity_local_storage_key(entity_type, entity_id);
     window.localStorage.setItem(key, JSON.stringify(entity));
+    if (typeof Drupal.cache_expiration.entities === 'undefined') { Drupal.cache_expiration.entities = {}; }
     Drupal.cache_expiration.entities[key] = entity.expiration;
     window.localStorage.setItem('cache_expiration', JSON.stringify(Drupal.cache_expiration));
   }
