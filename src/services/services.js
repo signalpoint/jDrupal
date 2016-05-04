@@ -179,9 +179,6 @@ Drupal.services.call = function(options) {
         },
         error: function(xhr, status, message) {
           try {
-            console.log(
-              'Drupal.services.call - services_get_csrf_token - ' + message
-            );
             if (options.error) { options.error(xhr, status, message); }
           }
           catch (error) {
@@ -234,7 +231,7 @@ function services_get_csrf_token(options) {
             http_status_code_title(token_request.status);
           if (token_request.status != 200) { // Not OK
             console.log(token_url + ' - ' + title);
-            console.log(token_request.responseText);
+            if (options.error) { options.error(token_request, token_request.status, token_request.responseText); }
           }
           else { // OK
             // Set Drupal.sessid with the token, then return the token to the
