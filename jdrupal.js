@@ -846,12 +846,12 @@ function entity_load(entity_type, ids, options) {
     );
 
     // If entity caching is enabled, try to load the entity from local storage.
-    // If a copy is available in local storage, send it to the success callback.
+    // If a copy is available in local storage, bubble it to the success callback(s).
     var entity = false;
     if (caching_enabled) {
       entity = _entity_local_storage_load(entity_type, entity_id, options);
       if (entity) {
-        if (options.success) { options.success(entity); }
+        _entity_callback_bubble(entity_type, entity_id, entity);
         return;
       }
     }
@@ -880,11 +880,7 @@ function entity_load(entity_type, ids, options) {
             _entity_local_storage_save(entity_type, entity_id, entity);
           }
 
-          // Send the entity back to the queued callback(s), then clear out the callbacks.
-          var _success_callbacks =
-            Drupal.services_queue[entity_type]['retrieve'][entity_id].success;
-          for (var i = 0; i < _success_callbacks.length; i++) { _success_callbacks[i](entity); }
-          Drupal.services_queue[entity_type]['retrieve'][entity_id].success = [];
+          _entity_callback_bubble(entity_type, entity_id, entity);
 
         }
         catch (error) { console.log('entity_load - success - ' + error); }
@@ -909,6 +905,14 @@ function entity_load(entity_type, ids, options) {
     }
   }
   catch (error) { console.log('entity_load - ' + error); }
+}
+
+function _entity_callback_bubble(entity_type, entity_id, entity) {
+  // Send the entity back to the queued callback(s), then clear out the callbacks.
+  var _success_callbacks =
+      Drupal.services_queue[entity_type]['retrieve'][entity_id].success;
+  for (var i = 0; i < _success_callbacks.length; i++) { _success_callbacks[i](entity); }
+  Drupal.services_queue[entity_type]['retrieve'][entity_id].success = [];
 }
 
 /**
@@ -1658,9 +1662,6 @@ Drupal.services.call = function(options) {
         },
         error: function(xhr, status, message) {
           try {
-            console.log(
-              'Drupal.services.call - services_get_csrf_token - ' + message
-            );
             if (options.error) { options.error(xhr, status, message); }
           }
           catch (error) {
@@ -1713,7 +1714,7 @@ function services_get_csrf_token(options) {
             http_status_code_title(token_request.status);
           if (token_request.status != 200) { // Not OK
             console.log(token_url + ' - ' + title);
-            console.log(token_request.responseText);
+            if (options.error) { options.error(token_request, token_request.status, token_request.responseText); }
           }
           else { // OK
             // Set Drupal.sessid with the token, then return the token to the
