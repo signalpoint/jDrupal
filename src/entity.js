@@ -138,12 +138,7 @@ function entity_load(entity_type, ids, options) {
     // error callbacks aside, and return. Unless entity caching is enabled and
     // we have a copy of the entity in local storage, then send it to the
     // provided success callback.
-    if (_services_queue_already_queued(
-      entity_type,
-      'retrieve',
-      entity_id,
-      'success'
-    )) {
+    if (_services_queue_already_queued(entity_type, 'retrieve', entity_id, 'success')) {
       if (caching_enabled) {
         entity = _entity_local_storage_load(entity_type, entity_id, options);
         if (entity) {
@@ -152,35 +147,17 @@ function entity_load(entity_type, ids, options) {
         }
       }
       if (typeof options.success !== 'undefined') {
-        _services_queue_callback_add(
-          entity_type,
-          'retrieve',
-          entity_id,
-          'success',
-          options.success
-        );
+        _services_queue_callback_add(entity_type, 'retrieve', entity_id, 'success', options.success);
       }
       if (typeof options.error !== 'undefined') {
-        _services_queue_callback_add(
-          entity_type,
-          'retrieve',
-          entity_id,
-          'error',
-          options.error
-        );
+        _services_queue_callback_add(entity_type, 'retrieve', entity_id, 'error', options.error);
       }
       return;
     }
 
     // This entity has not been queued for retrieval, queue it and its callback.
     _services_queue_add_to_queue(entity_type, 'retrieve', entity_id);
-    _services_queue_callback_add(
-      entity_type,
-      'retrieve',
-      entity_id,
-      'success',
-      options.success
-    );
+    _services_queue_callback_add(entity_type, 'retrieve', entity_id, 'success', options.success);
 
     // If entity caching is enabled, try to load the entity from local storage.
     // If a copy is available in local storage, bubble it to the success callback(s).
@@ -224,6 +201,9 @@ function entity_load(entity_type, ids, options) {
       },
       error: function(xhr, status, message) {
         try {
+          // Since we had a problem loading the entity, clear out the success queue.
+          _services_queue_clear(entity_type, 'retrieve', entity_id, 'success');
+          // Pass along the error if anyone wants to handle it.
           if (options.error) { options.error(xhr, status, message); }
         }
         catch (error) { console.log('entity_load - error - ' + error); }
@@ -246,10 +226,9 @@ function entity_load(entity_type, ids, options) {
 
 function _entity_callback_bubble(entity_type, entity_id, entity) {
   // Send the entity back to the queued callback(s), then clear out the callbacks.
-  var _success_callbacks =
-      Drupal.services_queue[entity_type]['retrieve'][entity_id].success;
+  var _success_callbacks = Drupal.services_queue[entity_type]['retrieve'][entity_id].success;
   for (var i = 0; i < _success_callbacks.length; i++) { _success_callbacks[i](entity); }
-  Drupal.services_queue[entity_type]['retrieve'][entity_id].success = [];
+  _services_queue_clear(entity_type, 'retrieve', entity_id, 'success');
 }
 
 /**
