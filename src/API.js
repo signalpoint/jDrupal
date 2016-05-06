@@ -1,4 +1,17 @@
 /**
+ * Implements hook_csrf_token_preprocess().
+ */
+function hook_csrf_token_preprocess(options) {
+  try {
+    // Add a timestamp to the token retrieval URL.
+    options.token_url += '&time=' + time();
+  }
+  catch (error) {
+    console.log('cw_tv_csrf_token_preprocess - ' + error);
+  }
+}
+
+/**
  * Preprocess a service call.
  * @param {Object} options
  */
