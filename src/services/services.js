@@ -77,7 +77,7 @@ Drupal.services.call = function(options) {
             // Not OK...
             console.log(method + ': ' + url + ' - ' + title);
             if (Drupal.settings.debug) {
-              if (request.status != 503) { console.log(request.responseText); }
+              if (!in_array(request.status, [403, 503])) { console.log(request.responseText); }
               console.log(request.getAllResponseHeaders());
             }
             if (typeof options.error !== 'undefined') {
