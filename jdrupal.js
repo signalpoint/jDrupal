@@ -2100,13 +2100,16 @@ function entity_index(entity_type, query, options) {
       }
     }
 
-    // Ask Drupal for an index on the entity(ies)...
+    // Ask Drupal for an index on the entity(ies). Attach the query to the
+    // options object so pre/post process hook implementations can have access
+    // to it.
     Drupal.services.call({
         method: 'GET',
         path: path,
         service: options.service,
         resource: options.resource,
         entity_type: entity_type,
+        query: query,
         success: function(result) {
           try {
             if (options.success) {
