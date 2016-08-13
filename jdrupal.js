@@ -2306,6 +2306,18 @@ function file_retrieve(ids, options) {
   catch (error) { console.log('file_retrieve - ' + error); }
 }
 
+/**
+ * Delete a file.
+ * @param {Number} fid
+ * @param {Object} options
+ */
+function file_delete(fid, options) {
+  try {
+    services_resource_defaults(options, 'file', 'delete');
+    entity_delete('file', fid, options);
+  }
+  catch (error) { console.log('file_delete - ' + error); }
+}
 
 /**
  * Creates a node.
