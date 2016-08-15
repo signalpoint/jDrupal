@@ -149,10 +149,10 @@ Drupal.services.call = function(options) {
               // out any sensitive debug data containing passwords.
               if (Drupal.settings.debug) {
                 var show = true;
-                if (options.service == 'user' &&
-                  in_array(options.resource, ['login', 'create', 'update'])) {
-                  show = false;
-                }
+                if (
+                    (options.service == 'user' && in_array(options.resource, ['login', 'create', 'update'])) ||
+                    (options.service == 'file' && options.resource == 'create')
+                ) { show = false; }
                 if (show) {
                   if (typeof options.data === 'object') {
                     console.log(JSON.stringify(options.data));
