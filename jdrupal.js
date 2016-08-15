@@ -352,7 +352,7 @@ jDrupal.connect = function() {
     req.open('GET', jDrupal.restPath() + 'jdrupal/connect?_format=json');
     var connected = function() {
       jDrupal.connected = true;
-      var result = JSON.parse(req.response);
+      var result = JSON.parse(typeof req.responseText !== 'undefined' ? req.responseText : req.response);
       if (result.uid == 0) {
         jDrupal.setCurrentUser(jDrupal.userDefaults());
         resolve(result);
