@@ -26,15 +26,18 @@ Drupal.services.call = function(options) {
     var url = Drupal.settings.site_path +
               Drupal.settings.base_path + '?q=';
     // Use an endpoint, unless someone passed in an empty string.
-    if (typeof options.endpoint === 'undefined') {
-      url += Drupal.settings.endpoint + '/';
-    }
-    else if (options.endpoint != '') {
-      url += options.endpoint + '/';
-    }
+    if (typeof options.endpoint === 'undefined') { url += Drupal.settings.endpoint + '/'; }
+    else if (options.endpoint != '') { url += options.endpoint + '/'; }
     url += options.path;
     var method = options.method.toUpperCase();
     if (Drupal.settings.debug) { console.log(method + ': ' + url); }
+
+    // Watch for net::ERR_CONNECTION_REFUSED and other oddities.
+    request.onreadystatechange = function() {
+      if (request.readyState == 4 && request.status == 0) {
+        if (options.error) { options.error(request, 0, 'xhr network status problem'); }
+      }
+    };
 
     // Request Success Handler
     request.onload = function(e) {
@@ -126,9 +129,7 @@ Drupal.services.call = function(options) {
                 contentType = 'application/x-www-form-urlencoded';
               }
             }
-            else if (method == 'PUT') {
-              contentType = 'application/json';
-            }
+            else if (method == 'PUT') { contentType = 'application/json'; }
 
             // Anyone overriding the content type?
             if (options.contentType) { contentType = options.contentType; }
@@ -141,6 +142,12 @@ Drupal.services.call = function(options) {
             // Add the token to the header if we have one.
             if (token) {
               request.setRequestHeader('X-CSRF-Token', token);
+            }
+
+            // Any timeout handling?
+            if (options.timeout) {
+              request.timeout = options.timeout;
+              if (options.ontimeout) { request.ontimeout = options.ontimeout; }
             }
 
             // Send the request with or without data.
@@ -217,6 +224,13 @@ function services_get_csrf_token(options) {
     options.token_url = Drupal.settings.site_path + Drupal.settings.base_path + '?q=services/session/token';
 
     module_invoke_all('csrf_token_preprocess', options);
+
+    // Watch for net::ERR_CONNECTION_REFUSED and other oddities.
+    token_request.onreadystatechange = function() {
+      if (token_request.readyState == 4 && token_request.status == 0) {
+        if (options.error) { options.error(token_request, 0, 'xhr network status problem for csrf token'); }
+      }
+    };
 
     // Token Request Success Handler
     token_request.onload = function(e) {
