@@ -1,5 +1,6 @@
 // Initialize the Drupal JSON object and run the bootstrap, if necessary.
 var Drupal = {}; drupal_init();
+var jDrupal = Drupal; // @TODO deprecate Drupal in favor of jDrupal object.
 
 /**
  * Initializes the Drupal JSON object.

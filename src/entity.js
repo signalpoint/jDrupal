@@ -1,4 +1,64 @@
 /**
+ * Checks if an entity has at least one item for a given field name. Optionally pass in a
+ * language code and/or delta value, otherwise they default to 'und' and 0 respectively.
+ * @param {Object} entity
+ * @param {String} fieldName
+ * @param {String} language
+ * @param {Number} delta
+ * @returns {Boolean}
+ */
+jDrupal.fieldHasItem = function(entity, fieldName, language, delta) {
+  if (!language) { language = language_default(); }
+  if (typeof delta === 'undefined') { delta = 0; }
+  return entity[fieldName] &&
+      entity[fieldName][language] &&
+      entity[fieldName][language].length &&
+      entity[fieldName][language][delta];
+};
+
+/**
+ * Gets an item from an entity given field name. Optionally pass in a language code and/or
+ * delta value, otherwise they default to 'und' and 0 respectively.
+ * @param {Object} entity
+ * @param {String} fieldName
+ * @param {String} language
+ * @param {Number} delta
+ * @returns {*}
+ */
+jDrupal.fieldGetItem = function(entity, fieldName, language, delta) {
+  if (!language) { language = language_default(); }
+  if (typeof delta === 'undefined') { delta = 0; }
+  return entity[fieldName][language][delta];
+};
+
+/**
+ * Given an entity and field name, this will return how many items are on the field. Optionally
+ * pass in a language code otherwise it defaults to 'und'.
+ * @param {Object} entity
+ * @param {String} fieldName
+ * @param {String} language
+ * @returns {Number}
+ */
+jDrupal.fieldGetItemCount = function(entity, fieldName, language) {
+  return !language ?
+      jDrupal.fieldGetItems(entity, fieldName).length :
+      jDrupal.fieldGetItems(entity, fieldName, language).length;
+};
+
+/**
+ * Gets items from an entity given a field name. Optionally pass in a language code otherwise
+ * it defaults to 'und'.
+ * @param {Object} entity
+ * @param {String} fieldName
+ * @param {String} language
+ * @returns {*}
+ */
+jDrupal.fieldGetItems = function(entity, fieldName, language) {
+  if (!language) { language = language_default(); }
+  return entity[fieldName][language];
+};
+
+/**
  * Delete an entity.
  * @param {String} entity_type
  * @param {Number} ids
