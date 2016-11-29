@@ -4,7 +4,7 @@
 - [Install Drupal](http://drupal.org/documentation/install)
 
 ## 2. Enable the Services Module and Create Endpoint
-Download and enable the Services module on the Drupal site. Import the endpoint by following these steps:
+Download and enable the Services module (ands its sub module called REST Server) on the Drupal site. Import the endpoint by following these steps:
 
 - In Drupal, go to admin/structure/services/import
 - Copy the export code from [services-endpoint-export.txt](https://github.com/easystreet3/jDrupal/blob/7.x-1.x/services-endpoint-export.txt)
