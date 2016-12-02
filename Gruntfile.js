@@ -10,16 +10,6 @@ var jdrupal_grunt_src = [
   'src/taxonomy_term.js',
   'src/taxonomy_vocabulary.js',
   'src/user.js'
-  /*'src/services/services.js',
-  'src/services/services.comment.js',
-  'src/services/services.entity.js',
-  'src/services/services.file.js',
-  'src/services/services.node.js',
-  'src/services/services.system.js',
-  'src/services/services.taxonomy_term.js',
-  'src/services/services.taxonomy_vocabulary.js',
-  'src/services/services.user.js',
-  'src/services/services.views.js'*/
 ];
 
 module.exports = function(grunt) {
@@ -27,13 +17,6 @@ module.exports = function(grunt) {
   // Project configuration.
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
-    concat: {
-      options: { },
-      dist: {
-        src: jdrupal_grunt_src,
-        dest: '<%= pkg.name %>.js'
-      }
-    },
     uglify: {
       options: { },
       build: {
@@ -48,12 +31,10 @@ module.exports = function(grunt) {
   });
 
   // Load the plugin that provides the "uglify" task.
-  grunt.loadNpmTasks('grunt-contrib-concat');
   grunt.loadNpmTasks('grunt-contrib-uglify');
   grunt.loadNpmTasks('grunt-contrib-watch');
 
   // Default task(s).
-  grunt.registerTask('default', ['concat', 'uglify', 'watch']);
+  grunt.registerTask('default', ['uglify', 'watch']);
 
 };
-
