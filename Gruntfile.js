@@ -26,7 +26,7 @@ module.exports = function(grunt) {
     },
     watch: {
       files: jdrupal_grunt_src,
-      tasks: ['concat', 'uglify']
+      tasks: ['uglify']
     }
   });
 
