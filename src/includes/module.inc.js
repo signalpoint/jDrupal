@@ -36,7 +36,7 @@ function module_implements(hook) {
 function module_invoke(module, hook) {
   try {
     var module_invocation_results = null;
-    if (drupalgap_module_load(module)) {
+    if (module_load(module)) {
       var module_arguments = Array.prototype.slice.call(arguments);
       var function_name = module + '_' + hook;
       if (function_exists(function_name)) {
