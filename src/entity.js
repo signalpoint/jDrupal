@@ -176,7 +176,7 @@ function entity_load(entity_type, ids, options) {
   try {
 
     // If an array of entity ids was passed in, use the entity index resource to load them all.
-    if ($.isArray(ids)) {
+    if (is_array(ids)) {
       var query = {
         parameters: {},
         options: {
