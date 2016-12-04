@@ -386,6 +386,16 @@ function in_array(needle, haystack) {
 }
 
 /**
+ * Given something, this will return true if it's an array, false otherwise.
+ * @param {*} obj
+ * @returns {boolean}
+ * @see http://stackoverflow.com/a/1058753/763010
+ */
+function is_array(obj) {
+  return Object.prototype.toString.call(obj) === '[object Array]';
+}
+
+/**
  * Given an argument, this will return true if it is an int, false otherwise.
  * @param {Number} n
  * @return {Boolean}
@@ -840,7 +850,7 @@ function entity_load(entity_type, ids, options) {
   try {
 
     // If an array of entity ids was passed in, use the entity index resource to load them all.
-    if ($.isArray(ids)) {
+    if (is_array(ids)) {
       var query = {
         parameters: {},
         options: {
