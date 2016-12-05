@@ -65,11 +65,8 @@ jDrupal.isReady = function() {
  * @return {Boolean}
  */
 jDrupal.isEmpty = function(value) {
-  try {
-    if (typeof value === 'object') { return Object.keys(value).length === 0; }
+    if (value !== null && typeof value === 'object') { return Object.keys(value).length === 0; }
     return (typeof value === 'undefined' || value === null || value == '');
-  }
-  catch (error) { console.log('jDrupal.isEmpty - ' + error); }
 };
 
 /**
