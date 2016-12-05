@@ -86,11 +86,11 @@ jDrupal.userLogin = function(name, pass) {
       service: 'user',
       resource: 'login'
     };
-    req.open('POST', jDrupal.restPath() + 'user/login');
-    req.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+    req.open('POST', jDrupal.restPath() + 'user/login?_format=json');
+    req.setRequestHeader('Content-type', 'application/json');
     var connected = function() { jDrupal.connect().then(resolve); };
     req.onload = function() {
-      if (req.status == 200 || req.status == 303) {
+      if (req.status == 200) {
         var invoke = jDrupal.moduleInvokeAll('rest_post_process', req);
         if (!invoke) { connected(); }
         else { invoke.then(connected); }
@@ -98,10 +98,10 @@ jDrupal.userLogin = function(name, pass) {
       else { reject(Error(req.statusText)); }
     };
     req.onerror = function() { reject(Error("Network Error")); };
-    var data = 'name=' + encodeURIComponent(name) +
-      '&pass=' + encodeURIComponent(pass) +
-      '&form_id=user_login_form';
-    req.send(data);
+    req.send(JSON.stringify({
+      name: name,
+      pass: pass
+    }));
   });
 };
 
