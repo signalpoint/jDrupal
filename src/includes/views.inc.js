@@ -57,7 +57,6 @@ jDrupal.Views.prototype.getView = function() {
 /**
  * Loads a view and fetches its results from the Drupal site.
  * @param {String} path
- * @param {Object} options
  */
 jDrupal.viewsLoad = function(path) {
   return new Promise(function(resolve, reject) {
