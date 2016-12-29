@@ -114,9 +114,20 @@ function date(format) {
       timestamp = d.getTime();
     }
     var result = '';
+    var grab_next = false;
     for (var i = 0; i < format.length; i++) {
       var character = format.charAt(i);
+      if (grab_next) {
+          result += character;
+          grab_next = false;
+          continue;
+      }
       switch (character) {
+
+        case '\\':
+          grab_next = true;
+          console.log(grab_next);
+          continue;
 
         /* DAY */
 
@@ -245,6 +256,13 @@ function date(format) {
           var minutes = '' + d.getMinutes();
           if (minutes.length == 1) { minutes = '0' + minutes; }
           result += minutes;
+          break;
+
+        // Seconds
+        case 's':
+          var seconds = d.getSeconds();
+          if (seconds.length == 1) { seconds = '0' + seconds; }
+          result += seconds;
           break;
 
         default:
