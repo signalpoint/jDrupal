@@ -124,10 +124,10 @@ function date(format) {
       }
       switch (character) {
 
+        // Escape character.
         case '\\':
           grab_next = true;
-          console.log(grab_next);
-          continue;
+          break;
 
         /* DAY */
 
