@@ -74,6 +74,6 @@ jDrupal.viewsLoad('my-view-url').then(function(view) {
 
 ## Getting Started
 
-- [Hello World](http://jdrupal.easystreet3.com/8/docs/Hello_World)
+- [Hello World](http://jdrupal.tylerfrankenstein.com/8/docs/Hello_World)
 
 > jDrupal is best friends with [DrupalGap](http://drupalgap.org), the open source application development kit for Drupal websites.

@@ -16,7 +16,7 @@ http://example.com/app
 
 ## 3. Download jDrupal
 
-[Download](https://raw.githubusercontent.com/easystreet3/jDrupal/8.x-1.x/jdrupal.min.js) the tool kit so it lives here:
+[Download](https://raw.githubusercontent.com/signalpoint/jDrupal/8.x-1.x/jdrupal.min.js) the tool kit so it lives here:
 
 ```
 http://example.com/app/jdrupal.min.js
