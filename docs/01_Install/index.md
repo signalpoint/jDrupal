@@ -7,14 +7,14 @@
 Download and enable the Services module (ands its sub module called REST Server) on the Drupal site. Import the endpoint by following these steps:
 
 - In Drupal, go to admin/structure/services/import
-- Copy the export code from [services-endpoint-export.txt](https://github.com/easystreet3/jDrupal/blob/7.x-1.x/services-endpoint-export.txt)
+- Copy the export code from [services-endpoint-export.txt](https://github.com/signalpoint/jDrupal/blob/7.x-1.x/services-endpoint-export.txt)
 - Paste it into the Endpoint code textarea
 - Click Continue
 - Click Save
 - Under admin/config/development/performance click Clear all caches
 
 ## 3. Add jDrupal library to your app and configure it
-- Download the jDrupal library with `npm install jdrupal`, `bower install jdrupal` or [download a release](https://github.com/easystreet3/jDrupal/releases) manually.
+- Download the jDrupal library with `npm install jdrupal`, `bower install jdrupal` or [download a release](https://github.com/signalpoint/jDrupal/releases) manually.
 - Include the `jdrupal.min.js` file using a script tag in your app.
 - Configure the environmental variables to let jDrupal know where your Drupal endpoint is:
 

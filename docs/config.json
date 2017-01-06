@@ -20,11 +20,11 @@
     "toggle_code": false,
     "date_modified": true,
     "float": true,
-    "repo": "easystreet3/jDrupal",
+    "repo": "signalpoint/jDrupal",
     "links": {
-      "jDrupal Home": "http://jdrupal.easystreet3.com",
-      "jDrupal 7 API": "http://jdrupal.easystreet3.com/7/api",
-      "jDrupal 8": "http://jdrupal.easystreet3.com/8",
+      "jDrupal Home": "http://jdrupal.tylerfrankenstein.com",
+      "jDrupal 7 API": "http://jdrupal.tylerfrankenstein.com/7/api",
+      "jDrupal 8": "http://jdrupal.tylerfrankenstein.com/8",
       "DrupalGap": "http://drupalgap.org"
     }
   }

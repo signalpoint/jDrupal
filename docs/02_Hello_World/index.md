@@ -10,7 +10,7 @@ http://example.com/app
 
 ## 2. Download jDrupal
 
-[Download](https://raw.githubusercontent.com/easystreet3/jDrupal/7.x-1.x/jdrupal.min.js) the tool kit so it lives here:
+[Download](https://raw.githubusercontent.com/signalpoint/jDrupal/7.x-1.x/jdrupal.min.js) the tool kit so it lives here:
 
 ```
 http://example.com/app/jdrupal.min.js

@@ -67,6 +67,6 @@ user_login("bob", "secret", {
 
 ## Getting Started
 
-- [Hello World](http://jdrupal.easystreet3.com/7/docs/Hello_World)
+- [Hello World](http://jdrupal.tylerfrankenstein.com/7/docs/Hello_World)
 
 > jDrupal is best friends with [DrupalGap](http://drupalgap.org), the open source application development kit for Drupal websites.
