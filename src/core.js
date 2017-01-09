@@ -258,9 +258,9 @@ function date(format) {
           result += minutes;
           break;
 
-        // Seconds
+        // Seconds with leading zeros: 00 to 59
         case 's':
-          var seconds = d.getSeconds();
+          var seconds = '' + d.getSeconds();
           if (seconds.length == 1) { seconds = '0' + seconds; }
           result += seconds;
           break;
