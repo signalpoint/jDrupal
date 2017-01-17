@@ -59,26 +59,6 @@ jDrupal.fieldGetItems = function(entity, fieldName, language) {
 };
 
 /**
- * Delete an entity.
- * @param {String} entity_type
- * @param {Number} ids
- * @param {Object} options
- */
-function entity_delete(entity_type, ids, options) {
-  try {
-    var function_name = entity_type + '_delete';
-    if (function_exists(function_name)) {
-      var fn = window[function_name];
-      fn(ids, options);
-    }
-    else {
-      console.log('WARNING: entity_delete - unsupported type: ' + entity_type);
-    }
-  }
-  catch (error) { console.log('entity_delete - ' + error); }
-}
-
-/**
  * Given an entity type and entity, this will return the bundle name as a
  * string for the given entity, or null if the bundle is N/A.
  * @param {String} entity_type The entity type.
