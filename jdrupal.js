@@ -114,9 +114,20 @@ function date(format) {
       timestamp = d.getTime();
     }
     var result = '';
+    var grab_next = false;
     for (var i = 0; i < format.length; i++) {
       var character = format.charAt(i);
+      if (grab_next) {
+          result += character;
+          grab_next = false;
+          continue;
+      }
       switch (character) {
+
+        // Escape character.
+        case '\\':
+          grab_next = true;
+          break;
 
         /* DAY */
 
@@ -245,6 +256,13 @@ function date(format) {
           var minutes = '' + d.getMinutes();
           if (minutes.length == 1) { minutes = '0' + minutes; }
           result += minutes;
+          break;
+
+        // Seconds with leading zeros: 00 to 59
+        case 's':
+          var seconds = '' + d.getSeconds();
+          if (seconds.length == 1) { seconds = '0' + seconds; }
+          result += seconds;
           break;
 
         default:
@@ -731,26 +749,6 @@ jDrupal.fieldGetItems = function(entity, fieldName, language) {
   if (!language) { language = language_default(); }
   return entity[fieldName][language];
 };
-
-/**
- * Delete an entity.
- * @param {String} entity_type
- * @param {Number} ids
- * @param {Object} options
- */
-function entity_delete(entity_type, ids, options) {
-  try {
-    var function_name = entity_type + '_delete';
-    if (function_exists(function_name)) {
-      var fn = window[function_name];
-      fn(ids, options);
-    }
-    else {
-      console.log('WARNING: entity_delete - unsupported type: ' + entity_type);
-    }
-  }
-  catch (error) { console.log('entity_delete - ' + error); }
-}
 
 /**
  * Given an entity type and entity, this will return the bundle name as a
