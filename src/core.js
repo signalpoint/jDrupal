@@ -210,6 +210,24 @@ function date(format) {
           result += month;
           break;
 
+        // A short textual representation of a month, three letters
+        case 'M':
+          switch (d.getMonth()) {
+            case 0: result += 'Jan'; break;
+            case 1: result += 'Feb'; break;
+            case 2: result += 'Mar'; break;
+            case 3: result += 'Apr'; break;
+            case 4: result += 'May'; break;
+            case 5: result += 'Jun'; break;
+            case 6: result += 'Jul'; break;
+            case 7: result += 'Aug'; break;
+            case 8: result += 'Sep'; break;
+            case 9: result += 'Oct'; break;
+            case 10: result += 'Nov'; break;
+            case 11: result += 'Dec'; break;
+          }
+          break;
+
         /* YEAR */
 
         // A full numeric representation of a year, 4 digits.
@@ -241,6 +259,14 @@ function date(format) {
         // 24-hour format of an hour without leading zeros: 0 through 23
         case 'G':
           var hours = '' + d.getHours();
+          result += hours;
+          break;
+
+        // 12-hour format of an hour with leading zeros: 01 through 12
+        case 'h':
+          var hours = '' + (d.getHours() % 12);
+          if (hours == '0') { hours = '12'; }
+          else if (hours.length == 1) { hours = '0' + hours; }
           result += hours;
           break;
 
