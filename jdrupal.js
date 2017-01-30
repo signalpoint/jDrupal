@@ -1104,7 +1104,7 @@ function entity_primary_key(entity_type) {
       default:
         // Is anyone declaring the primary key for this entity type?
         var function_name = entity_type + '_primary_key';
-        if (drupalgap_function_exists(function_name)) {
+        if (function_exists(function_name)) {
           var fn = window[function_name];
           key = fn(entity_type);
         }
