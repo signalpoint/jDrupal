@@ -777,6 +777,34 @@ jDrupal.fieldGetItems = function(entity, fieldName, language) {
 };
 
 /**
+ * Returns an array of entity type machine names configured with Services Entity in settings.js
+ * @returns {Array}
+ */
+function services_entity_types() {
+  var entityTypes = [];
+  if (Drupal.services_entity && Drupal.services_entity.types) {
+    for (var entityType in Drupal.services_entity.types) {
+      if (!Drupal.services_entity.types.hasOwnProperty(entityType)) { continue; }
+      entityTypes.push(entityType);
+    }
+  }
+  return entityTypes;
+}
+
+/**
+ * Readies the Drupal.services_queue object with Services Entity configuration.
+ */
+function _services_entity_queue_init() {
+  for (var entityType in Drupal.services_entity.types) {
+    if (!Drupal.services_entity.types.hasOwnProperty(entityType)) { continue; }
+    if (Drupal.services_queue[entityType]) { continue; }
+    Drupal.services_queue[entityType] = {
+      retrieve: {}
+    };
+  }
+}
+
+/**
  * Given an entity type and entity, this will return the bundle name as a
  * string for the given entity, or null if the bundle is N/A.
  * @param {String} entity_type The entity type.
@@ -797,6 +825,7 @@ function entity_get_bundle(entity_type, entity) {
         // These entity types don't have a bundle.
         break;
       default:
+        if (in_array(entity_type, services_entity_types())) { return entity.type; }
         var msg = 'WARNING: entity_get_bundle - unsupported entity type (' +
           entity_type + ')';
         console.log(msg);
@@ -808,22 +837,20 @@ function entity_get_bundle(entity_type, entity) {
 }
 
 function entity_get_bundle_name(entity_type) {
-  try {
-    // @TODO Should be dynamic.
-    var bundle = null;
-    switch (entity_type) {
-      case 'node': return 'type'; break;
-      case 'taxonomy_term': return 'vid'; break;
-      case 'comment': // @TODO comment has a node bundle, kind of
-      case 'file':
-      case 'user':
-      case 'taxonomy_vocabulary':
-      default:
-        return null;
-        break;
-    }
+  // @TODO Should be dynamic.
+  var bundle = null;
+  switch (entity_type) {
+    case 'node': return 'type'; break;
+    case 'taxonomy_term': return 'vid'; break;
+    case 'comment': // @TODO comment has a node bundle, kind of
+    case 'file':
+    case 'user':
+    case 'taxonomy_vocabulary':
+    default:
+      if (in_array(entity_type, services_entity_types())) { return 'type'; }
+      return null;
+      break;
   }
-  catch (error) { console.log('entity_get_bundle - ' + error); }
 }
 
 /**
@@ -831,14 +858,7 @@ function entity_get_bundle_name(entity_type) {
  * @param {*} entity_id
  * @return {Number}
  */
-function entity_id_parse(entity_id) {
-  try {
-    var id = entity_id;
-    if (typeof id === 'string') { id = parseInt(entity_id); }
-    return id;
-  }
-  catch (error) { console.log('entity_id_parse - ' + error); }
-}
+function entity_id_parse(entity_id) { return typeof entity_id === 'string' ? parseInt(entity_id) : entity_id; }
 
 /**
  * Given an entity type and the entity id, this will return the local storage
@@ -847,12 +867,7 @@ function entity_id_parse(entity_id) {
  * @param {Number} id
  * @return {String}
  */
-function entity_local_storage_key(entity_type, id) {
-  try {
-    return entity_type + '_' + id;
-  }
-  catch (error) { console.log('entity_local_storage_key - ' + error); }
-}
+function entity_local_storage_key(entity_type, id) { return entity_type + '_' + id; }
 
 /**
  * A placeholder function used to provide a local storage key for entity index
@@ -860,9 +875,7 @@ function entity_local_storage_key(entity_type, id) {
  * @param {String} path
  * @return {String}
  */
-function entity_index_local_storage_key(path) {
-  return path;
-}
+function entity_index_local_storage_key(path) { return path; }
 
 /**
  * Loads an entity.
@@ -872,6 +885,8 @@ function entity_index_local_storage_key(path) {
  */
 function entity_load(entity_type, ids, options) {
   try {
+    var servicesEntityType = in_array(entity_type, services_entity_types());
+    if (servicesEntityType) { _services_entity_queue_init(); }
 
     // If an array of entity ids was passed in, use the entity index resource to load them all.
     if (is_array(ids)) {
@@ -969,15 +984,18 @@ function entity_load(entity_type, ids, options) {
     };
 
     // Finally, determine the entity's retrieve function and call it.
-    var function_name = entity_type + '_retrieve';
+
+    var function_name = !servicesEntityType ? entity_type + '_retrieve' : 'entity_retrieve';
     if (function_exists(function_name)) {
       call_options[primary_key] = entity_id;
       var fn = window[function_name];
-      fn(ids, call_options);
+      if (servicesEntityType) {
+        services_resource_defaults(call_options, entity_type, 'retrieve');
+        fn(entity_type, ids, call_options);
+      }
+      else { fn(ids, call_options); }
     }
-    else {
-      console.log('WARNING: ' + function_name + '() does not exist!');
-    }
+    else { console.log('WARNING: ' + function_name + '() does not exist!'); }
   }
   catch (error) { console.log('entity_load - ' + error); }
 }
@@ -1102,6 +1120,7 @@ function entity_primary_key(entity_type) {
       case 'taxonomy_vocabulary': key = 'vid'; break;
       case 'user': key = 'uid'; break;
       default:
+          if (in_array(entity_type, services_entity_types())) { return 'id'; }
         // Is anyone declaring the primary key for this entity type?
         var function_name = entity_type + '_primary_key';
         if (drupalgap_function_exists(function_name)) {
@@ -1303,17 +1322,21 @@ function _entity_set_expiration_time(entity_type, entity) {
  * @return {Array}
  */
 function entity_types() {
-  try {
-    return [
-      'comment',
-      'file',
-      'node',
-      'taxonomy_term',
-      'taxonomy_vocabulary',
-      'user'
-    ];
+  // Start with core entity types.
+  var entityTypes = [
+    'comment',
+    'file',
+    'node',
+    'taxonomy_term',
+    'taxonomy_vocabulary',
+    'user'
+  ];
+  // Append and Services Entity types.
+  var servicesEntityTypes = services_entity_types();
+  if (servicesEntityTypes.length) {
+    entityTypes.push.apply(entityTypes, servicesEntityTypes);
   }
-  catch (error) { console.log('entity_types - ' + error); }
+  return entityTypes;
 }
 
 /**
@@ -1856,11 +1879,8 @@ function services_ready() {
  * @param {String} resource
  */
 function services_resource_defaults(options, service, resource) {
-  try {
-    if (!options.service) { options.service = service; }
-    if (!options.resource) { options.resource = resource; }
-  }
-  catch (error) { console.log('services_resource_defaults - ' + error); }
+  if (!options.service) { options.service = service; }
+  if (!options.resource) { options.resource = resource; }
 }
 
 /**
@@ -1872,14 +1892,10 @@ function services_resource_defaults(options, service, resource) {
  * @param {String} callback_type
  * @return {Boolean}
  */
-function _services_queue_already_queued(service, resource, entity_id,
-  callback_type) {
+function _services_queue_already_queued(service, resource, entity_id, callback_type) {
   try {
     var queued = false;
-    if (
-      typeof Drupal.services_queue[service][resource][entity_id] !== 'undefined'
-    ) {
-      //queued = true;
+    if (typeof Drupal.services_queue[service][resource][entity_id] !== 'undefined') {
       var queue = Drupal.services_queue[service][resource][entity_id];
       if (queue[callback_type].length != 0) { queued = true; }
     }
@@ -2047,10 +2063,12 @@ function comment_index(query, options) {
  */
 function entity_create(entity_type, bundle, entity, options) {
   try {
+    var path = entity_type + '.json';
+    if (in_array(entity_type, services_entity_types())) { path = 'entity_' + path; }
     Drupal.services.call({
         method: 'POST',
         async: options.async,
-        path: entity_type + '.json',
+        path: path,
         service: options.service,
         resource: options.resource,
         entity_type: entity_type,
@@ -2081,9 +2099,11 @@ function entity_create(entity_type, bundle, entity, options) {
  */
 function entity_retrieve(entity_type, ids, options) {
   try {
+    var path = entity_type + '/' + ids + '.json';
+    if (in_array(entity_type, services_entity_types())) { path = 'entity_' + path; }
     Drupal.services.call({
         method: 'GET',
-        path: entity_type + '/' + ids + '.json',
+        path: path,
         service: options.service,
         resource: options.resource,
         entity_type: entity_type,
@@ -2117,9 +2137,11 @@ function entity_update(entity_type, bundle, entity, options) {
     var entity_wrapper = _entity_wrap(entity_type, entity);
     var primary_key = entity_primary_key(entity_type);
     var data = JSON.stringify(entity_wrapper);
+    var path = entity_type + '/' + entity[primary_key] + '.json';
+    if (in_array(entity_type, services_entity_types())) { path = 'entity_' + path; }
     Drupal.services.call({
         method: 'PUT',
-        path: entity_type + '/' + entity[primary_key] + '.json',
+        path: path,
         service: options.service,
         resource: options.resource,
         entity_type: entity_type,
@@ -2152,9 +2174,11 @@ function entity_update(entity_type, bundle, entity, options) {
  */
 function entity_delete(entity_type, entity_id, options) {
   try {
+    var path = entity_type + '/' + entity_id + '.json';
+    if (in_array(entity_type, services_entity_types())) { path = 'entity_' + path; }
     Drupal.services.call({
         method: 'DELETE',
-        path: entity_type + '/' + entity_id + '.json',
+        path: path,
         service: options.service,
         resource: options.resource,
         entity_type: entity_type,
@@ -2197,6 +2221,7 @@ function entity_index(entity_type, query, options) {
     if (query_string) { query_string = '&' + query_string; }
     else { query_string = ''; }
     var path = entity_type + '.json' + query_string;
+    if (in_array(entity_type, services_entity_types())) { path = 'entity_' + path; }
 
     // If entity caching is enabled, try to load the index results from local
     // storage and return them instead.
