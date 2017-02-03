@@ -299,11 +299,8 @@ function services_ready() {
  * @param {String} resource
  */
 function services_resource_defaults(options, service, resource) {
-  try {
-    if (!options.service) { options.service = service; }
-    if (!options.resource) { options.resource = resource; }
-  }
-  catch (error) { console.log('services_resource_defaults - ' + error); }
+  if (!options.service) { options.service = service; }
+  if (!options.resource) { options.resource = resource; }
 }
 
 /**
@@ -315,14 +312,10 @@ function services_resource_defaults(options, service, resource) {
  * @param {String} callback_type
  * @return {Boolean}
  */
-function _services_queue_already_queued(service, resource, entity_id,
-  callback_type) {
+function _services_queue_already_queued(service, resource, entity_id, callback_type) {
   try {
     var queued = false;
-    if (
-      typeof Drupal.services_queue[service][resource][entity_id] !== 'undefined'
-    ) {
-      //queued = true;
+    if (typeof Drupal.services_queue[service][resource][entity_id] !== 'undefined') {
       var queue = Drupal.services_queue[service][resource][entity_id];
       if (queue[callback_type].length != 0) { queued = true; }
     }

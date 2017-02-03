@@ -70,3 +70,30 @@ user_login("bob", "secret", {
 - [Hello World](http://jdrupal.tylerfrankenstein.com/7/docs/Hello_World)
 
 > jDrupal is best friends with [DrupalGap](http://drupalgap.org), the open source application development kit for Drupal websites.
+
+## Custom Entity Types
+
+By installing the [Services Entity](https://www.drupal.org/project/services_entity) module in Drupal, jDrupal can easily support all custom Entity Types. Just add something like this to your `settings.js` file, utilizing your entity machine name(s) instead:
+
+```
+/** SERVICES ENTITY **/
+Drupal.services_entity = {
+  types: {
+    invitation: { },
+    food: {}
+  }
+};
+```
+
+Then it's easy to perform `C.R.U.D.` operations on custom entities:
+
+```
+// Retrieve.
+entity_load('invitation', 123, {
+  success: function(invitation) {
+    console.log(invitation);
+    alert('Loaded invitation: ' + invitation.id);
+  },
+  error: function(xhr, status, msg) { alert(msg); }
+});
+```

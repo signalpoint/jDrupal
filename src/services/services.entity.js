@@ -7,10 +7,12 @@
  */
 function entity_create(entity_type, bundle, entity, options) {
   try {
+    var path = entity_type + '.json';
+    if (in_array(entity_type, services_entity_types())) { path = 'entity_' + path; }
     Drupal.services.call({
         method: 'POST',
         async: options.async,
-        path: entity_type + '.json',
+        path: path,
         service: options.service,
         resource: options.resource,
         entity_type: entity_type,
@@ -41,9 +43,11 @@ function entity_create(entity_type, bundle, entity, options) {
  */
 function entity_retrieve(entity_type, ids, options) {
   try {
+    var path = entity_type + '/' + ids + '.json';
+    if (in_array(entity_type, services_entity_types())) { path = 'entity_' + path; }
     Drupal.services.call({
         method: 'GET',
-        path: entity_type + '/' + ids + '.json',
+        path: path,
         service: options.service,
         resource: options.resource,
         entity_type: entity_type,
@@ -77,9 +81,11 @@ function entity_update(entity_type, bundle, entity, options) {
     var entity_wrapper = _entity_wrap(entity_type, entity);
     var primary_key = entity_primary_key(entity_type);
     var data = JSON.stringify(entity_wrapper);
+    var path = entity_type + '/' + entity[primary_key] + '.json';
+    if (in_array(entity_type, services_entity_types())) { path = 'entity_' + path; }
     Drupal.services.call({
         method: 'PUT',
-        path: entity_type + '/' + entity[primary_key] + '.json',
+        path: path,
         service: options.service,
         resource: options.resource,
         entity_type: entity_type,
@@ -112,9 +118,11 @@ function entity_update(entity_type, bundle, entity, options) {
  */
 function entity_delete(entity_type, entity_id, options) {
   try {
+    var path = entity_type + '/' + entity_id + '.json';
+    if (in_array(entity_type, services_entity_types())) { path = 'entity_' + path; }
     Drupal.services.call({
         method: 'DELETE',
-        path: entity_type + '/' + entity_id + '.json',
+        path: path,
         service: options.service,
         resource: options.resource,
         entity_type: entity_type,
@@ -157,6 +165,7 @@ function entity_index(entity_type, query, options) {
     if (query_string) { query_string = '&' + query_string; }
     else { query_string = ''; }
     var path = entity_type + '.json' + query_string;
+    if (in_array(entity_type, services_entity_types())) { path = 'entity_' + path; }
 
     // If entity caching is enabled, try to load the index results from local
     // storage and return them instead.

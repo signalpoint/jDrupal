@@ -1,5 +1,7 @@
 > A Bunch of Common jDrupal Examples
 
+For custom entity types, see the [README](https://github.com/signalpoint/jDrupal/tree/7.x-1.x#custom-entity-types).
+
 ## Authentication
 ### Connect
 ```
