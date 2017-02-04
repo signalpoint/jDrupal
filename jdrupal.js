@@ -777,6 +777,28 @@ jDrupal.fieldGetItems = function(entity, fieldName, language) {
 };
 
 /**
+ * Sets an item's property on an entity given a field and property name.
+ * @param {Object} entity The entity object.
+ * @param {String} fieldName The field name on the entity.
+ * @param {String|null} propertyName The property name to set, usually 'value',  or null to set the entire
+ *   item (advanced users, don't forget language code and delta value).
+ * @param {*} value The value to set.
+ * @param {String} language Optional language code, defaults to 'und'
+ * @param {Number} delta Optional delta value, defaults to 0
+ */
+jDrupal.fieldSetItem = function(entity, fieldName, propertyName, value, language, delta) {
+  if (!language) { language = language_default(); }
+  if (typeof delta === 'undefined') { delta = 0; }
+  if (!entity[fieldName]) { entity[fieldName] = {}; }
+  if (propertyName) {
+    if (!entity[fieldName][language]) { entity[fieldName][language] = []; }
+    if (!entity[fieldName][language][delta]) { entity[fieldName][language][delta] = {}; }
+    entity[fieldName][language][delta][propertyName] = value;
+  }
+  else { entity[fieldName][language][delta] = value; }
+};
+
+/**
  * Returns an array of entity type machine names configured with Services Entity in settings.js
  * @returns {Array}
  */
