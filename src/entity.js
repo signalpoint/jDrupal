@@ -479,14 +479,20 @@ function entity_save(entity_type, bundle, entity, options) {
         if (!entity.vid) { function_name = 'taxonomy_vocabulary_create'; }
         else { function_name = 'taxonomy_vocabulary_update'; }
         break;
+      default:
+        if (in_array(entity_type, services_entity_types())) {
+          function_name = !entity[entity_primary_key(entity_type)] ?
+              'entity_create' : 'entity_update';
+          window[function_name](entity_type, bundle, entity, options);
+          return;
+        }
+        break;
     }
     if (function_name && function_exists(function_name)) {
       var fn = window[function_name];
       fn(entity, options);
     }
-    else {
-      console.log('WARNING: entity_save - unsupported type: ' + entity_type);
-    }
+    else { console.log('WARNING: entity_save - unsupported type: ' + entity_type); }
   }
   catch (error) { console.log('entity_save - ' + error); }
 }
