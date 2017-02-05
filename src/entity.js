@@ -481,8 +481,7 @@ function entity_save(entity_type, bundle, entity, options) {
         break;
       default:
         if (in_array(entity_type, services_entity_types())) {
-          function_name = !entity[entity_primary_key(entity_type)] ?
-              'entity_create' : 'entity_update';
+          function_name = !entity[entity_primary_key(entity_type)] ? 'entity_create' : 'entity_update';
           window[function_name](entity_type, bundle, entity, options);
           return;
         }
