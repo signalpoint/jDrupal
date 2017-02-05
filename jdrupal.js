@@ -1199,8 +1199,7 @@ function entity_save(entity_type, bundle, entity, options) {
         break;
       default:
         if (in_array(entity_type, services_entity_types())) {
-          function_name = !entity[entity_primary_key(entity_type)] ?
-              'entity_create' : 'entity_update';
+          function_name = !entity[entity_primary_key(entity_type)] ? 'entity_create' : 'entity_update';
           window[function_name](entity_type, bundle, entity, options);
           return;
         }
@@ -2162,11 +2161,13 @@ function entity_retrieve(entity_type, ids, options) {
  */
 function entity_update(entity_type, bundle, entity, options) {
   try {
-    var entity_wrapper = _entity_wrap(entity_type, entity);
     var primary_key = entity_primary_key(entity_type);
-    var data = JSON.stringify(entity_wrapper);
     var path = entity_type + '/' + entity[primary_key] + '.json';
-    if (in_array(entity_type, services_entity_types())) { path = 'entity_' + path; }
+    if (in_array(entity_type, services_entity_types())) {
+      path = 'entity_' + path;
+      data = entity;
+    }
+    else { data = _entity_wrap(entity_type, entity); }
     Drupal.services.call({
         method: 'PUT',
         path: path,
@@ -2175,7 +2176,7 @@ function entity_update(entity_type, bundle, entity, options) {
         entity_type: entity_type,
         entity_id: entity[entity_primary_key(entity_type)],
         bundle: bundle,
-        data: data,
+        data: JSON.stringify(data),
         success: function(result) {
           try {
             _entity_local_storage_delete(entity_type, entity[primary_key]);
