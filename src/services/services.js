@@ -363,12 +363,7 @@ function _services_queue_clear(entity_type, resource, entity_id, callback_type) 
  * @param {Number} entity_id
  */
 function _services_queue_remove_from_queue(service, resource, entity_id) {
-  try {
-    console.log('WARNING: services_queue_remove_from_queue() not done yet!');
-  }
-  catch (error) {
-    console.log('_services_queue_remove_from_queue - ' + error);
-  }
+  console.log('WARNING: services_queue_remove_from_queue() not done yet!');
 }
 
 /**
@@ -379,8 +374,7 @@ function _services_queue_remove_from_queue(service, resource, entity_id) {
  * @param {String} callback_type
  * @param {Function} callback
  */
-function _services_queue_callback_add(service, resource, entity_id,
-  callback_type, callback) {
+function _services_queue_callback_add(service, resource, entity_id, callback_type, callback) {
   try {
     Drupal.services_queue[service][resource][entity_id][callback_type].push(
       callback
