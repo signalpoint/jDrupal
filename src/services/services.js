@@ -242,23 +242,18 @@ function services_get_csrf_token(options) {
             if (options.error) { options.error(token_request, token_request.status, token_request.responseText); }
           }
           else { // OK
-            // Set Drupal.sessid with the token, then return the token to the
-            // success function.
-            token = token_request.responseText;
+            // Set Drupal.sessid with the token, then return the token to the success function.
+            token = token_request.responseText.trim();
             Drupal.sessid = token;
             if (options.success) { options.success(token); }
           }
         }
         else {
-          console.log(
-            'services_get_csrf_token - readyState - ' + token_request.readyState
-          );
+          console.log('services_get_csrf_token - readyState - ' + token_request.readyState);
         }
       }
       catch (error) {
-        console.log(
-          'services_get_csrf_token - token_request. onload - ' + error
-        );
+        console.log('services_get_csrf_token - token_request. onload - ' + error);
       }
     };
 
