@@ -248,7 +248,8 @@ jDrupal.Entity.prototype.save = function() {
           _entity.postSave(req).then(function() {
             if (
               (method == 'POST' && req.status == 201) ||
-              (method == 'PATCH' && req.status == 204)
+              (method == 'PATCH' && req.status == 204) ||
+              req.status == 200
             ) {
               var invoke = jDrupal.moduleInvokeAll('rest_post_process', req);
               if (!invoke) { resolve(); }
