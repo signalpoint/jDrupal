@@ -171,3 +171,40 @@ jDrupal.nodeLoad = function(nid) { return this.entityLoad('node', nid); };
  * @returns {Promise}
  */
 jDrupal.userLoad = function(uid) { return this.entityLoad('user', uid); };
+
+/**
+ * Registers a new user.
+ * @param {String} name
+ * @param {String} pass
+ * @param {String} mail
+ * @returns {Promise}
+ */
+jDrupal.userRegister = function(name, pass, mail) {
+  return new Promise(function(resolve, reject) {
+    var req = new XMLHttpRequest();
+    req.dg = {
+      service: 'user',
+      resource: 'register'
+    };
+    req.open('POST', jDrupal.restPath() + 'user/register?_format=json');
+    req.setRequestHeader('Content-type', 'application/json');
+
+    var connected = function() {
+      jDrupal.connect().then(resolve);
+    };
+    req.onload = function() {
+      if (req.status == 200) {
+        var invoke = jDrupal.moduleInvokeAll('rest_post_process', req);
+        if (!invoke) { connected(); }
+        else { invoke.then(connected); }
+      }
+      else { reject(Error(req.statusText)); }
+    };
+    req.onerror = function() { reject(Error("Network Error")); };
+    req.send(JSON.stringify({
+      name: {value : name},
+      pass: {value: pass},
+      mail: {value: mail}
+    }));
+  });
+};
