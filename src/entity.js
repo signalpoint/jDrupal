@@ -279,7 +279,7 @@ jDrupal.Entity.prototype.postSave = function(xhr) {
   var self = this;
   return new Promise(function(resolve, reject) {
     // For new entities, grab their id from the Location response header.
-    if (self.isNew()) {
+    if (self.isNew() && xhr.getResponseHeader('Location')) {
       var parts = xhr.getResponseHeader('Location').split('/');
       var entityID =
         self.entity[self.getEntityKey('id')] = [ {
