@@ -5,9 +5,7 @@
   "authors": [
     "Tyler Frankenstein <email@tylerfrankenstein.com>"
   ],
-  "main": [
-    "jdrupal.min.js"
-  ],
+  "main": "jdrupal.min.js",
   "description": "A JavaScript library for Drupal 8 REST.",
   "keywords": [
     "drupal"
