@@ -1,5 +1,5 @@
 #!/bin/bash
 
-git add jdrupal.min.js
-git commit -m "Update binary."
+git add jdrupal.js jdrupal.min.js
+git commit -m "Update binaries."
 git push origin 8.x-1.x
