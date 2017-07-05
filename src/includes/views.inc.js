@@ -47,7 +47,7 @@ jDrupal.Views.prototype.getView = function() {
         if (!invoke) { loaded(); }
         else { invoke.then(loaded); }
       }
-      else { reject(Error(req.statusText)); }
+      else { reject(req); }
     };
     req.onerror = function() { reject(Error("Network Error")); };
     req.send();
