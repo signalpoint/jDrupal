@@ -164,7 +164,7 @@ jDrupal.Entity.prototype.load = function() {
             if (!invoke) { loaded(); }
             else { invoke.then(loaded); }
           }
-          else { reject(Error(req.statusText)); }
+          else { reject(req); }
         };
         req.onerror = function() { reject(Error("Network Error")); };
         req.send();
@@ -255,7 +255,7 @@ jDrupal.Entity.prototype.save = function() {
               if (!invoke) { resolve(); }
               else { invoke.then(resolve); }
             }
-            else { reject(Error(req.statusText)); }
+            else { reject(req); }
           });
 
         };
@@ -342,7 +342,7 @@ jDrupal.Entity.prototype.delete = function(options) {
               if (!invoke) { resolve(); }
               else { invoke.then(resolve); }
             }
-            else { reject(Error(req.statusText)); }
+            else { reject(req); }
           });
 
         };

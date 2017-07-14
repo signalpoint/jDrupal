@@ -345,7 +345,7 @@ jDrupal.token = function() {
         if (!invoke) { resolve(req.response); }
         else { invoke.then(resolve(req.response));}
       }
-      else { reject(Error(req.statusText)); }
+      else { reject(req); }
     };
     req.onerror = function() { reject(Error("Network Error")); };
     req.send();
@@ -379,7 +379,7 @@ jDrupal.connect = function() {
       }
     };
     req.onload = function() {
-      if (req.status != 200) { reject(Error(req.statusText)); return; }
+      if (req.status != 200) { reject(req); return; }
       var invoke = jDrupal.moduleInvokeAll('rest_post_process', req);
       if (!invoke) { connected(); }
       else { invoke.then(connected); }
@@ -411,7 +411,7 @@ jDrupal.userLogin = function(name, pass) {
         if (!invoke) { connected(); }
         else { invoke.then(connected); }
       }
-      else { reject(Error(req.statusText)); }
+      else { reject(req); }
     };
     req.onerror = function() { reject(Error("Network Error")); };
     req.send(JSON.stringify({
@@ -445,7 +445,7 @@ jDrupal.userLogout = function() {
         if (!invoke) { connected(); }
         else { invoke.then(connected); }
       }
-      else { reject(Error(req.statusText)); }
+      else { reject(req); }
     };
     req.onerror = function() { reject(Error("Network Error")); };
     req.send();
@@ -514,7 +514,7 @@ jDrupal.userRegister = function(name, pass, mail) {
         if (!invoke) { connected(); }
         else { invoke.then(connected); }
       }
-      else { reject(Error(req.statusText)); }
+      else { reject(req); }
     };
     req.onerror = function() { reject(Error("Network Error")); };
     req.send(JSON.stringify({
@@ -574,7 +574,7 @@ jDrupal.Views.prototype.getView = function() {
         if (!invoke) { loaded(); }
         else { invoke.then(loaded); }
       }
-      else { reject(Error(req.statusText)); }
+      else { reject(req); }
     };
     req.onerror = function() { reject(Error("Network Error")); };
     req.send();
@@ -760,7 +760,7 @@ jDrupal.Entity.prototype.load = function() {
             if (!invoke) { loaded(); }
             else { invoke.then(loaded); }
           }
-          else { reject(Error(req.statusText)); }
+          else { reject(req); }
         };
         req.onerror = function() { reject(Error("Network Error")); };
         req.send();
@@ -851,7 +851,7 @@ jDrupal.Entity.prototype.save = function() {
               if (!invoke) { resolve(); }
               else { invoke.then(resolve); }
             }
-            else { reject(Error(req.statusText)); }
+            else { reject(req); }
           });
 
         };
@@ -938,7 +938,7 @@ jDrupal.Entity.prototype.delete = function(options) {
               if (!invoke) { resolve(); }
               else { invoke.then(resolve); }
             }
-            else { reject(Error(req.statusText)); }
+            else { reject(req); }
           });
 
         };
