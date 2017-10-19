@@ -16,7 +16,10 @@ function system_connect(options) {
           Drupal.user = data.user;
           if (options.success) { options.success(data); }
         }
-        catch (error) { console.log('system_connect - success - ' + error); }
+        catch (error) {
+          console.log(error.stack);
+          console.log('system_connect - success - ' + error);
+        }
       },
       error: function(xhr, status, message) {
         try {
