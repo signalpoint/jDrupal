@@ -70,19 +70,11 @@ jDrupal.isEmpty = function(value) {
 };
 
 /**
- * Given a JS function name, this returns true if the function exists in the
- * scope, false otherwise.
+ * Given a JS function name, this returns true if the function exists, false otherwise.
  * @param {String} name
  * @return {Boolean}
  */
-jDrupal.functionExists = function(name) {
-  try {
-    return (eval('typeof ' + name) == 'function');
-  }
-  catch (error) {
-    alert('jDrupal.functionExists - ' + error);
-  }
-};
+jDrupal.functionExists = function(name) { return (eval('typeof ' + name) == 'function'); };
 
 /**
  * Checks if the needle string, is in the haystack array. Returns true if it is
