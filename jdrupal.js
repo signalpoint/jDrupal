@@ -1757,8 +1757,16 @@ Drupal.services.call = function(options) {
               if (options.ontimeout) { request.ontimeout = options.ontimeout; }
             }
 
+            var hasData = typeof options.data !== 'undefined';
+
+            // For any POST calls, make sure there is at minimum some empty data.
+            if (method == 'POST' && !hasData) {
+              options.data = JSON.stringify('');
+              hasData = true;
+            }
+
             // Send the request with or without data.
-            if (typeof options.data !== 'undefined') {
+            if (hasData) {
               // Print out debug information if debug is enabled. Don't print
               // out any sensitive debug data containing passwords.
               if (Drupal.settings.debug) {
