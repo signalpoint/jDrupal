@@ -252,8 +252,8 @@ jDrupal.Entity.prototype.save = function() {
               req.status == 200
             ) {
               var invoke = jDrupal.moduleInvokeAll('rest_post_process', req);
-              if (!invoke) { resolve(); }
-              else { invoke.then(resolve); }
+              if (!invoke) { resolve(req); }
+              else { invoke.then(resolve(req));}
             }
             else { reject(req); }
           });
@@ -339,8 +339,8 @@ jDrupal.Entity.prototype.delete = function(options) {
           _entity.postDelete(req).then(function() {
             if (req.status == 204) {
               var invoke = jDrupal.moduleInvokeAll('rest_post_process', req);
-              if (!invoke) { resolve(); }
-              else { invoke.then(resolve); }
+              if (!invoke) { resolve(req); }
+              else { invoke.then(resolve(req));}
             }
             else { reject(req); }
           });
