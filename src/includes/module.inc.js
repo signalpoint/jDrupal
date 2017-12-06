@@ -75,8 +75,7 @@ jDrupal.moduleInvoke = function(module, hook) {
 jDrupal.moduleInvokeAll = function(hook) {
   var promises = [];
 
-  // Copy the arguments and remove the hook name from the first index so the
-  // rest can be passed along to the hook.
+  // Copy the arguments and remove the hook name from the first index so the rest can be passed along to the hook.
   var module_arguments = Array.prototype.slice.call(arguments);
   module_arguments.splice(0, 1);
 
@@ -90,15 +89,12 @@ jDrupal.moduleInvokeAll = function(hook) {
   if (jDrupal.isEmpty(modules)) { return Promise.resolve(); }
 
   for (var i = 0; i < modules.length; i++) {
-    // If there are no arguments, just call the hook directly,
-    // otherwise call the hook and pass along all the arguments.
-    var invocation_results = null;
+    // If there are no arguments, just call the hook directly, otherwise call the hook and pass along all the arguments.
     if (module_arguments.length == 0) {
       promises.push(jDrupal.moduleInvoke(modules[i], hook));
     }
     else {
-      // Place the module name and hook name on the front of the
-      // arguments.
+      // Place the module name and hook name on the front of the arguments.
       module_arguments.unshift(modules[i], hook);
       promises.push(jDrupal.moduleInvoke.apply(null, module_arguments));
       module_arguments.splice(0, 2);
