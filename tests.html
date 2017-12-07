@@ -63,22 +63,22 @@
     <script type="text/javascript">
       $().ready(function() {
           
-          Drupal.settings.debug = true;
+          jDrupal.settings.debug = true;
           
           // Set the site path.
-          Drupal.settings.site_path = window.location.href.replace(
+          jDrupal.settings.site_path = window.location.href.replace(
             '/sites/all/libraries/jDrupal/',
             ''
           ).replace('tests.html', '');
-          $('#site_path').val(Drupal.settings.site_path);
+          $('#site_path').val(jDrupal.settings.site_path);
           
           $('#go').on('click', function(){
               set_drupal_settings();
-              if (Drupal.settings.site_path == '') {
+              if (jDrupal.settings.site_path == '') {
                 alert('Enter a site path!');
                 return false;
               }
-              if (Drupal.settings.endpoint == '') {
+              if (jDrupal.settings.endpoint == '') {
                 alert('Enter an endpoint path!');
                 return false;
               }
@@ -89,11 +89,11 @@
                     if (result.user.uid != 0) {
                       $('#logout').show();
                       $('#go').hide();
-                      if (Drupal.user.uid == 1) {
+                      if (jDrupal.user.uid == 1) {
                         $('#run_tests').show('slow');
                       }
                       else {
-                        alert('Only user #1 can perform tests, your are user # ' + Drupal.user.uid + '!');
+                        alert('Only user #1 can perform tests, your are user # ' + jDrupal.user.uid + '!');
                       }
                     }
                     else {
@@ -139,8 +139,8 @@
           });
           
           function set_drupal_settings() {
-            Drupal.settings.site_path = $('#site_path').val();
-            Drupal.settings.endpoint = $('#endpoint').val();
+            jDrupal.settings.site_path = $('#site_path').val();
+            jDrupal.settings.endpoint = $('#endpoint').val();
           }
           
           $('#run_tests').on('click', function(){

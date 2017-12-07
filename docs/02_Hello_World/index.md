@@ -49,16 +49,16 @@ Next, create an `app.js` file to run your app and replace the `sitePath` value w
 `http://example.com/app/app.js`
 
 ```
-Drupal.settings.site_path = "http://www.example.com";
-Drupal.settings.endpoint = "rest";
+jDrupal.settings.site_path = "http://www.example.com";
+jDrupal.settings.endpoint = "rest";
           
 function hello_world() {
   system_connect({
     success: function(result) {
     
       // Prepare a message for the user.
-      var text = Drupal.user.uid == 0 ?
-        'Hello World' : 'Hello ' + Drupal.user.name;
+      var text = jDrupal.user.uid == 0 ?
+        'Hello World' : 'Hello ' + jDrupal.user.name;
       
       // Show the message in the paragraph.
       document.getElementById("msg").innerHTML = text;

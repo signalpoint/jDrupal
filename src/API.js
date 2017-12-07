@@ -58,7 +58,7 @@ function hook_services_request_pre_postprocess_alter(options, result) {
 function hook_services_request_postprocess_alter(options, result) {
   try {
     if (options.service == 'user' && options.resource == 'login') {
-      Drupal.user.extra_cool = false;
+      jDrupal.user.extra_cool = false;
     }
   }
   catch (error) {

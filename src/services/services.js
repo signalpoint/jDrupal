@@ -1,20 +1,20 @@
 /**
- * The Drupal services JSON object.
+ * The jDrupal services JSON object.
  */
-Drupal.services = {};
+jDrupal.services = {};
 
 /**
  * Drupal Services XMLHttpRequest Object.
  * @param {Object} options
  */
-Drupal.services.call = function(options) {
+jDrupal.services.call = function(options) {
   try {
 
     options.debug = false;
 
     // Make sure the settings have been provided for Services.
     if (!services_ready()) {
-      var error = 'Set the site_path and endpoint on Drupal.settings!';
+      var error = 'Set the site_path and endpoint on jDrupal.settings!';
       options.error(null, null, error);
       return;
     }
@@ -23,14 +23,14 @@ Drupal.services.call = function(options) {
 
     // Build the Request, URL and extract the HTTP method.
     var request = new XMLHttpRequest();
-    var url = Drupal.settings.site_path +
-              Drupal.settings.base_path + '?q=';
+    var url = jDrupal.settings.site_path +
+              jDrupal.settings.base_path + '?q=';
     // Use an endpoint, unless someone passed in an empty string.
-    if (typeof options.endpoint === 'undefined') { url += Drupal.settings.endpoint + '/'; }
+    if (typeof options.endpoint === 'undefined') { url += jDrupal.settings.endpoint + '/'; }
     else if (options.endpoint != '') { url += options.endpoint + '/'; }
     url += options.path;
     var method = options.method.toUpperCase();
-    if (Drupal.settings.debug) { console.log(method + ': ' + url); }
+    if (jDrupal.settings.debug) { console.log(method + ': ' + url); }
 
     // Watch for net::ERR_CONNECTION_REFUSED and other oddities.
     request.onreadystatechange = function() {
@@ -47,7 +47,7 @@ Drupal.services.call = function(options) {
           var title = request.status + ' - ' + request.statusText;
           // 200 OK
           if (request.status == 200) {
-            if (Drupal.settings.debug) { console.log('200 - OK'); }
+            if (jDrupal.settings.debug) { console.log('200 - OK'); }
             // Extract the JSON result, or throw an error if the response wasn't
             // JSON.
 
@@ -79,7 +79,7 @@ Drupal.services.call = function(options) {
           else {
             // Not OK...
             console.log(method + ': ' + url + ' - ' + title);
-            if (Drupal.settings.debug) {
+            if (jDrupal.settings.debug) {
               if (!in_array(request.status, [403, 503])) { console.log(request.responseText); }
               console.log(request.getAllResponseHeaders());
             }
@@ -92,17 +92,17 @@ Drupal.services.call = function(options) {
           }
         }
         else {
-          console.log('Drupal.services.call - request.readyState = ' + request.readyState);
+          console.log('jDrupal.services.call - request.readyState = ' + request.readyState);
         }
       }
       catch (error) {
         // Not OK...
-        if (Drupal.settings.debug) {
+        if (jDrupal.settings.debug) {
           console.log(method + ': ' + url + ' - ' + request.statusText);
           console.log(request.responseText);
           console.log(request.getAllResponseHeaders());
         }
-        console.log('Drupal.services.call - onload - ' + error);
+        console.log('jDrupal.services.call - onload - ' + error);
       }
     };
 
@@ -162,7 +162,7 @@ Drupal.services.call = function(options) {
             if (hasData) {
               // Print out debug information if debug is enabled. Don't print
               // out any sensitive debug data containing passwords.
-              if (Drupal.settings.debug) {
+              if (jDrupal.settings.debug) {
                 var show = true;
                 if (
                     (options.service == 'user' && in_array(options.resource, ['login', 'create', 'update'])) ||
@@ -182,7 +182,7 @@ Drupal.services.call = function(options) {
           }
           catch (error) {
             console.log(
-              'Drupal.services.call - services_get_csrf_token - success - ' +
+              'jDrupal.services.call - services_get_csrf_token - success - ' +
               error
             );
           }
@@ -193,7 +193,7 @@ Drupal.services.call = function(options) {
           }
           catch (error) {
             console.log(
-              'Drupal.services.call - services_get_csrf_token - error - ' +
+              'jDrupal.services.call - services_get_csrf_token - error - ' +
               error
             );
           }
@@ -202,7 +202,7 @@ Drupal.services.call = function(options) {
 
   }
   catch (error) {
-    console.log('Drupal.services.call - error - ' + error);
+    console.log('jDrupal.services.call - error - ' + error);
   }
 };
 
@@ -216,10 +216,10 @@ function services_get_csrf_token(options) {
     var token;
 
     // Are we resetting the token?
-    if (options.reset) { Drupal.sessid = null; }
+    if (options.reset) { jDrupal.sessid = null; }
 
     // Do we already have a token? If we do, return it to the success callback.
-    if (Drupal.sessid) { token = Drupal.sessid; }
+    if (jDrupal.sessid) { token = jDrupal.sessid; }
     if (token) {
       if (options.success) { options.success(token); }
       return;
@@ -229,7 +229,7 @@ function services_get_csrf_token(options) {
 
     // Build the Request and URL.
     var token_request = new XMLHttpRequest();
-    options.token_url = Drupal.settings.site_path + Drupal.settings.base_path + '?q=services/session/token';
+    options.token_url = jDrupal.settings.site_path + jDrupal.settings.base_path + '?q=services/session/token';
 
     module_invoke_all('csrf_token_preprocess', options);
 
@@ -250,9 +250,9 @@ function services_get_csrf_token(options) {
             if (options.error) { options.error(token_request, token_request.status, token_request.responseText); }
           }
           else { // OK
-            // Set Drupal.sessid with the token, then return the token to the success function.
+            // Set jDrupal.sessid with the token, then return the token to the success function.
             token = token_request.responseText.trim();
-            Drupal.sessid = token;
+            jDrupal.sessid = token;
             if (options.success) { options.success(token); }
           }
         }
@@ -281,13 +281,13 @@ function services_get_csrf_token(options) {
 function services_ready() {
   try {
     var result = true;
-    if (Drupal.settings.site_path == '') {
+    if (jDrupal.settings.site_path == '') {
       result = false;
-      console.log('jDrupal\'s Drupal.settings.site_path is not set!');
+      console.log('jDrupal\'s jDrupal.settings.site_path is not set!');
     }
-    if (Drupal.settings.endpoint == '') {
+    if (jDrupal.settings.endpoint == '') {
       result = false;
-      console.log('jDrupal\'s Drupal.settings.endpoint is not set!');
+      console.log('jDrupal\'s jDrupal.settings.endpoint is not set!');
     }
     return result;
   }
@@ -318,8 +318,8 @@ function services_resource_defaults(options, service, resource) {
 function _services_queue_already_queued(service, resource, entity_id, callback_type) {
   try {
     var queued = false;
-    if (typeof Drupal.services_queue[service][resource][entity_id] !== 'undefined') {
-      var queue = Drupal.services_queue[service][resource][entity_id];
+    if (typeof jDrupal.services_queue[service][resource][entity_id] !== 'undefined') {
+      var queue = jDrupal.services_queue[service][resource][entity_id];
       if (queue[callback_type].length != 0) { queued = true; }
     }
     return queued;
@@ -335,7 +335,7 @@ function _services_queue_already_queued(service, resource, entity_id, callback_t
  */
 function _services_queue_add_to_queue(service, resource, entity_id) {
   try {
-    Drupal.services_queue[service][resource][entity_id] = {
+    jDrupal.services_queue[service][resource][entity_id] = {
       entity_id: entity_id,
       success: [],
       error: []
@@ -354,7 +354,7 @@ function _services_queue_add_to_queue(service, resource, entity_id) {
  */
 function _services_queue_clear(entity_type, resource, entity_id, callback_type) {
   try {
-    Drupal.services_queue[entity_type]['retrieve'][entity_id][callback_type] = [];
+    jDrupal.services_queue[entity_type]['retrieve'][entity_id][callback_type] = [];
   }
   catch (error) { console.log('_services_queue_clear - ' + error); }
 }
@@ -379,7 +379,7 @@ function _services_queue_remove_from_queue(service, resource, entity_id) {
  */
 function _services_queue_callback_add(service, resource, entity_id, callback_type, callback) {
   try {
-    Drupal.services_queue[service][resource][entity_id][callback_type].push(
+    jDrupal.services_queue[service][resource][entity_id][callback_type].push(
       callback
     );
   }
@@ -398,7 +398,7 @@ function _services_queue_callback_count(service, resource, entity_id,
   callback_type) {
   try {
     var length =
-      Drupal.services_queue[service][resource][entity_id][callback_type].length;
+      jDrupal.services_queue[service][resource][entity_id][callback_type].length;
     return length;
   }
   catch (error) { console.log('_services_queue_callback_count - ' + error); }

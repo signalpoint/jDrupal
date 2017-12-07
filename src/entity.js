@@ -86,9 +86,9 @@ jDrupal.fieldSetItem = function(entity, fieldName, propertyName, value, language
  */
 function services_entity_types() {
   var entityTypes = [];
-  if (Drupal.services_entity && Drupal.services_entity.types) {
-    for (var entityType in Drupal.services_entity.types) {
-      if (!Drupal.services_entity.types.hasOwnProperty(entityType)) { continue; }
+  if (jDrupal.services_entity && jDrupal.services_entity.types) {
+    for (var entityType in jDrupal.services_entity.types) {
+      if (!jDrupal.services_entity.types.hasOwnProperty(entityType)) { continue; }
       entityTypes.push(entityType);
     }
   }
@@ -96,13 +96,13 @@ function services_entity_types() {
 }
 
 /**
- * Readies the Drupal.services_queue object with Services Entity configuration.
+ * Readies the jDrupal.services_queue object with Services Entity configuration.
  */
 function _services_entity_queue_init() {
-  for (var entityType in Drupal.services_entity.types) {
-    if (!Drupal.services_entity.types.hasOwnProperty(entityType)) { continue; }
-    if (Drupal.services_queue[entityType]) { continue; }
-    Drupal.services_queue[entityType] = {
+  for (var entityType in jDrupal.services_entity.types) {
+    if (!jDrupal.services_entity.types.hasOwnProperty(entityType)) { continue; }
+    if (jDrupal.services_queue[entityType]) { continue; }
+    jDrupal.services_queue[entityType] = {
       retrieve: {}
     };
   }
@@ -306,7 +306,7 @@ function entity_load(entity_type, ids, options) {
 
 function _entity_callback_bubble(entity_type, entity_id, entity) {
   // Send the entity back to the queued callback(s), then clear out the callbacks.
-  var _success_callbacks = Drupal.services_queue[entity_type]['retrieve'][entity_id].success;
+  var _success_callbacks = jDrupal.services_queue[entity_type]['retrieve'][entity_id].success;
   for (var i = 0; i < _success_callbacks.length; i++) { _success_callbacks[i](entity); }
   _services_queue_clear(entity_type, 'retrieve', entity_id, 'success');
 }
@@ -385,9 +385,9 @@ function _entity_local_storage_save(entity_type, entity_id, entity) {
   try {
     var key = entity_local_storage_key(entity_type, entity_id);
     window.localStorage.setItem(key, JSON.stringify(entity));
-    if (typeof Drupal.cache_expiration.entities === 'undefined') { Drupal.cache_expiration.entities = {}; }
-    Drupal.cache_expiration.entities[key] = entity.expiration;
-    window.localStorage.setItem('cache_expiration', JSON.stringify(Drupal.cache_expiration));
+    if (typeof jDrupal.cache_expiration.entities === 'undefined') { jDrupal.cache_expiration.entities = {}; }
+    jDrupal.cache_expiration.entities[key] = entity.expiration;
+    window.localStorage.setItem('cache_expiration', JSON.stringify(jDrupal.cache_expiration));
   }
   catch (error) { console.log('_entity_local_storage_save - ' + error); }
 }
@@ -509,9 +509,9 @@ function entity_caching_enabled() {
     // First make sure entity caching is at least defined, then
     // make sure it's enabled.
     if (
-      typeof Drupal.settings.cache === 'undefined' ||
-      typeof Drupal.settings.cache.entity === 'undefined' ||
-      !Drupal.settings.cache.entity.enabled
+      typeof jDrupal.settings.cache === 'undefined' ||
+      typeof jDrupal.settings.cache.entity === 'undefined' ||
+      !jDrupal.settings.cache.entity.enabled
     ) { return false; }
 
     // Entity caching is enabled globally...
@@ -522,12 +522,12 @@ function entity_caching_enabled() {
 
     // Are there any entity type caching configs present? If not, caching is enabled.
     if (
-        !Drupal.settings.cache.entity.entity_types ||
-        !Drupal.settings.cache.entity.entity_types[entity_type]
+        !jDrupal.settings.cache.entity.entity_types ||
+        !jDrupal.settings.cache.entity.entity_types[entity_type]
     ) { return true; }
 
     // Grab the cache config for this entity type.
-    var cache = Drupal.settings.cache.entity.entity_types[entity_type];
+    var cache = jDrupal.settings.cache.entity.entity_types[entity_type];
 
     // Is caching explicitly disabled for this entity type?
     var entity_type_caching_disabled = typeof cache.enabled !== 'undefined' && cache.enabled === false;
@@ -563,17 +563,17 @@ function entity_has_expired(entity_type, entity) {
  * Looks for expired entities and remove them from local storage.
  */
 function entity_clean_local_storage() {
-  if (!Drupal.cache_expiration.entities) { return; }
-  for (var key in Drupal.cache_expiration.entities) {
-    if (!Drupal.cache_expiration.entities.hasOwnProperty(key)) { continue; }
-    var expiration = Drupal.cache_expiration.entities[key];
+  if (!jDrupal.cache_expiration.entities) { return; }
+  for (var key in jDrupal.cache_expiration.entities) {
+    if (!jDrupal.cache_expiration.entities.hasOwnProperty(key)) { continue; }
+    var expiration = jDrupal.cache_expiration.entities[key];
     if (expiration > time()) { continue; }
-    delete Drupal.cache_expiration.entities[key];
+    delete jDrupal.cache_expiration.entities[key];
     var parts = key.split('_');
     var entity_type = parts[0];
     var entity_id = parts[1];
     _entity_local_storage_delete(entity_type, entity_id);
-    window.localStorage.setItem('cache_expiration', JSON.stringify(Drupal.cache_expiration));
+    window.localStorage.setItem('cache_expiration', JSON.stringify(jDrupal.cache_expiration));
   }
 }
 
@@ -590,7 +590,7 @@ function _entity_get_expiration_time(entity_type, entity) {
     var bundle = entity_get_bundle(entity_type, entity);
     if (entity_caching_enabled(entity_type, bundle)) {
       var expiration = 0;
-      var cache = Drupal.settings.cache;
+      var cache = jDrupal.settings.cache;
       if (cache.entity.expiration !== 'undefined') {
         expiration = cache.entity.expiration;
       }

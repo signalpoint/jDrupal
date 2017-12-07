@@ -9,7 +9,7 @@ function entity_create(entity_type, bundle, entity, options) {
   try {
     var path = entity_type + '.json';
     if (in_array(entity_type, services_entity_types())) { path = 'entity_' + path; }
-    Drupal.services.call({
+    jDrupal.services.call({
         method: 'POST',
         async: options.async,
         path: path,
@@ -45,7 +45,7 @@ function entity_retrieve(entity_type, ids, options) {
   try {
     var path = entity_type + '/' + ids + '.json';
     if (in_array(entity_type, services_entity_types())) { path = 'entity_' + path; }
-    Drupal.services.call({
+    jDrupal.services.call({
         method: 'GET',
         path: path,
         service: options.service,
@@ -85,7 +85,7 @@ function entity_update(entity_type, bundle, entity, options) {
       data = entity;
     }
     else { data = _entity_wrap(entity_type, entity); }
-    Drupal.services.call({
+    jDrupal.services.call({
         method: 'PUT',
         path: path,
         service: options.service,
@@ -122,7 +122,7 @@ function entity_delete(entity_type, entity_id, options) {
   try {
     var path = entity_type + '/' + entity_id + '.json';
     if (in_array(entity_type, services_entity_types())) { path = 'entity_' + path; }
-    Drupal.services.call({
+    jDrupal.services.call({
         method: 'DELETE',
         path: path,
         service: options.service,
@@ -183,7 +183,7 @@ function entity_index(entity_type, query, options) {
     // Ask Drupal for an index on the entity(ies). Attach the query to the
     // options object so pre/post process hook implementations can have access
     // to it.
-    Drupal.services.call({
+    jDrupal.services.call({
         method: 'GET',
         path: path,
         service: options.service,

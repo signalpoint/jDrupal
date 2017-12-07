@@ -20,17 +20,17 @@ Download and enable the Services module (ands its sub module called REST Server)
 
 ```
 // Set the site path (without the trailing slash).
-Drupal.settings.site_path = "http://www.example.com";
+jDrupal.settings.site_path = "http://www.example.com";
 
 // Set the Service Resource endpoint path.
-Drupal.settings.endpoint = "rest";
+jDrupal.settings.endpoint = "rest";
 
 // Set to true to enable local storage caching for entities.
-Drupal.settings.cache.entity.enabled = true;
+jDrupal.settings.cache.entity.enabled = true;
 
 // Number of seconds before cached copy expires. Set to 0 to cache forever, set
 // to 60 for one minute, etc.
-Drupal.settings.cache.entity.expiration = 60*60*24;
+jDrupal.settings.cache.entity.expiration = 60*60*24;
 ```
 
 ## 4. Done!
