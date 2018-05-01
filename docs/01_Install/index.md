@@ -11,7 +11,7 @@ Using composer:
 composer require drupal/jdrupal
 ```
 
-Or download and enable the [jDrupal module] manually(http://www.drupal.org/project/jdrupal):
+Or download and enable the [jDrupal module](http://www.drupal.org/project/jdrupal) manually:
 
 ```
 drush en jdrupal
