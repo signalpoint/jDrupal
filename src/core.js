@@ -2,7 +2,7 @@
 var jDrupal = {}; drupal_init();
 // @deprecated The name Drupal will be removed in the future. Use jDrupal
 // instead.
-var Drupal = jDrupal;
+if (!Drupal) { var Drupal = jDrupal; }
 
 /**
  * Initializes the jDrupal JSON object.
