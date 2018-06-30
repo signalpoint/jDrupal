@@ -40,8 +40,8 @@ Since jDrupal has no dependencies and is written in pure JavaScript, it can be u
 // Connect to Drupal and say hello to the current user.
 system_connect({
   success: function(result) {
-    var msg = Drupal.user.uid == 0 ?
-        'Hello World' : 'Hello ' + Drupal.user.name;
+    var msg = jDrupal.user.uid == 0 ?
+        'Hello World' : 'Hello ' + jDrupal.user.name;
     alert(msg);
   }
 });
@@ -60,7 +60,7 @@ node_load(123, {
 // Login and show the user their id.
 user_login("bob", "secret", {
   success: function(result) {
-    alert(Drupal.user.id);
+    alert(jDrupal.user.id);
   }
 });
 ```
@@ -77,7 +77,7 @@ By installing the [Services Entity](https://www.drupal.org/project/services_enti
 
 ```
 /** SERVICES ENTITY **/
-Drupal.services_entity = {
+jDrupal.services_entity = {
   types: {
     invitation: { },
     food: {}

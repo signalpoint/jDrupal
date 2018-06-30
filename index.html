@@ -19,10 +19,10 @@
       function hello_world() {
         
         // Set the site path (without the trailing slash).
-        Drupal.settings.site_path = ""; // http://www.example.com
+        jDrupal.settings.site_path = ""; // http://www.example.com
         
         // Set the Service Resource endpoint path.
-        Drupal.settings.endpoint = "";
+        jDrupal.settings.endpoint = "";
         
         // Perform a System Connect call.
         system_connect({
@@ -30,7 +30,7 @@
               
               // Place custom code here...
 
-              var msg = Drupal.user.uid == 0 ? 'Hello World' : 'Hello ' + Drupal.user.name;
+              var msg = jDrupal.user.uid == 0 ? 'Hello World' : 'Hello ' + jDrupal.user.name;
               document.getElementById("message").innerHTML = msg;
               
             },

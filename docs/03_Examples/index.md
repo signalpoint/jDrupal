@@ -46,7 +46,7 @@ user_request_new_password('bob' /* or 'bob@hotmail.com' */ , {
 ## Users
 ### Get current user
 ```
-var user = Drupal.user;
+var user = jDrupal.user;
 console.log('Current user id: ' + user.id);
 ```
 ### Register a user

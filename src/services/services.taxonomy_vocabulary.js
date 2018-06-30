@@ -98,7 +98,7 @@ function taxonomy_get_tree(vid, parent, max_depth, load_entities, options) {
         max_depth: max_depth,
         load_entities: load_entities
     });
-    Drupal.services.call(options);
+    jDrupal.services.call(options);
   }
   catch (error) { console.log('taxonomy_get_tree - ' + error); }
 }

@@ -72,7 +72,7 @@ function user_index(query, options) {
  */
 function user_register(account, options) {
   try {
-    Drupal.services.call({
+    jDrupal.services.call({
         service: 'user',
         resource: 'register',
         method: 'POST',
@@ -116,7 +116,7 @@ function user_login(name, pass, options) {
       if (options.error) { options.error(null, 406, 'user_login - bad input'); }
       return;
     }
-    Drupal.services.call({
+    jDrupal.services.call({
         service: 'user',
         resource: 'login',
         method: 'POST',
@@ -127,8 +127,8 @@ function user_login(name, pass, options) {
           try {
             // Now that we are logged in, we need to get a new CSRF token, and
             // then make a system connect call.
-            Drupal.user = data.user;
-            Drupal.sessid = null;
+            jDrupal.user = data.user;
+            jDrupal.sessid = null;
             services_get_csrf_token({
                 success: function(token) {
                   try {
@@ -198,7 +198,7 @@ function user_login(name, pass, options) {
  */
 function user_logout(options) {
   try {
-    Drupal.services.call({
+    jDrupal.services.call({
         service: 'user',
         resource: 'logout',
         method: 'POST',
@@ -206,8 +206,8 @@ function user_logout(options) {
         success: function(data) {
           try {
             // Now that we logged out, clear the sessid and call system connect.
-            Drupal.user = drupal_user_defaults();
-            Drupal.sessid = null;
+            jDrupal.user = drupal_user_defaults();
+            jDrupal.sessid = null;
             system_connect({
                 success: function(result) {
                   try {
@@ -262,7 +262,7 @@ function user_request_new_password(name, options) {
     options.path = 'user/request_new_password.json';
     options.service = 'user';
     options.resource = 'request_new_password';
-    Drupal.services.call(options);
+    jDrupal.services.call(options);
   }
   catch (error) { console.log('user_request_new_password - ' + error); }
 }

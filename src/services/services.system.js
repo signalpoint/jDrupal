@@ -13,7 +13,7 @@ function system_connect(options) {
       path: 'system/connect.json',
       success: function(data) {
         try {
-          Drupal.user = data.user;
+          jDrupal.user = data.user;
           if (options.success) { options.success(data); }
         }
         catch (error) {
@@ -30,14 +30,14 @@ function system_connect(options) {
     };
 
     // If we don't have a token, grab one first.
-    if (!Drupal.csrf_token) {
+    if (!jDrupal.csrf_token) {
       services_get_csrf_token({
           success: function(token) {
             try {
               if (options.debug) { console.log('Grabbed new token.'); }
               // Now that we have a token, make the system connect call.
-              Drupal.csrf_token = true;
-              Drupal.services.call(system_connect);
+              jDrupal.csrf_token = true;
+              jDrupal.services.call(system_connect);
             }
             catch (error) {
               console.log(
@@ -60,7 +60,7 @@ function system_connect(options) {
     else {
       // We already have a token, make the system connect call.
       if (options.debug) { console.log('Token already available.'); }
-      Drupal.services.call(system_connect);
+      jDrupal.services.call(system_connect);
     }
   }
   catch (error) {

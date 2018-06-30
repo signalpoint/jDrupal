@@ -1,21 +1,23 @@
-// Initialize the Drupal JSON object and run the bootstrap, if necessary.
-var Drupal = {}; drupal_init();
-var jDrupal = Drupal; // @TODO deprecate Drupal in favor of jDrupal object.
+// Initialize the jDrupal JSON object and run the bootstrap, if necessary.
+var jDrupal = {}; drupal_init();
+// @deprecated The name Drupal will be removed in the future. Use jDrupal
+// instead.
+var Drupal = jDrupal;
 
 /**
- * Initializes the Drupal JSON object.
+ * Initializes the jDrupal JSON object.
  */
 function drupal_init() {
   try {
-    if (!Drupal) { Drupal = {}; }
+    if (!jDrupal) { jDrupal = {}; }
 
     // General properties.
-    Drupal.csrf_token = false;
-    Drupal.sessid = null;
-    Drupal.user = drupal_user_defaults();
+    jDrupal.csrf_token = false;
+    jDrupal.sessid = null;
+    jDrupal.user = drupal_user_defaults();
 
     // Settings.
-    Drupal.settings = {
+    jDrupal.settings = {
       app_directory: 'app',
       base_path: '/',
       cache: {
@@ -37,12 +39,12 @@ function drupal_init() {
     // Includes. Although we no longer dynamically load the includes, we want
     // to place them each in their own JSON object, so we have an easy way to
     // access them.
-    Drupal.includes = {};
-    Drupal.includes['module'] = {};
+    jDrupal.includes = {};
+    jDrupal.includes['module'] = {};
     // Modules. Although we no longer dynamically load the core modules, we want
     // to place them each in their own JSON object, so we have an easy way to
     // access them.
-    Drupal.modules = {
+    jDrupal.modules = {
       core: {},
       contrib: {},
       custom: {}
@@ -51,7 +53,7 @@ function drupal_init() {
     // used to prevent async calls to the same resource from piling up and
     // making duplicate requests.
     // @TODO - this needs to be dynamic, what about custom entity types?
-    Drupal.services_queue = {
+    jDrupal.services_queue = {
       comment: {
         retrieve: {}
       },
@@ -73,17 +75,17 @@ function drupal_init() {
     };
 
     // Build a JSON object to house cache expiration indices.
-    Drupal.cache_expiration = window.localStorage.getItem('cache_expiration');
-    if (!Drupal.cache_expiration) {
+    jDrupal.cache_expiration = window.localStorage.getItem('cache_expiration');
+    if (!jDrupal.cache_expiration) {
 
-      Drupal.cache_expiration = {
+      jDrupal.cache_expiration = {
 
         // Entities will expire by a key value (key timestamp) pair
         entities: {}
 
       };
     }
-    else { Drupal.cache_expiration = JSON.parse(Drupal.cache_expiration); }
+    else { jDrupal.cache_expiration = JSON.parse(jDrupal.cache_expiration); }
 
   }
   catch (error) { console.log('drupal_init - ' + error); }
@@ -451,14 +453,14 @@ function is_int(n) {
 }
 
 /**
- * Get the default language from Drupal.settings.
+ * Get the default language from jDrupal.settings.
  * @return {String}
  */
 function language_default() {
   try {
-    if (Drupal.settings.language_default &&
-      Drupal.settings.language_default != '') {
-      return Drupal.settings.language_default;
+    if (jDrupal.settings.language_default &&
+      jDrupal.settings.language_default != '') {
+      return jDrupal.settings.language_default;
     }
     return 'und';
   }
@@ -474,13 +476,13 @@ function language_default() {
 function module_exists(name) {
   try {
     var exists = false;
-    if (typeof Drupal.modules.core[name] !== 'undefined') {
+    if (typeof jDrupal.modules.core[name] !== 'undefined') {
       exists = true;
     }
-    else if (typeof Drupal.modules.contrib[name] !== 'undefined') {
+    else if (typeof jDrupal.modules.contrib[name] !== 'undefined') {
       exists = true;
     }
-    else if (typeof Drupal.modules.custom[name] !== 'undefined') {
+    else if (typeof jDrupal.modules.custom[name] !== 'undefined') {
       exists = true;
     }
     return exists;
