@@ -270,6 +270,29 @@ node_index(query, {
     }
 });
 ```
+```
+// Get list of articles from oldest to newest with a title containing the word "foo"
+var query = {
+  fields: ['nid', 'title', 'created'],
+  parameters: {
+    type: 'article',
+    title: '%foo%'
+  },
+  options: {
+    order_by: {
+      created: 'asc'
+    },
+    parameters_op: {
+      title: 'like'
+    }
+  }
+};
+node_index(query, {
+    success: function(nodes) {
+      alert('Indexed ' + nodes.length + ' node(s)!');
+    }
+});
+```
 ### Users
 ```
 ...
