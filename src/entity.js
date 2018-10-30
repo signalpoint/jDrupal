@@ -1,5 +1,3 @@
-// @TODO All "set" functions should return "this" for easy code chains.
-
 /**
  * Given a entity type, bundle and id, this Creates a new jDrupal Entity object.
  * @param entityType
