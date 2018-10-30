@@ -5,10 +5,17 @@
 
 ## 2. Enable the Module
 
-Download and enable the [jDrupal module](http://www.drupal.org/project/jdrupal).
+Using composer to download and drush to install:
 
 ```
-# drush en jdrupal
+composer require drupal/jdrupal
+drush en jdrupal
+```
+
+Or download and enable the [jDrupal module](http://www.drupal.org/project/jdrupal) manually and then enable it:
+
+```
+drush en jdrupal
 ```
 
 ## 3. Configure it
