@@ -12,6 +12,14 @@
 })(XMLHttpRequest.prototype.send);
 
 /**
+ * Given a XHR request, this will parse and return the JSON object from the response.
+ * @param req {XMLHttpRequest}
+ */
+jDrupal.getResultFromRequest = function(req) {
+  return JSON.parse(typeof req.responseText !== 'undefined' ? req.responseText : req.response);
+};
+
+/**
  * Gets the X-CSRF-Token from Drupal.
  * @returns {Promise}
  */
