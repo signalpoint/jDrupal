@@ -826,6 +826,8 @@ jDrupal.Entity.prototype.save = function() {
           path = entityType + '/' + _entity.id();
         }
 
+        path += '?_format=json';
+
         var req = new XMLHttpRequest();
         req.dg = {
           service: entityType,
