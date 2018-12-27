@@ -30,7 +30,7 @@ jDrupal.token = function() {
       service: 'system',
       resource: 'token'
     };
-    req.open('GET', jDrupal.restPath() + 'rest/session/token');
+    req.open('GET', jDrupal.restPath() + 'session/token');
     req.onload = function() {
       if (req.status == 200) {
         var invoke = jDrupal.moduleInvokeAll('rest_post_process', req);
