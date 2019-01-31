@@ -1,5 +1,5 @@
 // Initialize the jDrupal object.
-var jDrupal = {};
+var jDrupal = typeof jDrupal === 'undefined' ? {} : jDrupal;
 
 /**
  * Initializes the jDrupal JSON object.
