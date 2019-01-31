@@ -42,7 +42,7 @@ function entity_create(entity_type, bundle, entity, options) {
  * @param {Object} options
  */
 function entity_retrieve(entity_type, ids, options) {
-  try {
+  //try {
     var path = entity_type + '/' + ids + '.json';
     if (in_array(entity_type, services_entity_types())) { path = 'entity_' + path; }
     jDrupal.services.call({
@@ -53,20 +53,20 @@ function entity_retrieve(entity_type, ids, options) {
         entity_type: entity_type,
         entity_id: ids,
         success: function(data) {
-          try {
+          //try {
             if (options.success) { options.success(data); }
-          }
-          catch (error) { console.log('entity_retrieve - success - ' + error); }
+          //}
+          //catch (error) { console.log('entity_retrieve - success - ' + error); }
         },
         error: function(xhr, status, message) {
-          try {
+          //try {
             if (options.error) { options.error(xhr, status, message); }
-          }
-          catch (error) { console.log('entity_retrieve - error - ' + error); }
+          //}
+          //catch (error) { console.log('entity_retrieve - error - ' + error); }
         }
     });
-  }
-  catch (error) { console.log('entity_retrieve - ' + error); }
+  //}
+  //catch (error) { console.log('entity_retrieve - ' + error); }
 }
 
 /**

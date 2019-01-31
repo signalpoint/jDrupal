@@ -8,7 +8,7 @@ jDrupal.services = {};
  * @param {Object} options
  */
 jDrupal.services.call = function(options) {
-  try {
+  //try {
 
     options.debug = false;
 
@@ -41,7 +41,7 @@ jDrupal.services.call = function(options) {
 
     // Request Success Handler
     request.onload = function(e) {
-      try {
+      //try {
         if (request.readyState == 4) {
           // Build a human readable response title.
           var title = request.status + ' - ' + request.statusText;
@@ -94,23 +94,24 @@ jDrupal.services.call = function(options) {
         else {
           console.log('jDrupal.services.call - request.readyState = ' + request.readyState);
         }
-      }
-      catch (error) {
-        // Not OK...
-        if (jDrupal.settings.debug) {
-          console.log(method + ': ' + url + ' - ' + request.statusText);
-          console.log(request.responseText);
-          console.log(request.getAllResponseHeaders());
-        }
-        console.log('jDrupal.services.call - onload - ' + error);
-      }
+      //}
+      //catch (error) {
+      //  // Not OK...
+      //  if (jDrupal.settings.debug) {
+      //    console.log(method + ': ' + url + ' - ' + request.statusText);
+      //    console.log(request.responseText);
+      //    console.log(request.getAllResponseHeaders());
+      //  }
+      //  console.log('jDrupal.services.call - onload - ' + error);
+      //}
     };
 
     // Get the CSRF Token and Make the Request.
     services_get_csrf_token({
         debug: options.debug,
         success: function(token) {
-          try {
+          //try {
+
             // Async, or sync? By default we'll use async if none is provided.
             var async = true;
             if (typeof options.async !== 'undefined' &&
@@ -179,31 +180,31 @@ jDrupal.services.call = function(options) {
             }
             else { request.send(null); }
 
-          }
-          catch (error) {
-            console.log(
-              'jDrupal.services.call - services_get_csrf_token - success - ' +
-              error
-            );
-          }
+          //}
+          //catch (error) {
+          //  console.log(
+          //    'jDrupal.services.call - services_get_csrf_token - success - ' +
+          //    error
+          //  );
+          //}
         },
         error: function(xhr, status, message) {
-          try {
+          //try {
             if (options.error) { options.error(xhr, status, message); }
-          }
-          catch (error) {
-            console.log(
-              'jDrupal.services.call - services_get_csrf_token - error - ' +
-              error
-            );
-          }
+          //}
+          //catch (error) {
+          //  console.log(
+          //    'jDrupal.services.call - services_get_csrf_token - error - ' +
+          //    error
+          //  );
+          //}
         }
     });
 
-  }
-  catch (error) {
-    console.log('jDrupal.services.call - error - ' + error);
-  }
+  //}
+  //catch (error) {
+  //  console.log('jDrupal.services.call - error - ' + error);
+  //}
 };
 
 /**
@@ -211,7 +212,7 @@ jDrupal.services.call = function(options) {
  * @param {Object} options
  */
 function services_get_csrf_token(options) {
-  try {
+  //try {
 
     var token;
 
@@ -230,7 +231,6 @@ function services_get_csrf_token(options) {
     // Build the Request and URL.
     var token_request = new XMLHttpRequest();
     options.token_url = jDrupal.settings.site_path + jDrupal.settings.base_path + '?q=services/session/token';
-
     module_invoke_all('csrf_token_preprocess', options);
 
     // Watch for net::ERR_CONNECTION_REFUSED and other oddities.
@@ -242,7 +242,7 @@ function services_get_csrf_token(options) {
 
     // Token Request Success Handler
     token_request.onload = function(e) {
-      try {
+      //try {
         if (token_request.readyState == 4) {
           var title = token_request.status + ' - ' +
             http_status_code_title(token_request.status);
@@ -259,10 +259,10 @@ function services_get_csrf_token(options) {
         else {
           console.log('services_get_csrf_token - readyState - ' + token_request.readyState);
         }
-      }
-      catch (error) {
-        console.log('services_get_csrf_token - token_request. onload - ' + error);
-      }
+      //}
+      //catch (error) {
+      //  console.log('services_get_csrf_token - token_request. onload - ' + error);
+      //}
     };
 
     // Open the token request.
@@ -270,8 +270,8 @@ function services_get_csrf_token(options) {
 
     // Send the token request.
     token_request.send(null);
-  }
-  catch (error) { console.log('services_get_csrf_token - ' + error); }
+  //}
+  //catch (error) { console.log('services_get_csrf_token - ' + error); }
 }
 
 /**
@@ -279,7 +279,7 @@ function services_get_csrf_token(options) {
  * @return {Boolean}
  */
 function services_ready() {
-  try {
+  //try {
     var result = true;
     if (jDrupal.settings.site_path == '') {
       result = false;
@@ -290,8 +290,8 @@ function services_ready() {
       console.log('jDrupal\'s jDrupal.settings.endpoint is not set!');
     }
     return result;
-  }
-  catch (error) { console.log('services_ready - ' + error); }
+  //}
+  //catch (error) { console.log('services_ready - ' + error); }
 }
 
 /**
@@ -316,15 +316,15 @@ function services_resource_defaults(options, service, resource) {
  * @return {Boolean}
  */
 function _services_queue_already_queued(service, resource, entity_id, callback_type) {
-  try {
+  //try {
     var queued = false;
     if (typeof jDrupal.services_queue[service][resource][entity_id] !== 'undefined') {
       var queue = jDrupal.services_queue[service][resource][entity_id];
       if (queue[callback_type].length != 0) { queued = true; }
     }
     return queued;
-  }
-  catch (error) { console.log('_services_queue_already_queued - ' + error); }
+  //}
+  //catch (error) { console.log('_services_queue_already_queued - ' + error); }
 }
 
 /**
@@ -334,14 +334,14 @@ function _services_queue_already_queued(service, resource, entity_id, callback_t
  * @param {Number} entity_id
  */
 function _services_queue_add_to_queue(service, resource, entity_id) {
-  try {
+  //try {
     jDrupal.services_queue[service][resource][entity_id] = {
       entity_id: entity_id,
       success: [],
       error: []
     };
-  }
-  catch (error) { console.log('_services_queue_add_to_queue - ' + error); }
+  //}
+  //catch (error) { console.log('_services_queue_add_to_queue - ' + error); }
 }
 
 /**
@@ -353,10 +353,10 @@ function _services_queue_add_to_queue(service, resource, entity_id) {
  * @private
  */
 function _services_queue_clear(entity_type, resource, entity_id, callback_type) {
-  try {
+  //try {
     jDrupal.services_queue[entity_type]['retrieve'][entity_id][callback_type] = [];
-  }
-  catch (error) { console.log('_services_queue_clear - ' + error); }
+  //}
+  //catch (error) { console.log('_services_queue_clear - ' + error); }
 }
 
 /**
@@ -378,12 +378,12 @@ function _services_queue_remove_from_queue(service, resource, entity_id) {
  * @param {Function} callback
  */
 function _services_queue_callback_add(service, resource, entity_id, callback_type, callback) {
-  try {
+  //try {
     jDrupal.services_queue[service][resource][entity_id][callback_type].push(
       callback
     );
-  }
-  catch (error) { console.log('_services_queue_callback_add - ' + error); }
+  //}
+  //catch (error) { console.log('_services_queue_callback_add - ' + error); }
 }
 
 /**
@@ -396,11 +396,10 @@ function _services_queue_callback_add(service, resource, entity_id, callback_typ
  */
 function _services_queue_callback_count(service, resource, entity_id,
   callback_type) {
-  try {
+  //try {
     var length =
       jDrupal.services_queue[service][resource][entity_id][callback_type].length;
     return length;
-  }
-  catch (error) { console.log('_services_queue_callback_count - ' + error); }
+  //}
+  //catch (error) { console.log('_services_queue_callback_count - ' + error); }
 }
-

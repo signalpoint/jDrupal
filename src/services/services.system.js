@@ -3,7 +3,7 @@
  * @param {Object} options
  */
 function system_connect(options) {
-  try {
+  //try {
 
     // Build a system connect object.
     var system_connect = {
@@ -33,27 +33,27 @@ function system_connect(options) {
     if (!jDrupal.csrf_token) {
       services_get_csrf_token({
           success: function(token) {
-            try {
+            //try {
               if (options.debug) { console.log('Grabbed new token.'); }
               // Now that we have a token, make the system connect call.
               jDrupal.csrf_token = true;
               jDrupal.services.call(system_connect);
-            }
-            catch (error) {
-              console.log(
-                'system_connect - services_csrf_token - success - ' + message
-              );
-            }
+            //}
+            //catch (error) {
+            //  console.log(
+            //    'system_connect - services_csrf_token - success - ' + error
+            //  );
+            //}
           },
           error: function(xhr, status, message) {
-            try {
+            //try {
               if (options.error) { options.error(xhr, status, message); }
-            }
-            catch (error) {
-              console.log(
-                'system_connect - services_csrf_token - error - ' + message
-              );
-            }
+            //}
+            //catch (error) {
+            //  console.log(
+            //    'system_connect - services_csrf_token - error - ' + message
+            //  );
+            //}
           }
       });
     }
@@ -62,9 +62,8 @@ function system_connect(options) {
       if (options.debug) { console.log('Token already available.'); }
       jDrupal.services.call(system_connect);
     }
-  }
-  catch (error) {
-    console.log('system_connect - ' + error);
-  }
+//  }
+//  catch (error) {
+//    console.log('system_connect - ' + error);
+//  }
 }
-

@@ -188,7 +188,7 @@ function entity_index_local_storage_key(path) { return path; }
  * @param {Object} options
  */
 function entity_load(entity_type, ids, options) {
-  try {
+  //try {
     var servicesEntityType = in_array(entity_type, services_entity_types());
     if (servicesEntityType) { _services_entity_queue_init(); }
 
@@ -260,7 +260,7 @@ function entity_load(entity_type, ids, options) {
     var primary_key = entity_primary_key(entity_type);
     var call_options = {
       success: function(data) {
-        try {
+        //try {
 
           // Set the entity equal to the returned data.
           entity = data;
@@ -273,8 +273,8 @@ function entity_load(entity_type, ids, options) {
 
           _entity_callback_bubble(entity_type, entity_id, entity);
 
-        }
-        catch (error) { console.log('entity_load - success - ' + error); }
+        //}
+        //catch (error) { console.log('entity_load - success - ' + error); }
       },
       error: function(xhr, status, message) {
         try {
@@ -300,8 +300,8 @@ function entity_load(entity_type, ids, options) {
       else { fn(ids, call_options); }
     }
     else { console.log('WARNING: ' + function_name + '() does not exist!'); }
-  }
-  catch (error) { console.log('entity_load - ' + error); }
+  //}
+  //catch (error) { console.log('entity_load - ' + error); }
 }
 
 function _entity_callback_bubble(entity_type, entity_id, entity) {
