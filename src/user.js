@@ -50,7 +50,7 @@ jDrupal.User.prototype.hasRole = function(role) {
 };
 
 /**
- *
+ * Returns true if the user account is anonymous (not logged in), otherwise false.
  * @returns {boolean}
  */
 jDrupal.User.prototype.isAnonymous = function() {
@@ -58,11 +58,19 @@ jDrupal.User.prototype.isAnonymous = function() {
 };
 
 /**
- *
+ * Returns true if the user account is authenticated (logged in), otherwise false.
  * @returns {boolean}
  */
 jDrupal.User.prototype.isAuthenticated = function() {
   return !this.isAnonymous();
+};
+
+/**
+ * Returns the user account's e-mail address.
+ * @returns {String}
+ */
+jDrupal.User.prototype.getEmail = function() {
+  return this.get('mail')[0].value;
 };
 
 /**
