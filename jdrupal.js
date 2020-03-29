@@ -1314,6 +1314,10 @@ jDrupal.User.prototype.isAuthenticated = function() {
   return !this.isAnonymous();
 };
 
+jDrupal.User.prototype.getEmail = function() {
+  console.log('getEmail', this);
+};
+
 /**
  * PROXIES
  */
