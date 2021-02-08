@@ -97,3 +97,7 @@ entity_load('invitation', 123, {
   error: function(xhr, status, msg) { alert(msg); }
 });
 ```
+
+## Cordova + iOS
+
+If you're developing an iOS app using cordova, follow [these additional instructions](https://github.com/signalpoint/jDrupal/issues/87#issuecomment-775488402).
