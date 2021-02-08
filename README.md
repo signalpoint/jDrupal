@@ -77,3 +77,7 @@ jDrupal.viewsLoad('my-view-url').then(function(view) {
 - [Hello World](http://jdrupal.tylerfrankenstein.com/8/docs/Hello_World)
 
 > jDrupal is best friends with [DrupalGap](http://drupalgap.org), the open source application development kit for Drupal websites.
+
+## Cordova + iOS
+
+If you're developing an iOS app using cordova, follow [these additional instructions](https://github.com/signalpoint/jDrupal/issues/87#issuecomment-775488402).
