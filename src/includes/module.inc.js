@@ -13,10 +13,7 @@ jDrupal.Module = function() {
  * @return {Boolean}
  */
 jDrupal.moduleExists = function (name) {
-  try {
-    return typeof jDrupal.modules[name] !== 'undefined';
-  }
-  catch (error) { console.log('jDrupal.moduleExists - ' + error); }
+  return typeof jDrupal.modules[name] !== 'undefined';
 };
 
 /**
@@ -26,23 +23,20 @@ jDrupal.moduleExists = function (name) {
  * @return {Array}
  */
 jDrupal.moduleImplements = function(hook) {
-  try {
-    var modules_that_implement = [];
+//  try {
+    var implements = [];
     if (hook) {
-
         for (var module in jDrupal.modules) {
           if (jDrupal.modules.hasOwnProperty(module)) {
             if (jDrupal.functionExists(module + '_' + hook)) {
-              modules_that_implement.push(module);
+              implements.push(module);
             }
           }
         }
-
     }
-    if (modules_that_implement.length == 0) { return false; }
-    return modules_that_implement;
-  }
-  catch (error) { console.log('jDrupal.moduleImplements - ' + error); }
+    return implements.length ? implements : false;
+//  }
+//  catch (error) { console.log('jDrupal.moduleImplements - ' + error); }
 };
 
 /**
@@ -111,8 +105,7 @@ jDrupal.moduleInvokeAll = function(hook) {
  * @return {Object|Boolean}
  */
 jDrupal.moduleLoad = function(name) {
-  try { return jDrupal.modules[name] ? jDrupal.modules[name] : false; }
-  catch (error) { console.log('jDrupal.moduleLoad - ' + error); }
+  return jDrupal.modules[name] ? jDrupal.modules[name] : false;
 };
 
 /**
