@@ -194,10 +194,7 @@ jDrupal.Module = function() {
  * @return {Boolean}
  */
 jDrupal.moduleExists = function (name) {
-  try {
-    return typeof jDrupal.modules[name] !== 'undefined';
-  }
-  catch (error) { console.log('jDrupal.moduleExists - ' + error); }
+  return typeof jDrupal.modules[name] !== 'undefined';
 };
 
 /**
@@ -207,23 +204,15 @@ jDrupal.moduleExists = function (name) {
  * @return {Array}
  */
 jDrupal.moduleImplements = function(hook) {
-  try {
-    var modules_that_implement = [];
-    if (hook) {
-
-        for (var module in jDrupal.modules) {
-          if (jDrupal.modules.hasOwnProperty(module)) {
-            if (jDrupal.functionExists(module + '_' + hook)) {
-              modules_that_implement.push(module);
-            }
-          }
-        }
-
+  var implements = [];
+  for (var module in jDrupal.modules) {
+    if (jDrupal.modules.hasOwnProperty(module)) {
+      if (jDrupal.functionExists(module + '_' + hook)) {
+        implements.push(module);
+      }
     }
-    if (modules_that_implement.length == 0) { return false; }
-    return modules_that_implement;
   }
-  catch (error) { console.log('jDrupal.moduleImplements - ' + error); }
+  return implements.length ? implements : false;
 };
 
 /**
@@ -292,8 +281,7 @@ jDrupal.moduleInvokeAll = function(hook) {
  * @return {Object|Boolean}
  */
 jDrupal.moduleLoad = function(name) {
-  try { return jDrupal.modules[name] ? jDrupal.modules[name] : false; }
-  catch (error) { console.log('jDrupal.moduleLoad - ' + error); }
+  return jDrupal.modules[name] ? jDrupal.modules[name] : false;
 };
 
 /**
@@ -1299,7 +1287,7 @@ jDrupal.User.prototype.hasRole = function(role) {
 };
 
 /**
- *
+ * Returns true if the user account is anonymous (not logged in), otherwise false.
  * @returns {boolean}
  */
 jDrupal.User.prototype.isAnonymous = function() {
@@ -1307,15 +1295,19 @@ jDrupal.User.prototype.isAnonymous = function() {
 };
 
 /**
- *
+ * Returns true if the user account is authenticated (logged in), otherwise false.
  * @returns {boolean}
  */
 jDrupal.User.prototype.isAuthenticated = function() {
   return !this.isAnonymous();
 };
 
+/**
+ * Returns the user account's e-mail address.
+ * @returns {String}
+ */
 jDrupal.User.prototype.getEmail = function() {
-  console.log('getEmail', this);
+  return this.get('mail')[0].value;
 };
 
 /**
