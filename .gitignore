@@ -4,3 +4,4 @@ app/modules/*
 app/themes/*
 app/libraries/*
 node_modules
+package-lock.json
