@@ -1,6 +1,6 @@
 {
   "name": "jdrupal",
-  "version": "8.0.0",
+  "version": "8.0.2",
   "description": "Application Development Tools for Drupal 8 REST",
   "main": "index.html",
   "scripts": {

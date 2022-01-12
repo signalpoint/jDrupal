@@ -1,0 +1,18 @@
+8.0.2
+
+- Add getEmail() to User prototype
+- Use jDrupal var if it already exists. Allows jd8 and jd7 to be on the same page.
+- Add '?_format-json' to entity save requests.
+- Add jDrupal.getResultFromRequest().
+- Use longer lines for comments.c
+- Simplify functionExists().
+- Updated resolve to include the req response data.
+- Updated non 200 status to return full response for more flexibility.
+
+by @adam-clarey
+- postsave() fix
+- Fix patch response check
+- Add user registration
+
+by @hanoii
+- Use newer token session route
