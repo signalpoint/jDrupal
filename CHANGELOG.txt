@@ -1,3 +1,40 @@
+7.0.6
+
+- Comment out many try catch clauses to prevent jDrupal from swallowing
+  important JS Console messages.
+- Only overwrite Drupal variable if it doesn't exist, that way jDrupal will work
+  on Drupal 7 front end too.
+- Rename Drupal JS object to jDrupal
+- #78 Send along empty POST data with System Connect.
+- Send error stack to console during system connect errors.
+- #61 Trim potential whitespace with retrieved CSRF token.
+- #60 Support entity update for Services Entity.
+- #60 Add support for Services Entity within entity_save().
+- Add fieldSetItem().
+- #60 Add support for Services Entity.
+- by @jacobembree
+  - date(): Support M and h tokens
+  - #58  Remove unused duplicate entity_delete().
+  - date(): Add leading zero to seconds
+  - Support 's' and '\' in date()
+- Add is_array(). Stop using jQuery.isArray(). jDrupal is now pure JavaScript.
+- Replace usage of drupalgap_module_load() with module_load().
+- #54 Add entity field item helper functions.
+- #51 #52 Handle ERR_CONNECTION_REFUSED and support timeout and ontimeout.
+
+7.0.5
+
+...
+
+7.0.4
+
+- Improve entity local storage expiration
+- Allow multiple entities to be loaded
+
+7.0.3
+
+...
+
 7.x-1.0-rc1 => 7.x-1.0-rc2
 
   Added local storage caching for entities. Intelligently adds/removes based on
@@ -9,4 +46,3 @@
   the service resources success function has been called. Rename any of your
   implementations of hook_services_request_postprocess_alter() to
   hook_services_request_pre_postprocess_alter().
-
