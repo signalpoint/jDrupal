@@ -23,15 +23,15 @@ jDrupal.moduleExists = function (name) {
  * @return {Array}
  */
 jDrupal.moduleImplements = function(hook) {
-  var implements = [];
+  var implementations = [];
   for (var module in jDrupal.modules) {
     if (jDrupal.modules.hasOwnProperty(module)) {
       if (jDrupal.functionExists(module + '_' + hook)) {
-        implements.push(module);
+        implementations.push(module);
       }
     }
   }
-  return implements.length ? implements : false;
+  return implementations.length ? implementations : false;
 };
 
 /**
