@@ -226,7 +226,7 @@ jDrupal.Entity.prototype.save = function() {
         if (isNew) {
           method = 'POST';
           resource = 'create';
-          path = 'entity/' + entityType;
+          path = entityType;
         }
         else {
           method = 'PATCH';
