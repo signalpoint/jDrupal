@@ -1,8 +1,5 @@
 // Initialize the jDrupal JSON object and run the bootstrap, if necessary.
-var jDrupal = {}; drupal_init();
-// @deprecated The name Drupal will be removed in the future. Use jDrupal
-// instead.
-if (!Drupal) { var Drupal = jDrupal; }
+jDrupal = {}; drupal_init();
 
 /**
  * Initializes the jDrupal JSON object.
@@ -253,8 +250,8 @@ function date(format) {
         // 12-hour format of an hour without leading zeros: 1 through 12
         case 'g':
           var hours = d.getHours();
-          if (hours == 0 || hours == 23) { hours = 12; }
-          else { hours = hours % 12; }
+          if (hours == 0 || hours == 11 || hours == 23) { hours = 12; }
+          else if (hours > 12) { hours = hours % 12; }
           result += '' + hours;
           break;
 
